@@ -1,1 +1,157 @@
-<p>perfil-entrenador works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mi Perfil</h1>
+    <p>Información personal y profesional</p>
+  </div>
+
+  @if (guardado()) {
+    <div class="gym-toast">
+      <i class="bi bi-check-circle-fill text-success"></i> Perfil actualizado correctamente
+    </div>
+  }
+
+  <!-- Tarjeta de perfil -->
+  <div class="perfil-grid">
+    <!-- Card izquierda: avatar + info -->
+    <div class="gym-card perfil-avatar-card">
+      <div class="gym-avatar gym-avatar-xl">{{ iniciales() }}</div>
+      <h2 class="perfil-nombre">{{ nombreCompleto() }}</h2>
+      <p class="text-muted">Entrenador Personal</p>
+      <div class="perfil-chips">
+        <span class="gym-badge gym-badge-orange">
+          <i class="bi bi-award-fill"></i> {{ entrenador.especialidad }}
+        </span>
+        <span class="gym-badge gym-badge-info">
+          <i class="bi bi-clock-fill"></i> {{ entrenador.experiencia }} años de experiencia
+        </span>
+        @if (entrenador.activo) {
+          <span class="gym-badge gym-badge-success">Activo</span>
+        }
+      </div>
+
+      @if (entrenador.certificaciones && entrenador.certificaciones.length > 0) {
+        <div class="cert-section mt-2">
+          <p class="gym-form-label">Certificaciones</p>
+          <div class="cert-list">
+            @for (cert of entrenador.certificaciones; track cert) {
+              <span class="gym-badge gym-badge-warning">
+                <i class="bi bi-patch-check-fill"></i> {{ cert }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (!modoEdicion()) {
+        <button class="gym-btn gym-btn-primary mt-2" (click)="activarEdicion()" id="btn-editar-perfil">
+          <i class="bi bi-pencil-fill"></i> Editar Perfil
+        </button>
+      }
+    </div>
+
+    <!-- Card derecha: formulario -->
+    <div class="gym-card">
+      @if (!modoEdicion()) {
+        <!-- Vista de datos -->
+        <div class="gym-section-title">
+          <i class="bi bi-person-fill text-primary"></i>
+          Datos Personales
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Nombre</span>
+          <span class="value">{{ entrenador.nombre }} {{ entrenador.apellido }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Correo Electrónico</span>
+          <span class="value">{{ entrenador.email }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Teléfono</span>
+          <span class="value">{{ entrenador.telefono }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Especialidad</span>
+          <span class="value">{{ entrenador.especialidad }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Años de Experiencia</span>
+          <span class="value">{{ entrenador.experiencia }} años</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Fecha de Registro</span>
+          <span class="value">{{ entrenador.fechaRegistro }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Clientes Asignados</span>
+          <span class="value">{{ entrenador.clientesAsignados.length }}</span>
+        </div>
+      } @else {
+        <!-- Formulario de edición -->
+        <div class="gym-section-title">
+          <i class="bi bi-pencil-fill text-primary"></i>
+          Editar Datos
+        </div>
+        <form [formGroup]="form" (ngSubmit)="guardar()" id="form-perfil-entrenador">
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="nombre-ent">Nombre</label>
+              <input id="nombre-ent" type="text" class="gym-form-control" formControlName="nombre">
+              @if (hasError('nombre', 'required')) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+              }
+              @if (hasError('nombre', 'minlength')) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 2 caracteres</span>
+              }
+            </div>
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="apellido-ent">Apellido</label>
+              <input id="apellido-ent" type="text" class="gym-form-control" formControlName="apellido">
+              @if (hasError('apellido', 'required')) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+              }
+            </div>
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="email-ent">Correo Electrónico</label>
+            <input id="email-ent" type="email" class="gym-form-control" formControlName="email">
+            @if (hasError('email', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+            }
+            @if (hasError('email', 'email')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Correo no válido</span>
+            }
+          </div>
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="tel-ent">Teléfono</label>
+              <input id="tel-ent" type="tel" class="gym-form-control" formControlName="telefono">
+              @if (hasError('telefono', 'minlength')) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 7 dígitos</span>
+              }
+            </div>
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="exp-ent">Años de Experiencia</label>
+              <input id="exp-ent" type="number" class="gym-form-control" formControlName="experiencia" min="0" max="50">
+              @if (hasError('experiencia', 'min') || hasError('experiencia', 'max')) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Entre 0 y 50 años</span>
+              }
+            </div>
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="esp-ent">Especialidad</label>
+            <input id="esp-ent" type="text" class="gym-form-control" formControlName="especialidad" placeholder="Ej: Musculación y Fuerza">
+            @if (hasError('especialidad', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+            }
+          </div>
+          <div class="d-flex gap-1 mt-2">
+            <button type="submit" class="gym-btn gym-btn-primary">
+              <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+            </button>
+            <button type="button" class="gym-btn gym-btn-secondary" (click)="cancelar()">Cancelar</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

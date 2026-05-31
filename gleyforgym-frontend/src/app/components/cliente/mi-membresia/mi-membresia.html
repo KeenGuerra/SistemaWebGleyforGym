@@ -1,1 +1,148 @@
-<p>mi-membresia works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mi Membresía</h1>
+    <p>Estado y detalles de tu membresía activa</p>
+  </div>
+
+  @if (membresia(); as m) {
+    <div class="membresia-grid">
+      <!-- Card principal -->
+      <div class="gym-card membresia-card">
+        <div class="membresia-tipo-badge">
+          <i class="bi bi-lightning-charge-fill"></i>
+          {{ m.tipo }}
+        </div>
+        <div class="membresia-precio">
+          RD$ {{ m.precio | number }}
+          <span class="precio-periodo">/ período</span>
+        </div>
+        <span class="gym-badge {{ estadoBadgeClass(m.estado) }} membresia-estado">
+          @switch (m.estado) {
+            @case ('activa') { <i class="bi bi-check-circle-fill"></i> Membresía Activa }
+            @case ('vencida') { <i class="bi bi-x-circle-fill"></i> Membresía Vencida }
+            @case ('pendiente') { <i class="bi bi-clock-fill"></i> Pendiente }
+          }
+        </span>
+
+        <div class="membresia-fechas">
+          <div class="fecha-item">
+            <span class="fecha-label">Inicio</span>
+            <span class="fecha-valor">{{ m.fechaInicio }}</span>
+          </div>
+          <div class="fecha-arrow"><i class="bi bi-arrow-right"></i></div>
+          <div class="fecha-item">
+            <span class="fecha-label">Vencimiento</span>
+            <span class="fecha-valor">{{ m.fechaFin }}</span>
+          </div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="membresia-progreso">
+          <div class="d-flex justify-between mb-1">
+            <span class="font-xs text-muted">Tiempo utilizado</span>
+            <span class="font-xs text-primary fw-600">{{ porcentajeUsado() }}%</span>
+          </div>
+          <div class="gym-progress-bar" style="height: 10px;">
+            <div class="gym-progress-fill" [style.width.%]="porcentajeUsado()"></div>
+          </div>
+          <div class="d-flex justify-between mt-1">
+            <span class="font-xs text-muted">{{ m.fechaInicio }}</span>
+            <span class="font-xs text-primary">
+              {{ diasRestantes() }} días restantes
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info detallada -->
+      <div class="gym-card">
+        <div class="gym-section-title">
+          <i class="bi bi-info-circle-fill text-primary"></i>
+          Detalles de la Membresía
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Tipo de Plan</span>
+          <span class="value">{{ m.tipo }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Precio</span>
+          <span class="value text-primary fw-600">RD$ {{ m.precio | number }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Fecha de Inicio</span>
+          <span class="value">{{ m.fechaInicio }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Fecha de Vencimiento</span>
+          <span class="value">{{ m.fechaFin }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Estado</span>
+          <span class="value">
+            <span class="gym-badge {{ estadoBadgeClass(m.estado) }}">{{ m.estado }}</span>
+          </span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Días Restantes</span>
+          <span class="value"
+            [class.text-success]="diasRestantes() > 10"
+            [class.text-warning]="diasRestantes() <= 10 && diasRestantes() > 0"
+            [class.text-danger]="diasRestantes() === 0">
+            {{ diasRestantes() }} días
+          </span>
+        </div>
+
+        @if (m.estado === 'activa' && diasRestantes() <= 10) {
+          <div class="alerta-renovacion">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Tu membresía vence pronto. ¡Renueva antes de la fecha de vencimiento!
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Beneficios -->
+    <div class="gym-card mt-3">
+      <div class="gym-section-title">
+        <i class="bi bi-star-fill text-primary"></i>
+        Beneficios Incluidos
+      </div>
+      <div class="beneficios-grid">
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Acceso ilimitado al gimnasio</span>
+        </div>
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Rutinas personalizadas</span>
+        </div>
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Seguimiento de progreso</span>
+        </div>
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Entrenador personal asignado</span>
+        </div>
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Control de asistencia</span>
+        </div>
+        <div class="beneficio-item">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <span>Acceso a área de cardio</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-card-checklist"></i>
+        <p>No tienes ninguna membresía activa en este momento</p>
+        <button class="gym-btn gym-btn-primary mt-2">
+          <i class="bi bi-plus-circle-fill"></i> Adquirir Membresía
+        </button>
+      </div>
+    </div>
+  }
+</div>

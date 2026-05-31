@@ -1,1 +1,102 @@
-<p>mis-rutinas works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mis Rutinas</h1>
+    <p>Rutinas asignadas por tu entrenador</p>
+  </div>
+
+  @if (rutinas().length === 0) {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-clipboard-x"></i>
+        <p>No tienes rutinas asignadas aún</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Resumen rápido -->
+    <div class="gym-stats-grid">
+      <div class="gym-stat-card">
+        <div>
+          <div class="gym-stat-label">Rutinas Activas</div>
+          <div class="gym-stat-value">{{ rutinas().length }}</div>
+          <div class="gym-stat-sub">Planes asignados</div>
+        </div>
+        <div class="gym-stat-icon-box orange">
+          <i class="bi bi-clipboard2-pulse-fill"></i>
+        </div>
+      </div>
+      <div class="gym-stat-card">
+        <div>
+          <div class="gym-stat-label">Ejercicios en Rutina Principal</div>
+          <div class="gym-stat-value">{{ rutinas()[0]?.ejercicios?.length ?? 0 }}</div>
+          <div class="gym-stat-sub">Trabajo de hoy</div>
+        </div>
+        <div class="gym-stat-icon-box blue">
+          <i class="bi bi-list-ul"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de rutinas -->
+    @for (rutina of rutinas(); track rutina.id) {
+      <div class="gym-accordion-item">
+        <!-- Header -->
+        <div class="gym-accordion-header" (click)="seleccionar(rutina.id)">
+          <div class="rutina-header-info">
+            <div class="d-flex align-center gap-2 mb-1">
+              <i class="bi bi-clipboard2-pulse-fill text-primary"></i>
+              <span class="fw-600">{{ rutina.nombre }}</span>
+            </div>
+            <div class="rutina-tags">
+              <span class="gym-badge {{ nivelBadgeClass(rutina.nivel) }}">{{ rutina.nivel }}</span>
+              <span class="gym-badge gym-badge-orange">
+                <i class="bi bi-bullseye"></i> {{ rutina.objetivo }}
+              </span>
+              <span class="gym-badge gym-badge-info">
+                <i class="bi bi-calendar3"></i>
+                {{ rutina.diasSemana.join(' · ') }}
+              </span>
+            </div>
+          </div>
+          <div class="d-flex align-center gap-1">
+            <span class="gym-badge gym-badge-gray">{{ rutina.ejercicios.length }} ejercicios</span>
+            <i class="bi" [class.bi-chevron-down]="!estaSeleccionada(rutina.id)" [class.bi-chevron-up]="estaSeleccionada(rutina.id)"></i>
+          </div>
+        </div>
+
+        <!-- Detalle -->
+        @if (estaSeleccionada(rutina.id)) {
+          <div class="gym-accordion-body">
+            @if (rutina.descripcion) {
+              <p class="text-muted font-sm mb-2">{{ rutina.descripcion }}</p>
+            }
+
+            @if (rutina.ejercicios.length === 0) {
+              <p class="text-muted">No hay ejercicios registrados.</p>
+            } @else {
+              <div class="ejercicios-grid">
+                @for (ej of rutina.ejercicios; track ej.nombre; let i = $index) {
+                  <div class="ejercicio-card">
+                    <div class="ejercicio-num">{{ i + 1 }}</div>
+                    <div class="ejercicio-info">
+                      <div class="ejercicio-nombre">{{ ej.nombre }}</div>
+                      <div class="ejercicio-detalles">
+                        <span><i class="bi bi-repeat"></i> {{ ej.series }} series</span>
+                        <span><i class="bi bi-123"></i> {{ ej.repeticiones }}</span>
+                        <span><i class="bi bi-clock"></i> {{ ej.descanso }}</span>
+                      </div>
+                      @if (ej.notas) {
+                        <div class="ejercicio-notas">
+                          <i class="bi bi-info-circle"></i> {{ ej.notas }}
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

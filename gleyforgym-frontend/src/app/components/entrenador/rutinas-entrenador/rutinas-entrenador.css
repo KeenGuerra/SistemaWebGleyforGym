@@ -1,0 +1,10 @@
+.rutina-info {
+  flex: 1;
+}
+
+.rutina-meta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}

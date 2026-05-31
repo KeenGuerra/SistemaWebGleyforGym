@@ -1,1 +1,122 @@
-<p>mi-asistencia works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mi Asistencia</h1>
+    <p>Historial y calendario de tus visitas al gimnasio</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="gym-stats-grid">
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Asistencias este Mes</div>
+        <div class="gym-stat-value">{{ diasEstesMes() }}</div>
+        <div class="gym-stat-sub">Entrenamientos en mayo</div>
+      </div>
+      <div class="gym-stat-icon-box orange">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Racha Actual</div>
+        <div class="gym-stat-value">{{ rachaActual() }} días</div>
+        <div class="gym-stat-sub">¡Sigue así!</div>
+      </div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-lightning-charge-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Total de Visitas</div>
+        <div class="gym-stat-value">{{ asistencias().length }}</div>
+        <div class="gym-stat-sub">Historial acumulado</div>
+      </div>
+      <div class="gym-stat-icon-box blue">
+        <i class="bi bi-bar-chart-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="asistencia-grid">
+    <!-- Calendario -->
+    <div class="gym-card">
+      <div class="cal-header">
+        <button class="gym-btn gym-btn-secondary gym-btn-sm gym-btn-icon" (click)="mesPrevio()" aria-label="Mes anterior">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="fw-600">{{ nombreMes() }}</span>
+        <button class="gym-btn gym-btn-secondary gym-btn-sm gym-btn-icon" (click)="mesSiguiente()" aria-label="Mes siguiente">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Cabeceras días -->
+      <div class="gym-cal-grid">
+        @for (dia of ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; track dia) {
+          <div class="gym-cal-day header">{{ dia }}</div>
+        }
+        @for (dia of diasCalendario(); track $index) {
+          @if (dia.numero === null) {
+            <div class="gym-cal-day"></div>
+          } @else {
+            <div class="gym-cal-day" [class.present]="dia.estado === 'asistio'">
+              {{ dia.numero }}
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Leyenda -->
+      <div class="cal-leyenda">
+        <div class="leyenda-item">
+          <div class="leyenda-dot dot-presente"></div>
+          <span>Asistió</span>
+        </div>
+        <div class="leyenda-item">
+          <div class="leyenda-dot dot-normal"></div>
+          <span>No registrado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de registros -->
+    <div class="gym-card">
+      <div class="gym-section-title">
+        <i class="bi bi-clock-history text-primary"></i>
+        Registro Detallado
+      </div>
+      @if (asistencias().length === 0) {
+        <div class="gym-empty">
+          <i class="bi bi-calendar-x"></i>
+          <p>No hay registros de asistencia</p>
+        </div>
+      } @else {
+        <div class="registros-list">
+          @for (a of asistencias().slice(0, 10); track a.id) {
+            <div class="registro-item">
+              <div class="registro-fecha">
+                <span class="dia-num">{{ a.fecha.split('-')[2] }}</span>
+                <span class="mes-txt">{{ ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+a.fecha.split('-')[1] - 1] }}</span>
+              </div>
+              <div class="registro-info">
+                <div class="d-flex gap-1">
+                  <span class="gym-badge gym-badge-info"><i class="bi bi-door-open-fill"></i> {{ a.horaEntrada }}</span>
+                  @if (a.horaSalida) {
+                    <span class="gym-badge gym-badge-orange"><i class="bi bi-door-closed-fill"></i> {{ a.horaSalida }}</span>
+                  }
+                </div>
+                @if (a.duracionMinutos) {
+                  <span class="text-muted font-xs"><i class="bi bi-clock"></i> {{ a.duracionMinutos }} minutos</span>
+                }
+              </div>
+              <span class="gym-badge gym-badge-success">
+                <i class="bi bi-check-circle-fill"></i>
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

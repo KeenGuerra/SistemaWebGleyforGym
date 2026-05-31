@@ -1,0 +1,7 @@
+/* Estilos adicionales específicos del layout entrenador */
+/* La mayoría de estilos están en styles.css global */
+
+.gym-nav-bottom {
+  margin-top: auto;
+  padding-top: 0;
+}

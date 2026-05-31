@@ -1,0 +1,39 @@
+.panel-cliente-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.semana-chips {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.dia-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.6rem 0.25rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  transition: var(--transition);
+}
+
+.dia-chip.activo {
+  background: rgba(255, 102, 0, 0.12);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dia-chip i { font-size: 0.9rem; }
+
+@media (max-width: 900px) {
+  .panel-cliente-grid { grid-template-columns: 1fr; }
+}

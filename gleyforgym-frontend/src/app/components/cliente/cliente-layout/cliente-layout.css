@@ -1,0 +1,20 @@
+.badge-activa {
+  font-size: 0.65rem;
+  color: #22c55e;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-vencida {
+  font-size: 0.65rem;
+  color: #ef4444;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gym-nav-bottom {
+  margin-top: auto;
+  padding-top: 0;
+}

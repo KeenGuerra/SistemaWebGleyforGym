@@ -1,1 +1,164 @@
-<p>panel-entrenador works!</p>
+<div class="gym-page">
+  <!-- Encabezado -->
+  <div class="gym-page-header">
+    <h1>¡Buen día, {{ nombreEntrenador() }}! 💪</h1>
+    <p>Aquí tienes el resumen de tu actividad de hoy</p>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="gym-stats-grid">
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Clientes Asignados</div>
+        <div class="gym-stat-value">{{ stats().totalClientes }}</div>
+        <div class="gym-stat-sub">En tu lista</div>
+      </div>
+      <div class="gym-stat-icon-box orange">
+        <i class="bi bi-people-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Clientes Activos</div>
+        <div class="gym-stat-value">{{ stats().clientesActivos }}</div>
+        <div class="gym-stat-sub">Con membresía al día</div>
+      </div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-person-check-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Asistencias Hoy</div>
+        <div class="gym-stat-value">{{ stats().asistenciaHoy }}</div>
+        <div class="gym-stat-sub">Accesos registrados</div>
+      </div>
+      <div class="gym-stat-icon-box blue">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Rutinas Activas</div>
+        <div class="gym-stat-value">{{ stats().rutinasActivas }}</div>
+        <div class="gym-stat-sub">Planes vigentes</div>
+      </div>
+      <div class="gym-stat-icon-box yellow">
+        <i class="bi bi-clipboard2-pulse-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido en dos columnas -->
+  <div class="panel-grid">
+
+    <!-- Asistencia semanal -->
+    <div class="gym-card">
+      <div class="gym-section-title">
+        <i class="bi bi-bar-chart-fill text-primary"></i>
+        Asistencia Semanal
+      </div>
+      <div class="gym-bar-chart-wrapper">
+        @for (dia of asistenciasSemana(); track dia.dia) {
+          <div class="bar-col">
+            <span class="bar-val">{{ dia.cantidad }}</span>
+            <div class="bar-track">
+              <div
+                class="bar-fill"
+                [style.height]="alturaBarraPorc(dia.cantidad, 5)">
+              </div>
+            </div>
+            <span class="bar-lbl">{{ dia.dia }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Sesiones de hoy -->
+    <div class="gym-card">
+      <div class="d-flex justify-between align-center mb-2">
+        <span class="gym-section-title" style="margin-bottom: 0">
+          <i class="bi bi-clock-fill text-primary"></i>
+          Sesiones de Hoy
+        </span>
+        <a routerLink="/entrenador/asistencia" class="gym-btn gym-btn-secondary gym-btn-sm">Ver todas</a>
+      </div>
+
+      @if (sesionesHoy().length === 0) {
+        <div class="gym-empty">
+          <i class="bi bi-calendar-x"></i>
+          <p>No hay sesiones registradas hoy</p>
+        </div>
+      } @else {
+        <div class="sesiones-list">
+          @for (sesion of sesionesHoy(); track sesion.id) {
+            <div class="sesion-item">
+              <div class="sesion-avatar">{{ iniciales(sesion.nombreCliente.split(' ')[0], sesion.nombreCliente.split(' ')[1] || '') }}</div>
+              <div class="sesion-info">
+                <span class="sesion-nombre">{{ sesion.nombreCliente }}</span>
+                <span class="sesion-hora">{{ sesion.horaEntrada }} — {{ sesion.horaSalida ?? 'En curso' }}</span>
+              </div>
+              <span class="gym-badge gym-badge-success">
+                <i class="bi bi-check-circle-fill"></i> Asistió
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Clientes recientes -->
+  <div class="gym-card mt-3">
+    <div class="d-flex justify-between align-center mb-2">
+      <span class="gym-section-title" style="margin-bottom: 0">
+        <i class="bi bi-people-fill text-primary"></i>
+        Mis Clientes
+      </span>
+      <a routerLink="/entrenador/clientes" class="gym-btn gym-btn-primary gym-btn-sm">
+        <i class="bi bi-arrow-right"></i> Ver todos
+      </a>
+    </div>
+    <div class="gym-table-wrapper">
+      <table class="gym-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Objetivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cliente of clientesRecientes(); track cliente.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-center gap-1">
+                  <div class="gym-avatar gym-avatar-sm">{{ iniciales(cliente.nombre, cliente.apellido) }}</div>
+                  <div>
+                    <div class="fw-600">{{ cliente.nombre }} {{ cliente.apellido }}</div>
+                    <div class="text-muted font-xs">{{ cliente.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="text-muted">{{ cliente.objetivo }}</td>
+              <td>
+                @if (cliente.activo) {
+                  <span class="gym-badge gym-badge-success">Activo</span>
+                } @else {
+                  <span class="gym-badge gym-badge-gray">Inactivo</span>
+                }
+              </td>
+              <td>
+                <a [routerLink]="['/entrenador/clientes', cliente.id, 'progreso']"
+                   class="gym-btn gym-btn-secondary gym-btn-sm">
+                  <i class="bi bi-graph-up"></i> Progreso
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

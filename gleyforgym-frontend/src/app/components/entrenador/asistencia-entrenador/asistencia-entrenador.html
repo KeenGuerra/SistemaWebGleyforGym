@@ -1,1 +1,172 @@
-<p>asistencia-entrenador works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Control de Asistencia</h1>
+    <p>Registro y seguimiento de asistencia de tus clientes</p>
+  </div>
+
+  <!-- Toast éxito -->
+  @if (mensajeExito()) {
+    <div class="gym-toast">
+      <i class="bi bi-check-circle-fill text-success"></i> {{ mensajeExito() }}
+    </div>
+  }
+
+  <!-- Stats rápidas -->
+  <div class="gym-stats-grid">
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Asistencias Hoy</div>
+        <div class="gym-stat-value">{{ totalHoy() }}</div>
+        <div class="gym-stat-sub">Accesos registrados</div>
+      </div>
+      <div class="gym-stat-icon-box orange">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Registros Filtrados</div>
+        <div class="gym-stat-value">{{ asistenciasFiltradas().length }}</div>
+        <div class="gym-stat-sub">Según criterios actuales</div>
+      </div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-people-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="gym-card mb-2">
+    <div class="controles-asistencia">
+      <div class="d-flex align-center gap-1">
+        <label class="gym-form-label" style="margin:0" for="filtro-fecha">Filtrar por fecha:</label>
+        <input
+          id="filtro-fecha"
+          type="date"
+          class="gym-form-control"
+          style="width: auto"
+          [value]="fechaFiltro()"
+          (change)="cambiarFecha($event)">
+      </div>
+      <button class="gym-btn gym-btn-primary" (click)="toggleFormulario()" id="btn-registrar-asistencia">
+        <i class="bi bi-plus-circle-fill"></i> Registrar Asistencia
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario()) {
+    <div class="gym-card mb-2">
+      <div class="gym-section-title">
+        <i class="bi bi-plus-circle-fill text-primary"></i>
+        Nueva Asistencia
+      </div>
+      <form [formGroup]="form" (ngSubmit)="registrar()" id="form-asistencia">
+        <div class="gym-form-row cols-2">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="cliente-asist">Cliente</label>
+            <select id="cliente-asist" class="gym-form-control" formControlName="clienteId">
+              <option value="0" disabled>— Seleccionar cliente —</option>
+              @for (c of clientes(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
+              }
+            </select>
+            @if (hasError('clienteId', 'min')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Selecciona un cliente</span>
+            }
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="fecha-asist">Fecha</label>
+            <input id="fecha-asist" type="date" class="gym-form-control" formControlName="fecha">
+            @if (hasError('fecha', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> La fecha es obligatoria</span>
+            }
+          </div>
+        </div>
+        <div class="gym-form-row cols-2">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="entrada-asist">Hora de Entrada</label>
+            <input id="entrada-asist" type="time" class="gym-form-control" formControlName="horaEntrada">
+            @if (hasError('horaEntrada', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> La hora de entrada es obligatoria</span>
+            }
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="salida-asist">Hora de Salida (opcional)</label>
+            <input id="salida-asist" type="time" class="gym-form-control" formControlName="horaSalida">
+          </div>
+        </div>
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="obs-asist">Observaciones</label>
+          <input id="obs-asist" type="text" class="gym-form-control" formControlName="observaciones" placeholder="Notas opcionales...">
+        </div>
+        <div class="d-flex gap-1">
+          <button type="submit" class="gym-btn gym-btn-primary">
+            <i class="bi bi-check-circle-fill"></i> Registrar
+          </button>
+          <button type="button" class="gym-btn gym-btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Tabla de asistencias -->
+  @if (asistenciasFiltradas().length === 0) {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-calendar-x"></i>
+        <p>No hay asistencias para la fecha seleccionada</p>
+      </div>
+    </div>
+  } @else {
+    <div class="gym-table-wrapper">
+      <table class="gym-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Duración</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of asistenciasFiltradas(); track a.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-center gap-1">
+                  <div class="gym-avatar gym-avatar-sm">{{ iniciales(a.nombreCliente) }}</div>
+                  <span class="fw-600">{{ a.nombreCliente }}</span>
+                </div>
+              </td>
+              <td>{{ a.fecha }}</td>
+              <td>
+                <span class="gym-badge gym-badge-info">
+                  <i class="bi bi-door-open-fill"></i> {{ a.horaEntrada }}
+                </span>
+              </td>
+              <td>
+                @if (a.horaSalida) {
+                  <span class="gym-badge gym-badge-orange">
+                    <i class="bi bi-door-closed-fill"></i> {{ a.horaSalida }}
+                  </span>
+                } @else {
+                  <span class="gym-badge gym-badge-warning">En curso</span>
+                }
+              </td>
+              <td>
+                @if (a.duracionMinutos) {
+                  <span>{{ a.duracionMinutos }} min</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td class="text-muted">{{ a.observaciones || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

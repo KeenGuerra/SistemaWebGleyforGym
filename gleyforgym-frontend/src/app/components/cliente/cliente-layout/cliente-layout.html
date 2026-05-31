@@ -1,0 +1,59 @@
+<div class="gym-layout">
+  <!-- ── Sidebar ── -->
+  <aside class="gym-sidebar">
+    <!-- Logo -->
+    <div class="gym-sidebar-logo">
+      <div class="gym-logo-brand">
+        <i class="bi bi-lightning-charge-fill"></i> GleyforGym
+      </div>
+      <div class="gym-logo-role">Cliente</div>
+    </div>
+
+    <!-- Perfil mini -->
+    <div class="gym-sidebar-profile">
+      <div class="sidebar-avatar">{{ iniciales() }}</div>
+      <div>
+        <div class="sidebar-profile-name">{{ nombreCompleto() }}</div>
+        <div class="sidebar-profile-role" style="margin-top: 0.2rem;">
+          @if (membresia()) {
+          <span class="gym-badge gym-badge-success gym-pill" style="font-size: 0.6rem; padding: 0.1rem 0.4rem;">Membresía Activa</span>
+          } @else {
+          <span class="gym-badge gym-badge-danger gym-pill" style="font-size: 0.6rem; padding: 0.1rem 0.4rem;">Sin Membresía</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Navegación principal -->
+    <nav class="gym-nav">
+      <span class="gym-nav-label">Menú</span>
+
+      @for (item of menuItems; track item.ruta) {
+      <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label">
+        <i class="bi {{ item.icon }}"></i>
+        <span>{{ item.label }}</span>
+      </a>
+      }
+
+      <!-- Parte inferior -->
+      <div class="gym-nav-bottom">
+        <hr class="gym-nav-separator">
+        @for (item of menuSecundario; track item.ruta) {
+        <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label">
+          <i class="bi {{ item.icon }}"></i>
+          <span>{{ item.label }}</span>
+        </a>
+        }
+        <button class="gym-nav-item danger" type="button" aria-label="Cerrar sesión">
+          <i class="bi bi-box-arrow-left"></i>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Contenido principal ── -->
+  <main class="gym-main-content">
+    <router-outlet />
+  </main>
+</div>

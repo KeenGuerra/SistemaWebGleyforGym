@@ -1,1 +1,97 @@
-<p>mis-pagos works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mis Pagos</h1>
+    <p>Historial de pagos y estado de deudas</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="gym-stats-grid">
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Total Pagado</div>
+        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">RD$ {{ totalPagado() | number }}</div>
+        <div class="gym-stat-sub">Transacciones completadas</div>
+      </div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+    </div>
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Pendiente por Pagar</div>
+        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">RD$ {{ totalPendiente() | number }}</div>
+        <div class="gym-stat-sub">Saldos activos</div>
+      </div>
+      <div class="gym-stat-icon-box yellow">
+        <i class="bi bi-clock-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="gym-card mb-2">
+    <div class="d-flex align-center gap-1 flex-wrap">
+      <span class="text-muted font-sm">Filtrar:</span>
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'todos'" [class.gym-btn-secondary]="filtroEstado() !== 'todos'" (click)="cambiarFiltro('todos')">Todos</button>
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'pagado'" [class.gym-btn-secondary]="filtroEstado() !== 'pagado'" (click)="cambiarFiltro('pagado')">
+        <i class="bi bi-check-circle-fill text-success"></i> Pagados
+      </button>
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'pendiente'" [class.gym-btn-secondary]="filtroEstado() !== 'pendiente'" (click)="cambiarFiltro('pendiente')">
+        <i class="bi bi-clock-fill text-warning"></i> Pendientes
+      </button>
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'cancelado'" [class.gym-btn-secondary]="filtroEstado() !== 'cancelado'" (click)="cambiarFiltro('cancelado')">
+        <i class="bi bi-x-circle-fill text-danger"></i> Cancelados
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  @if (pagosFiltrados().length === 0) {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-receipt-cutoff"></i>
+        <p>No hay pagos con el filtro seleccionado</p>
+      </div>
+    </div>
+  } @else {
+    <div class="gym-table-wrapper">
+      <table class="gym-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Concepto</th>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Método</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pago of pagosFiltrados(); track pago.id) {
+            <tr>
+              <td class="text-muted">#{{ pago.id }}</td>
+              <td class="fw-600">{{ pago.concepto }}</td>
+              <td>{{ pago.fecha }}</td>
+              <td class="text-primary fw-600">RD$ {{ pago.monto | number }}</td>
+              <td>
+                <span class="gym-badge {{ metodoBadgeClass(pago.metodo) }}">
+                  <i class="bi {{ metodIcono(pago.metodo) }}"></i>
+                  {{ pago.metodo | titlecase }}
+                </span>
+              </td>
+              <td>
+                <span class="gym-badge {{ estadoBadgeClass(pago.estado) }}">
+                  @switch (pago.estado) {
+                    @case ('pagado') { <i class="bi bi-check-circle-fill"></i> Pagado }
+                    @case ('pendiente') { <i class="bi bi-clock-fill"></i> Pendiente }
+                    @case ('cancelado') { <i class="bi bi-x-circle-fill"></i> Cancelado }
+                  }
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

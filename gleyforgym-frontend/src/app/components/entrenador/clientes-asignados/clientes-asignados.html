@@ -1,1 +1,124 @@
-<p>clientes-asignados works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Clientes Asignados</h1>
+    <p>Gestión y seguimiento de tus clientes</p>
+  </div>
+
+  <!-- Resumen rápido -->
+  <div class="resumen-chips mb-3">
+    <div class="chip">
+      <i class="bi bi-people-fill"></i>
+      <span>Total: <strong>{{ clientes().length }}</strong></span>
+    </div>
+    <div class="chip chip-green">
+      <i class="bi bi-person-check-fill"></i>
+      <span>Activos: <strong>{{ totalActivos() }}</strong></span>
+    </div>
+    <div class="chip chip-red">
+      <i class="bi bi-person-dash-fill"></i>
+      <span>Inactivos: <strong>{{ totalInactivos() }}</strong></span>
+    </div>
+  </div>
+
+  <!-- Controles de búsqueda y filtro -->
+  <div class="gym-card mb-2">
+    <div class="controles">
+      <div class="gym-search">
+        <i class="bi bi-search"></i>
+        <input
+          id="busqueda-cliente"
+          type="text"
+          class="gym-form-control"
+          placeholder="Buscar por nombre o correo..."
+          (input)="buscar($event)">
+      </div>
+      <div class="filtros">
+        <button
+          class="gym-btn"
+          [class.gym-btn-primary]="filtroEstado() === 'todos'"
+          [class.gym-btn-secondary]="filtroEstado() !== 'todos'"
+          (click)="cambiarFiltro('todos')">Todos</button>
+        <button
+          class="gym-btn"
+          [class.gym-btn-primary]="filtroEstado() === 'activo'"
+          [class.gym-btn-secondary]="filtroEstado() !== 'activo'"
+          (click)="cambiarFiltro('activo')">Activos</button>
+        <button
+          class="gym-btn"
+          [class.gym-btn-primary]="filtroEstado() === 'inactivo'"
+          [class.gym-btn-secondary]="filtroEstado() !== 'inactivo'"
+          (click)="cambiarFiltro('inactivo')">Inactivos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de clientes -->
+  @if (clientes().length === 0) {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-search"></i>
+        <p>No se encontraron clientes con los filtros aplicados</p>
+      </div>
+    </div>
+  } @else {
+    <div class="gym-table-wrapper">
+      <table class="gym-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Contacto</th>
+            <th>Objetivo</th>
+            <th>Membresía</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cliente of clientes(); track cliente.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-center gap-1">
+                  <div class="gym-avatar gym-avatar-md">{{ iniciales(cliente.nombre, cliente.apellido) }}</div>
+                  <div>
+                    <div class="fw-600">{{ cliente.nombre }} {{ cliente.apellido }}</div>
+                    <div class="text-muted font-xs">Desde {{ cliente.fechaRegistro }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="font-sm">{{ cliente.email }}</div>
+                <div class="text-muted font-xs">{{ cliente.telefono }}</div>
+              </td>
+              <td class="text-muted">{{ cliente.objetivo }}</td>
+              <td>
+                @switch (getMembresiaEstado(cliente.id)) {
+                  @case ('activa') { <span class="gym-badge gym-badge-success">Activa</span> }
+                  @case ('vencida') { <span class="gym-badge gym-badge-danger">Vencida</span> }
+                  @case ('pendiente') { <span class="gym-badge gym-badge-warning">Pendiente</span> }
+                  @default { <span class="gym-badge gym-badge-gray">Sin membresía</span> }
+                }
+              </td>
+              <td>
+                @if (cliente.activo) {
+                  <span class="gym-badge gym-badge-success">Activo</span>
+                } @else {
+                  <span class="gym-badge gym-badge-gray">Inactivo</span>
+                }
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a
+                    [routerLink]="['/entrenador/clientes', cliente.id, 'progreso']"
+                    class="gym-btn gym-btn-secondary gym-btn-sm"
+                    [attr.aria-label]="'Ver progreso de ' + cliente.nombre">
+                    <i class="bi bi-graph-up"></i> Progreso
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

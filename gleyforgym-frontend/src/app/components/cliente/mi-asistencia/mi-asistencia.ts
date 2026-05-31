@@ -1,9 +1,93 @@
-import { Component } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
+import { AsistenciaService } from '../../../services/asistencia.service';
 
 @Component({
   selector: 'app-mi-asistencia',
+  standalone: true,
   imports: [],
   templateUrl: './mi-asistencia.html',
   styleUrl: './mi-asistencia.css',
 })
-export class MiAsistencia {}
+export class MiAsistencia {
+  private asistenciaSvc = inject(AsistenciaService);
+
+  private readonly CLIENTE_ID = 5;
+
+  readonly mesActual = signal(new Date().getMonth());
+  readonly anioActual = signal(new Date().getFullYear());
+
+  readonly asistencias = computed(() =>
+    this.asistenciaSvc.getAsistenciasDeCliente(this.CLIENTE_ID)
+  );
+
+  readonly diasAsistidos = computed(() =>
+    new Set(this.asistencias().map(a => a.fecha))
+  );
+
+  readonly diasEstesMes = computed(() => {
+    const mes = this.mesActual();
+    const anio = this.anioActual();
+    return this.asistencias().filter(a => {
+      const d = new Date(a.fecha);
+      return d.getMonth() === mes && d.getFullYear() === anio;
+    }).length;
+  });
+
+  readonly rachaActual = computed(() => {
+    const fechas = [...this.diasAsistidos()].sort((a, b) => b.localeCompare(a));
+    if (fechas.length === 0) return 0;
+    let racha = 1;
+    const hoy = new Date();
+    for (let i = 0; i < fechas.length - 1; i++) {
+      const curr = new Date(fechas[i]);
+      const next = new Date(fechas[i + 1]);
+      const diff = (curr.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff <= 2) racha++;
+      else break;
+    }
+    return racha;
+  });
+
+  readonly diasCalendario = computed(() => {
+    const mes  = this.mesActual();
+    const anio = this.anioActual();
+    const primerDia = new Date(anio, mes, 1).getDay();
+    const totalDias = new Date(anio, mes + 1, 0).getDate();
+    const dias: Array<{ numero: number | null; fecha: string | null; estado: 'vacio' | 'asistio' | 'normal' }> = [];
+
+    for (let i = 0; i < primerDia; i++) {
+      dias.push({ numero: null, fecha: null, estado: 'vacio' });
+    }
+    for (let d = 1; d <= totalDias; d++) {
+      const fecha = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      dias.push({
+        numero: d,
+        fecha,
+        estado: this.diasAsistidos().has(fecha) ? 'asistio' : 'normal',
+      });
+    }
+    return dias;
+  });
+
+  readonly nombreMes = computed(() => {
+    const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    return `${nombres[this.mesActual()]} ${this.anioActual()}`;
+  });
+
+  mesPrevio(): void {
+    let mes = this.mesActual() - 1;
+    let anio = this.anioActual();
+    if (mes < 0) { mes = 11; anio--; }
+    this.mesActual.set(mes);
+    this.anioActual.set(anio);
+  }
+
+  mesSiguiente(): void {
+    let mes = this.mesActual() + 1;
+    let anio = this.anioActual();
+    if (mes > 11) { mes = 0; anio++; }
+    this.mesActual.set(mes);
+    this.anioActual.set(anio);
+  }
+}

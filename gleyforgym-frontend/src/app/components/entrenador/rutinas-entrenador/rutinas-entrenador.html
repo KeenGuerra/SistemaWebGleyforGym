@@ -1,1 +1,189 @@
-<p>rutinas-entrenador works!</p>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Rutinas</h1>
+    <p>Gestión de rutinas para tus clientes</p>
+  </div>
+
+  @if (mensajeExito()) {
+    <div class="gym-toast">
+      <i class="bi bi-check-circle-fill text-success"></i> {{ mensajeExito() }}
+    </div>
+  }
+
+  <!-- Acciones -->
+  <div class="d-flex justify-between align-center mb-3">
+    <span class="text-muted">{{ rutinas().length }} rutinas en total</span>
+    <button class="gym-btn gym-btn-primary" (click)="toggleFormulario()" id="btn-nueva-rutina">
+      <i class="bi bi-plus-circle-fill"></i> Nueva Rutina
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  @if (mostrarFormulario()) {
+    <div class="gym-card mb-3">
+      <div class="gym-section-title">
+        <i class="bi bi-clipboard2-plus-fill text-primary"></i>
+        Crear Nueva Rutina
+      </div>
+      <form [formGroup]="form" (ngSubmit)="guardar()" id="form-rutina">
+        <div class="gym-form-row cols-2">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="nombre-rutina">Nombre de la Rutina</label>
+            <input id="nombre-rutina" type="text" class="gym-form-control" formControlName="nombre" placeholder="Ej: Fuerza — Cuerpo Completo">
+            @if (hasError('nombre', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> El nombre es obligatorio</span>
+            }
+            @if (hasError('nombre', 'minlength')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 3 caracteres</span>
+            }
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="cliente-rutina">Cliente</label>
+            <select id="cliente-rutina" class="gym-form-control" formControlName="clienteId">
+              <option value="0" disabled>— Seleccionar cliente —</option>
+              @for (c of clientes(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
+              }
+            </select>
+            @if (hasError('clienteId', 'min')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Selecciona un cliente</span>
+            }
+          </div>
+        </div>
+        <div class="gym-form-row cols-2">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="nivel-rutina">Nivel</label>
+            <select id="nivel-rutina" class="gym-form-control" formControlName="nivel">
+              <option value="principiante">Principiante</option>
+              <option value="intermedio">Intermedio</option>
+              <option value="avanzado">Avanzado</option>
+            </select>
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="objetivo-rutina">Objetivo</label>
+            <input id="objetivo-rutina" type="text" class="gym-form-control" formControlName="objetivo" placeholder="Pérdida de peso, ganancia muscular...">
+            @if (hasError('objetivo', 'required')) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> El objetivo es obligatorio</span>
+            }
+          </div>
+        </div>
+        <div class="gym-form-group">
+          <label class="gym-form-label">Días de la Semana</label>
+          <div class="gym-day-chips">
+            @for (dia of diasDisponibles; track dia) {
+              <button
+                type="button"
+                class="gym-day-chip"
+                [class.selected]="diaSeleccionado(dia)"
+                (click)="toggleDia(dia)">
+                {{ dia }}
+              </button>
+            }
+          </div>
+          @if (diasSeleccionados().length === 0) {
+            <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Selecciona al menos un día</span>
+          }
+        </div>
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="desc-rutina">Descripción (opcional)</label>
+          <textarea id="desc-rutina" class="gym-form-control" formControlName="descripcion" rows="2" placeholder="Descripción general de la rutina..."></textarea>
+        </div>
+        <div class="d-flex gap-1">
+          <button type="submit" class="gym-btn gym-btn-primary">
+            <i class="bi bi-check-circle-fill"></i> Crear Rutina
+          </button>
+          <button type="button" class="gym-btn gym-btn-secondary" (click)="toggleFormulario()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Lista de rutinas (accordion) -->
+  @if (rutinas().length === 0) {
+    <div class="gym-card">
+      <div class="gym-empty">
+        <i class="bi bi-clipboard-x"></i>
+        <p>No hay rutinas creadas aún</p>
+      </div>
+    </div>
+  } @else {
+    @for (rutina of rutinas(); track rutina.id) {
+      <div class="gym-accordion-item">
+        <!-- Header -->
+        <div class="gym-accordion-header" (click)="toggleExpandir(rutina.id)">
+          <div class="rutina-info">
+            <div class="d-flex align-center gap-2">
+              <span class="fw-600">{{ rutina.nombre }}</span>
+              <span class="gym-badge {{ nivelBadgeClass(rutina.nivel) }}">{{ rutina.nivel }}</span>
+              @if (!rutina.activa) {
+                <span class="gym-badge gym-badge-gray">Inactiva</span>
+              }
+            </div>
+            <div class="rutina-meta">
+              <span class="text-muted font-xs">
+                <i class="bi bi-person-fill"></i> {{ getNombreCliente(rutina.clienteId) }}
+              </span>
+              <span class="text-muted font-xs">
+                <i class="bi bi-bullseye"></i> {{ rutina.objetivo }}
+              </span>
+              <span class="text-muted font-xs">
+                <i class="bi bi-calendar3"></i> {{ rutina.diasSemana.join(', ') }}
+              </span>
+            </div>
+          </div>
+          <div class="d-flex align-center gap-1">
+            <span class="gym-badge gym-badge-orange">{{ rutina.ejercicios.length }} ejercicios</span>
+            @if (rutina.activa) {
+              <button
+                class="gym-btn gym-btn-danger gym-btn-sm"
+                (click)="$event.stopPropagation(); desactivar(rutina.id)"
+                [attr.aria-label]="'Desactivar rutina ' + rutina.nombre">
+                <i class="bi bi-trash"></i>
+              </button>
+            }
+            <i class="bi" [class.bi-chevron-down]="!estaExpandida(rutina.id)" [class.bi-chevron-up]="estaExpandida(rutina.id)"></i>
+          </div>
+        </div>
+
+        <!-- Body expandible -->
+        @if (estaExpandida(rutina.id)) {
+          <div class="gym-accordion-body">
+            @if (rutina.descripcion) {
+              <p class="text-muted font-sm mb-2">{{ rutina.descripcion }}</p>
+            }
+            @if (rutina.ejercicios.length === 0) {
+              <p class="text-muted font-sm">Sin ejercicios registrados aún.</p>
+            } @else {
+              <div class="gym-table-wrapper">
+                <table class="gym-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Ejercicio</th>
+                      <th>Series</th>
+                      <th>Repeticiones</th>
+                      <th>Descanso</th>
+                      <th>Notas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (ej of rutina.ejercicios; track ej.nombre; let i = $index) {
+                      <tr>
+                        <td class="text-muted">{{ i + 1 }}</td>
+                        <td class="fw-600">{{ ej.nombre }}</td>
+                        <td>{{ ej.series }}</td>
+                        <td>{{ ej.repeticiones }}</td>
+                        <td>{{ ej.descanso }}</td>
+                        <td class="text-muted">{{ ej.notas || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

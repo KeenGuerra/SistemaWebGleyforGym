@@ -1,1 +1,169 @@
-<p>panel-cliente works!</p>
+<div class="gym-page">
+  <!-- Encabezado -->
+  <div class="gym-page-header">
+    <h1>¡Hola, {{ nombreCliente() }}! 🔥</h1>
+    <p>Tu resumen de actividad y membresía</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="gym-stats-grid">
+    <!-- Membresía -->
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Membresía</div>
+        @if (membresia(); as m) {
+          <div class="gym-stat-value" style="font-size: 1.65rem; line-height: 1.2; margin-top: 0.15rem; margin-bottom: 0.15rem;">{{ m.tipo }}</div>
+          <div class="gym-stat-sub">
+            <span class="gym-badge gym-badge-success">Activa</span>
+          </div>
+        } @else {
+          <div class="gym-stat-value" style="font-size: 1.65rem; line-height: 1.2; margin-top: 0.15rem; margin-bottom: 0.15rem;">Sin Plan</div>
+          <div class="gym-stat-sub">
+            <span class="gym-badge gym-badge-danger">Inactiva</span>
+          </div>
+        }
+      </div>
+      <div class="gym-stat-icon-box orange">
+        <i class="bi bi-card-checklist"></i>
+      </div>
+    </div>
+    <!-- Días restantes -->
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Días Restantes</div>
+        <div class="gym-stat-value">{{ diasRestantes() }}</div>
+        <div class="gym-stat-sub">Vence pronto</div>
+      </div>
+      <div class="gym-stat-icon-box blue">
+        <i class="bi bi-clock-fill"></i>
+      </div>
+    </div>
+    <!-- Asistencia del mes -->
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Asistencias este Mes</div>
+        <div class="gym-stat-value">{{ asistenciasMes() }}</div>
+        <div class="gym-stat-sub">Días entrenados</div>
+      </div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+    </div>
+    <!-- Pagos pendientes -->
+    <div class="gym-stat-card">
+      <div>
+        <div class="gym-stat-label">Pagos Pendientes</div>
+        <div class="gym-stat-value">{{ pagosPendientes() }}</div>
+        <div class="gym-stat-sub">Por saldar</div>
+      </div>
+      <div class="gym-stat-icon-box" [class.yellow]="pagosPendientes() > 0" [class.green]="pagosPendientes() === 0">
+        <i class="bi bi-credit-card-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-cliente-grid">
+    <!-- Membresía detalle -->
+    @if (membresia(); as m) {
+      <div class="gym-card">
+        <div class="gym-section-title">
+          <i class="bi bi-card-checklist text-primary"></i>
+          Mi Membresía
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Tipo</span>
+          <span class="value">{{ m.tipo }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Precio</span>
+          <span class="value">RD$ {{ m.precio | number }}</span>
+        </div>
+        <div class="gym-info-row">
+          <span class="label">Vigencia</span>
+          <span class="value">{{ m.fechaInicio }} → {{ m.fechaFin }}</span>
+        </div>
+        <div class="mt-2">
+          <div class="d-flex justify-between mb-1">
+            <span class="font-xs text-muted">Tiempo transcurrido</span>
+            <span class="font-xs text-primary fw-600">{{ 100 - progresoPorcentaje() }}%</span>
+          </div>
+          <div class="gym-progress-bar">
+            <div class="gym-progress-fill" [style.width.%]="100 - progresoPorcentaje()"></div>
+          </div>
+        </div>
+        <a routerLink="/cliente/membresia" class="gym-btn gym-btn-secondary gym-btn-sm mt-2">
+          Ver detalles
+        </a>
+      </div>
+    }
+
+    <!-- Plan semanal -->
+    <div class="gym-card">
+      <div class="gym-section-title">
+        <i class="bi bi-clipboard2-pulse-fill text-primary"></i>
+        Mi Plan Semanal
+      </div>
+      <div class="semana-chips">
+        @for (dia of diasSemana; track dia) {
+          <div class="dia-chip" [class.activo]="diaEnRutina(dia)">
+            <span>{{ dia }}</span>
+            @if (diaEnRutina(dia)) {
+              <i class="bi bi-check-circle-fill"></i>
+            } @else {
+              <i class="bi bi-dash-circle"></i>
+            }
+          </div>
+        }
+      </div>
+      <a routerLink="/cliente/rutinas" class="gym-btn gym-btn-secondary gym-btn-sm mt-2">
+        Ver mis rutinas
+      </a>
+    </div>
+  </div>
+
+  <!-- Últimas asistencias -->
+  <div class="gym-card mt-3">
+    <div class="d-flex justify-between align-center mb-2">
+      <span class="gym-section-title" style="margin-bottom: 0">
+        <i class="bi bi-clock-history text-primary"></i>
+        Últimas Asistencias
+      </span>
+      <a routerLink="/cliente/asistencia" class="gym-btn gym-btn-secondary gym-btn-sm">Ver todas</a>
+    </div>
+    @if (ultimosRegistros().length === 0) {
+      <div class="gym-empty">
+        <i class="bi bi-calendar-x"></i>
+        <p>No hay registros de asistencia aún</p>
+      </div>
+    } @else {
+      <div class="gym-table-wrapper">
+        <table class="gym-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Hora de Entrada</th>
+              <th>Hora de Salida</th>
+              <th>Duración</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of ultimosRegistros(); track a.id) {
+              <tr>
+                <td class="fw-600">{{ a.fecha }}</td>
+                <td><span class="gym-badge gym-badge-info">{{ a.horaEntrada }}</span></td>
+                <td>
+                  @if (a.horaSalida) {
+                    <span class="gym-badge gym-badge-orange">{{ a.horaSalida }}</span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td>{{ a.duracionMinutos ? a.duracionMinutos + ' min' : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

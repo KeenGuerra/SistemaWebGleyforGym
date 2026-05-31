@@ -1,0 +1,40 @@
+.perfil-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.5rem;
+}
+
+.perfil-avatar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.perfil-nombre {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.perfil-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cert-section { width: 100%; text-align: left; }
+
+.cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 800px) {
+  .perfil-grid { grid-template-columns: 1fr; }
+  .perfil-avatar-card { padding: 1.5rem; }
+}

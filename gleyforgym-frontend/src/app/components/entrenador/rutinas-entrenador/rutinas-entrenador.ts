@@ -16,8 +16,8 @@ export class RutinasEntrenador {
   private clienteSvc = inject(ClienteService);
   private fb = inject(FormBuilder);
 
-  readonly rutinas = computed(() => this.rutinaSvc.getRutinasPorEntrenador(1));
-  readonly clientes = computed(() => this.clienteSvc.getClientesPorEntrenador(1));
+  readonly rutinas = computed(() => this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === 1));
+  readonly clientes = computed(() => this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1));
 
   readonly rutinaExpandida = signal<number | null>(null);
   readonly mostrarFormulario = signal(false);
@@ -75,7 +75,7 @@ export class RutinasEntrenador {
       clienteId:    v.clienteId,
       entrenadorId: 1,
       diasSemana:   this.diasSeleccionados(),
-      nivel:        v.nivel as any,
+      nivel:        v.nivel as 'principiante' | 'intermedio' | 'avanzado',
       objetivo:     v.objetivo,
       descripcion:  v.descripcion,
       ejercicios:   [],

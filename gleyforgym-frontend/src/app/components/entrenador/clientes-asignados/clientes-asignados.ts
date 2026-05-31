@@ -19,7 +19,7 @@ export class ClientesAsignados {
   readonly filtroEstado  = signal<'todos' | 'activo' | 'inactivo'>('todos');
 
   readonly clientes = computed(() => {
-    const lista  = this.clienteSvc.getClientesPorEntrenador(1);
+    const lista  = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1);
     const texto  = this.textoBusqueda().toLowerCase();
     const estado = this.filtroEstado();
 

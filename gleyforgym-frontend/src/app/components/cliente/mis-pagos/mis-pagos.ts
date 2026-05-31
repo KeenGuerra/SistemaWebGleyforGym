@@ -17,26 +17,26 @@ export class MisPagos {
   readonly filtroEstado = signal<'todos' | 'pagado' | 'pendiente' | 'cancelado'>('todos');
 
   readonly pagosFiltrados = computed(() => {
-    const todos   = this.pagoSvc.getPagosDeCliente(this.CLIENTE_ID);
+    const todos   = this.pagoSvc.obtenerPagos().filter(p => p.clienteId === this.CLIENTE_ID);
     const filtro  = this.filtroEstado();
     const lista   = filtro === 'todos' ? todos : todos.filter(p => p.estado === filtro);
     return lista.sort((a, b) => b.fecha.localeCompare(a.fecha));
   });
 
   readonly totalPagado = computed(() =>
-    this.pagoSvc.getPagosDeCliente(this.CLIENTE_ID)
-      .filter(p => p.estado === 'pagado')
+    this.pagoSvc.obtenerPagos()
+      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pagado')
       .reduce((sum, p) => sum + p.monto, 0)
   );
 
   readonly totalPendiente = computed(() =>
-    this.pagoSvc.getPagosDeCliente(this.CLIENTE_ID)
-      .filter(p => p.estado === 'pendiente')
+    this.pagoSvc.obtenerPagos()
+      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pendiente')
       .reduce((sum, p) => sum + p.monto, 0)
   );
 
-  cambiarFiltro(estado: typeof this.filtroEstado extends ReturnType<typeof signal<infer T>> ? T : never): void {
-    this.filtroEstado.set(estado as any);
+  cambiarFiltro(estado: 'todos' | 'pagado' | 'pendiente' | 'cancelado'): void {
+    this.filtroEstado.set(estado);
   }
 
   estadoBadgeClass(estado: string): string {

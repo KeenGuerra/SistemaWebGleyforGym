@@ -18,6 +18,10 @@ export class ProgresoService {
 
   readonly progresos = this._progresos.asReadonly();
 
+  obtenerProgreso(): Progreso[] {
+    return this._progresos();
+  }
+
   getProgresosDeCliente(clienteId: number): Progreso[] {
     return this._progresos()
       .filter(p => p.clienteId === clienteId)

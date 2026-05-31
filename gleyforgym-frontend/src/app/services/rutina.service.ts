@@ -67,6 +67,10 @@ export class RutinaService {
 
   readonly rutinas = this._rutinas.asReadonly();
 
+  obtenerRutinas(): Rutina[] {
+    return this._rutinas();
+  }
+
   readonly rutinasActivas = computed(() =>
     this._rutinas().filter(r => r.activa)
   );

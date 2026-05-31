@@ -35,19 +35,26 @@ export class PanelCliente {
   });
 
   readonly pagosPendientes = computed(() =>
-    this.pagoSvc.getPagosPendientes(this.CLIENTE_ID).length
+    this.pagoSvc.obtenerPagos()
+      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pendiente')
+      .length
   );
 
-  readonly asistenciasMes = computed(() =>
-    this.asistenciaSvc.getDiasAsistidosMes(this.CLIENTE_ID)
-  );
+  readonly asistenciasMes = computed(() => {
+    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    return this.asistenciaSvc.obtenerAsistencias()
+      .filter(a => a.clienteId === this.CLIENTE_ID && new Date(a.fecha) >= inicioMes)
+      .length;
+  });
 
   readonly rutinas = computed(() =>
-    this.rutinaSvc.getRutinasDeCliente(this.CLIENTE_ID)
+    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID && r.activa)
   );
 
   readonly ultimosRegistros = computed(() =>
-    this.asistenciaSvc.getAsistenciasDeCliente(this.CLIENTE_ID).slice(0, 5)
+    this.asistenciaSvc.obtenerAsistencias()
+      .filter(a => a.clienteId === this.CLIENTE_ID)
+      .slice(0, 5)
   );
 
   readonly progresoPorcentaje = computed(() => {

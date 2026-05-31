@@ -39,6 +39,10 @@ export class ClienteService {
 
   readonly clientes = this._clientes.asReadonly();
 
+  obtenerClientes(): Cliente[] {
+    return this._clientes();
+  }
+
   readonly clientesActivos = computed(() =>
     this._clientes().filter(c => c.activo)
   );

@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClienteService } from '../../../services/cliente.service';
 import { AsistenciaService } from '../../../services/asistencia.service';
@@ -23,10 +23,10 @@ export class PanelEntrenador {
   readonly nombreEntrenador = this.usuarioSvc.nombreCompleto;
 
   readonly stats = computed(() => {
-    const entrenador    = this.entrenadorSvc.getEntrenadorActual();
-    const clientes      = this.clienteSvc.getClientesPorEntrenador(1);
-    const asistHoy      = this.asistenciaSvc.asistenciasHoy();
-    const rutinasCant   = this.rutinaSvc.getRutinasPorEntrenador(1).filter(r => r.activa).length;
+    const clientes      = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1);
+    const hoyStr        = new Date().toISOString().split('T')[0];
+    const asistHoy      = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1 && a.fecha === hoyStr);
+    const rutinasCant   = this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === 1 && r.activa).length;
     return {
       totalClientes:   clientes.length,
       clientesActivos: clientes.filter(c => c.activo).length,
@@ -37,7 +37,7 @@ export class PanelEntrenador {
 
   readonly asistenciasSemana = computed(() => {
     const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const todas = this.asistenciaSvc.getAsistenciasPorEntrenador(1);
+    const todas = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1);
     return dias.map((dia, i) => {
       const fecha = new Date();
       const diff  = i - fecha.getDay() + 1;
@@ -53,12 +53,13 @@ export class PanelEntrenador {
   });
 
   readonly clientesRecientes = computed(() =>
-    this.clienteSvc.getClientesPorEntrenador(1).slice(0, 4)
+    this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1).slice(0, 4)
   );
 
   readonly sesionesHoy = computed(() => {
-    const clientes = this.clienteSvc.getClientesPorEntrenador(1);
-    const asistHoy = this.asistenciaSvc.asistenciasHoy();
+    const clientes = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1);
+    const hoyStr   = new Date().toISOString().split('T')[0];
+    const asistHoy = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1 && a.fecha === hoyStr);
     return asistHoy.map(a => {
       const c = clientes.find(cl => cl.id === a.clienteId);
       return { ...a, nombreCliente: c ? `${c.nombre} ${c.apellido}` : 'Desconocido' };

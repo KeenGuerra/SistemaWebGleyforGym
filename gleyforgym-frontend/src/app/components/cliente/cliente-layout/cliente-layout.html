@@ -1,6 +1,20 @@
 <div class="gym-layout">
+  <!-- Mobile Header -->
+  <header class="gym-mobile-header d-md-none">
+    <button class="toggle-btn" (click)="toggleSidebar()" type="button" aria-label="Abrir menú">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="brand">GleyforGym</div>
+    <div class="sidebar-avatar" style="width: 30px; height: 30px; font-size: 0.72rem;">{{ iniciales() }}</div>
+  </header>
+
+  <!-- Overlay de Sidebar para pantallas pequeñas -->
+  @if (sidebarOpen()) {
+    <div class="gym-sidebar-overlay" (click)="closeSidebar()"></div>
+  }
+
   <!-- ── Sidebar ── -->
-  <aside class="gym-sidebar">
+  <aside class="gym-sidebar" [class.open]="sidebarOpen()">
     <!-- Logo -->
     <div class="gym-sidebar-logo">
       <div class="gym-logo-brand">
@@ -29,7 +43,7 @@
       <span class="gym-nav-label">Menú</span>
 
       @for (item of menuItems; track item.ruta) {
-      <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label">
+      <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label" (click)="closeSidebar()">
         <i class="bi {{ item.icon }}"></i>
         <span>{{ item.label }}</span>
       </a>
@@ -39,12 +53,12 @@
       <div class="gym-nav-bottom">
         <hr class="gym-nav-separator">
         @for (item of menuSecundario; track item.ruta) {
-        <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label">
+        <a [routerLink]="item.ruta" routerLinkActive="active-link" class="gym-nav-item" [attr.aria-label]="item.label" (click)="closeSidebar()">
           <i class="bi {{ item.icon }}"></i>
           <span>{{ item.label }}</span>
         </a>
         }
-        <button class="gym-nav-item danger" type="button" aria-label="Cerrar sesión">
+        <button class="gym-nav-item danger" type="button" aria-label="Cerrar sesión" (click)="closeSidebar()">
           <i class="bi bi-box-arrow-left"></i>
           <span>Cerrar Sesión</span>
         </button>

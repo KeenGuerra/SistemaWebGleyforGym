@@ -20,8 +20,15 @@ export class ProgresoCliente implements OnInit {
 
   readonly clienteId = signal(0);
   readonly cliente   = computed(() => this.clienteSvc.getClientePorId(this.clienteId()));
-  readonly progresos = computed(() => this.progresoSvc.getProgresosDeCliente(this.clienteId()));
-  readonly ultimo    = computed(() => this.progresoSvc.getUltimoProgreso(this.clienteId()));
+  readonly progresos = computed(() =>
+    this.progresoSvc.obtenerProgreso()
+      .filter(p => p.clienteId === this.clienteId())
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+  );
+  readonly ultimo    = computed(() => {
+    const list = this.progresos();
+    return list.length > 0 ? list[0] : undefined;
+  });
   readonly mostrarFormulario = signal(false);
   readonly guardado  = signal(false);
 

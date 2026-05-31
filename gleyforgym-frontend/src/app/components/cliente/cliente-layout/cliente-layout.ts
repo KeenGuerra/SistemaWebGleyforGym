@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
 import { MembresiaService } from '../../../services/membresia.service';
@@ -34,4 +34,14 @@ export class ClienteLayout {
   readonly menuSecundario = [
     { label: 'Configuración', icon: 'bi-gear-fill', ruta: '/cliente/configuracion' },
   ];
+
+  readonly sidebarOpen = signal(false);
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update(v => !v);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
 }

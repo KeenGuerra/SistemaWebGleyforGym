@@ -39,4 +39,13 @@ export class EntrenadorLayout {
   });
 
   readonly busqueda = signal('');
+  readonly sidebarOpen = signal(false);
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update(v => !v);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
 }

@@ -27,6 +27,10 @@ export class AsistenciaService {
 
   readonly asistencias = this._asistencias.asReadonly();
 
+  obtenerAsistencias(): Asistencia[] {
+    return this._asistencias();
+  }
+
   readonly asistenciasHoy = computed(() => {
     const hoyStr = fmt(new Date());
     return this._asistencias().filter(a => a.fecha === hoyStr);

@@ -14,7 +14,9 @@ export class MisRutinas {
 
   private readonly CLIENTE_ID = 5;
 
-  readonly rutinas   = computed(() => this.rutinaSvc.getRutinasDeCliente(this.CLIENTE_ID));
+  readonly rutinas   = computed(() =>
+    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID && r.activa)
+  );
   readonly rutinaSeleccionada = signal<number | null>(null);
 
   seleccionar(id: number): void {

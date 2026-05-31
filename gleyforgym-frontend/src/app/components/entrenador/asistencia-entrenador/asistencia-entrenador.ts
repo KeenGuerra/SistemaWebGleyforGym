@@ -21,12 +21,12 @@ export class AsistenciaEntrenador {
   readonly mensajeExito = signal('');
 
   readonly clientes = computed(() =>
-    this.clienteSvc.getClientesPorEntrenador(1)
+    this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1)
   );
 
   readonly asistenciasFiltradas = computed(() => {
     const fecha    = this.fechaFiltro();
-    const todas    = this.asistenciaSvc.getAsistenciasPorEntrenador(1);
+    const todas    = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1);
     const clientes = this.clientes();
 
     return todas

@@ -17,7 +17,7 @@ export class MiAsistencia {
   readonly anioActual = signal(new Date().getFullYear());
 
   readonly asistencias = computed(() =>
-    this.asistenciaSvc.getAsistenciasDeCliente(this.CLIENTE_ID)
+    this.asistenciaSvc.obtenerAsistencias().filter(a => a.clienteId === this.CLIENTE_ID)
   );
 
   readonly diasAsistidos = computed(() =>

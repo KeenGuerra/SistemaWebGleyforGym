@@ -16,6 +16,10 @@ export class PagoService {
 
   readonly pagos = this._pagos.asReadonly();
 
+  obtenerPagos(): Pago[] {
+    return this._pagos();
+  }
+
   readonly pagosDelCliente = computed(() =>
     this._pagos().filter(p => p.clienteId === 5)
   );

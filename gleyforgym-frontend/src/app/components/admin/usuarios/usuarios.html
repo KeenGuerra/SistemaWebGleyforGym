@@ -1,1 +1,191 @@
-<p>usuarios works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Personal</div>
+      <h1>Gestión de Usuarios</h1>
+      <p>Administra los perfiles de administradores, entrenadores y clientes de la plataforma</p>
+    </div>
+    <button (click)="openAddModal()" class="gym-btn gym-btn-primary">
+      <i class="bi bi-person-plus-fill"></i> Registrar Usuario
+    </button>
+  </div>
+
+  <!-- Filtros y Búsqueda -->
+  <div class="filter-bar-card gym-card">
+    <div class="filter-roles">
+      <button
+        (click)="setRolFilter('todos')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedRolFilter() === 'todos'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'todos'">
+        Todos
+      </button>
+      <button
+        (click)="setRolFilter('admin')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedRolFilter() === 'admin'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'admin'">
+        Administradores
+      </button>
+      <button
+        (click)="setRolFilter('entrenador')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedRolFilter() === 'entrenador'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'entrenador'">
+        Entrenadores
+      </button>
+      <button
+        (click)="setRolFilter('cliente')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedRolFilter() === 'cliente'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'cliente'">
+        Clientes
+      </button>
+    </div>
+
+    <div class="search-input-wrapper">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchChange($event)"
+        class="gym-form-control"
+        placeholder="Buscar por nombre, correo..."
+      />
+    </div>
+  </div>
+
+  <!-- Tabla de Usuarios -->
+  <div class="gym-table-wrapper" style="margin-top: 1.5rem;">
+    <table class="gym-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Correo Electrónico</th>
+          <th>Teléfono</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th style="text-align: right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of filteredUsuarios(); track user.id) {
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">
+                  {{ user.nombre.charAt(0) }}{{ user.apellido.charAt(0) }}
+                </div>
+                <div>
+                  <span class="user-fullname">{{ user.nombre }} {{ user.apellido }}</span>
+                  <span class="user-joined">Registrado: {{ user.fechaRegistro }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.telefono }}</td>
+            <td>
+              <span class="gym-badge" [class.gym-badge-orange]="user.rol === 'admin'" [class.gym-badge-blue]="user.rol === 'entrenador'" [class.gym-badge-gray]="user.rol === 'cliente'">
+                {{ user.rol | uppercase }}
+              </span>
+            </td>
+            <td>
+              <span class="gym-badge" [class.gym-badge-success]="user.activo" [class.gym-badge-danger]="!user.activo">
+                {{ user.activo ? 'ACTIVO' : 'INACTIVO' }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons-cell">
+                <button (click)="openEditModal(user)" class="gym-btn gym-btn-secondary gym-btn-sm gym-btn-icon" title="Editar">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button (click)="toggleActivo(user)" class="gym-btn gym-btn-sm gym-btn-icon" [class.gym-btn-danger]="user.activo" [class.gym-btn-secondary]="!user.activo" [title]="user.activo ? 'Desactivar' : 'Activar'">
+                  <i class="bi" [class.bi-person-x-fill]="user.activo" [class.bi-person-check-fill]="!user.activo"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center text-muted" style="padding: 2rem;">
+              No se encontraron usuarios que coincidan con la búsqueda.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Registro / Edición -->
+  @if (showModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card">
+        <div class="modal-header">
+          <h2>{{ editingUser() ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}</h2>
+          <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="modal-form">
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="nombre">NOMBRE</label>
+              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" placeholder="Nombre" />
+              @if (userForm.get('nombre')?.touched && userForm.get('nombre')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="apellido">APELLIDO</label>
+              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" placeholder="Apellido" />
+              @if (userForm.get('apellido')?.touched && userForm.get('apellido')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
+            <input type="email" id="email" formControlName="email" class="gym-form-control" placeholder="ejemplo@gleyforgym.com" />
+            @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Correo inválido.</div>
+            }
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="telefono">TELÉFONO</label>
+            <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" placeholder="809-555-1234" />
+            @if (userForm.get('telefono')?.touched && userForm.get('telefono')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+            }
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="rol">ROL DE ACCESO</label>
+              <select id="rol" formControlName="rol" class="gym-form-control">
+                <option value="admin">Administrador</option>
+                <option value="entrenador">Entrenador</option>
+                <option value="cliente">Cliente</option>
+              </select>
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="activo">ESTADO</label>
+              <select id="activo" formControlName="activo" class="gym-form-control">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
+            <button type="submit" class="gym-btn gym-btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

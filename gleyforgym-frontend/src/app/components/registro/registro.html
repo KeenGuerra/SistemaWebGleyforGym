@@ -1,1 +1,169 @@
-<p>registro works!</p>
+<div class="auth-container">
+  <div class="auth-box">
+    <!-- Volver al Inicio -->
+    <a routerLink="/" class="back-home">
+      <i class="bi bi-arrow-left"></i> Volver al Inicio
+    </a>
+
+    <!-- Encabezado Logo -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <i class="bi bi-lightning-charge-fill text-primary"></i> GleyforGym
+      </div>
+      <h2>CREA TU CUENTA</h2>
+      <p>Regístrate para comenzar tu transformación hoy mismo</p>
+    </div>
+
+    <!-- Formulario de Registro -->
+    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="auth-form">
+      @if (errorMessage) {
+        <div class="alert-danger-box">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="alert-success-box">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>{{ successMessage }}</span>
+        </div>
+      }
+
+      <!-- Nombre y Apellido -->
+      <div class="gym-form-row cols-2">
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="nombre">NOMBRE</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            class="gym-form-control"
+            placeholder="Juan"
+          />
+          @if (registroForm.get('nombre')?.touched && registroForm.get('nombre')?.invalid) {
+            <div class="gym-form-error">
+              <i class="bi bi-info-circle"></i> Requerido.
+            </div>
+          }
+        </div>
+
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="apellido">APELLIDO</label>
+          <input
+            type="text"
+            id="apellido"
+            formControlName="apellido"
+            class="gym-form-control"
+            placeholder="Pérez"
+          />
+          @if (registroForm.get('apellido')?.touched && registroForm.get('apellido')?.invalid) {
+            <div class="gym-form-error">
+              <i class="bi bi-info-circle"></i> Requerido.
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Correo Electrónico -->
+      <div class="gym-form-group">
+        <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="gym-form-control"
+            placeholder="juan.perez@email.com"
+          />
+        </div>
+        @if (registroForm.get('email')?.touched && registroForm.get('email')?.invalid) {
+          <div class="gym-form-error">
+            <i class="bi bi-info-circle"></i>
+            @if (registroForm.get('email')?.errors?.['required']) {
+              El correo es requerido.
+            } @else if (registroForm.get('email')?.errors?.['email']) {
+              Ingresa un correo electrónico válido.
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Teléfono -->
+      <div class="gym-form-group">
+        <label class="gym-form-label" for="telefono">TELÉFONO</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-telephone"></i>
+          <input
+            type="text"
+            id="telefono"
+            formControlName="telefono"
+            class="gym-form-control"
+            placeholder="809-555-0199"
+          />
+        </div>
+        @if (registroForm.get('telefono')?.touched && registroForm.get('telefono')?.invalid) {
+          <div class="gym-form-error">
+            <i class="bi bi-info-circle"></i> Teléfono requerido.
+          </div>
+        }
+      </div>
+
+      <!-- Contraseñas -->
+      <div class="gym-form-row cols-2">
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="password">CONTRASEÑA</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="gym-form-control"
+            placeholder="••••••"
+          />
+          @if (registroForm.get('password')?.touched && registroForm.get('password')?.invalid) {
+            <div class="gym-form-error">
+              <i class="bi bi-info-circle"></i>
+              @if (registroForm.get('password')?.errors?.['required']) {
+                Requerida.
+              } @else if (registroForm.get('password')?.errors?.['minlength']) {
+                Mínimo 6 carac.
+              }
+            </div>
+          }
+        </div>
+
+        <div class="gym-form-group">
+          <label class="gym-form-label" for="confirmPassword">CONFIRMAR</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            class="gym-form-control"
+            placeholder="••••••"
+          />
+          @if (registroForm.get('confirmPassword')?.touched && registroForm.get('confirmPassword')?.invalid) {
+            <div class="gym-form-error">
+              <i class="bi bi-info-circle"></i> Requerida.
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (registroForm.touched && registroForm.errors?.['passwordMismatch']) {
+        <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
+          <i class="bi bi-exclamation-circle-fill"></i> Las contraseñas no coinciden.
+        </div>
+      }
+
+      <button type="submit" class="gym-btn gym-btn-primary auth-submit-btn">
+        <i class="bi bi-person-plus-fill"></i> Registrarse
+      </button>
+    </form>
+
+    <!-- Enlace a Login -->
+    <div class="auth-footer">
+      ¿Ya tienes una cuenta? <a routerLink="/login" class="text-primary">Inicia sesión aquí</a>
+    </div>
+  </div>
+</div>

@@ -1,1 +1,130 @@
-<p>panel-admin works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Escritorio / Administrador</div>
+      <h1>Panel de Control</h1>
+      <p>Vista general de las operaciones, métricas clave y actividad reciente de GleyforGym</p>
+    </div>
+  </div>
+
+  <!-- Rejilla de Indicadores -->
+  <div class="gym-stats-grid">
+    <!-- Total Clientes -->
+    <div class="gym-stat-card">
+      <div class="gym-stat-label">TOTAL CLIENTES</div>
+      <div class="gym-stat-value">{{ totalClientes() }}</div>
+      <div class="gym-stat-sub">
+        <span class="trend-up"><i class="bi bi-arrow-up-short"></i> {{ totalActivos() }}</span> activos actualmente
+      </div>
+      <div class="gym-stat-icon-box orange">
+        <i class="bi bi-people-fill"></i>
+      </div>
+    </div>
+
+    <!-- Membresías Activas -->
+    <div class="gym-stat-card">
+      <div class="gym-stat-label">MEMBRESÍAS ACTIVAS</div>
+      <div class="gym-stat-value">{{ membresiasActivas() }}</div>
+      <div class="gym-stat-sub">Suscripciones vigentes en sala</div>
+      <div class="gym-stat-icon-box blue">
+        <i class="bi bi-card-heading"></i>
+      </div>
+    </div>
+
+    <!-- Ingresos Mensuales -->
+    <div class="gym-stat-card">
+      <div class="gym-stat-label">INGRESOS DEL MES</div>
+      <div class="gym-stat-value">RD${{ ingresosMensuales() | number }}</div>
+      <div class="gym-stat-sub">Pagos registrados este mes</div>
+      <div class="gym-stat-icon-box green">
+        <i class="bi bi-currency-dollar"></i>
+      </div>
+    </div>
+
+    <!-- Asistencia Diaria -->
+    <div class="gym-stat-card">
+      <div class="gym-stat-label">ASISTENCIA DIARIA</div>
+      <div class="gym-stat-value">{{ asistenciaHoy() }}</div>
+      <div class="gym-stat-sub">Accesos registrados hoy</div>
+      <div class="gym-stat-icon-box yellow">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido Principal: Dos Columnas de Actividad -->
+  <div class="dashboard-activity-grid">
+    <!-- Columna Izquierda: Últimos Pagos -->
+    <div class="gym-card">
+      <div class="card-header-flex">
+        <h3><i class="bi bi-credit-card-2-back-fill text-primary"></i> Últimos Pagos</h3>
+        <a routerLink="/admin/pagos" class="gym-btn gym-btn-secondary gym-btn-sm">Ver Todos</a>
+      </div>
+      <div class="gym-table-wrapper" style="margin-top: 1rem;">
+        <table class="gym-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Monto</th>
+              <th>Concepto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pago of ultimosPagos(); track pago.id) {
+              <tr>
+                <td class="font-semibold">{{ pago.nombreCliente }}</td>
+                <td>RD${{ pago.monto | number }}</td>
+                <td class="text-muted">{{ pago.concepto }}</td>
+                <td>
+                  <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'pagado'" [class.gym-badge-warning]="pago.estado === 'pendiente'">
+                    {{ pago.estado | uppercase }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-muted">No hay pagos registrados recientemente.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Últimas Asistencias -->
+    <div class="gym-card">
+      <div class="card-header-flex">
+        <h3><i class="bi bi-clock-history text-primary"></i> Accesos Recientes</h3>
+        <a routerLink="/admin/asistencia" class="gym-btn gym-btn-secondary gym-btn-sm">Ver Todos</a>
+      </div>
+      <div class="gym-table-wrapper" style="margin-top: 1rem;">
+        <table class="gym-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asis of ultimasAsistencias(); track asis.id) {
+              <tr>
+                <td class="font-semibold">{{ asis.nombreCliente }}</td>
+                <td>{{ asis.fecha }}</td>
+                <td>{{ asis.horaEntrada }}</td>
+                <td>{{ asis.horaSalida || '--:--' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-muted">No hay asistencias registradas hoy.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

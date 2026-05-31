@@ -1,1 +1,92 @@
-<p>inicio works!</p>
+<div class="landing-container">
+  <!-- Navbar -->
+  <nav class="landing-nav">
+    <div class="landing-logo">
+      <i class="bi bi-lightning-charge-fill text-primary"></i> GleyforGym
+    </div>
+    <div class="landing-nav-actions">
+      <a routerLink="/login" class="gym-btn gym-btn-secondary">Iniciar Sesión</a>
+      <a routerLink="/registro" class="gym-btn gym-btn-primary">Registrarse</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="landing-hero">
+    <div class="hero-content">
+      <span class="hero-tag">ENTRENA SIN LÍMITES</span>
+      <h1>LLEVA TU CUERPO AL <span class="text-primary">SIGUIENTE NIVEL</span></h1>
+      <p>En GleyforGym te proporcionamos las mejores herramientas, entrenadores capacitados y planes diseñados a tu medida para lograr tus objetivos fitness.</p>
+      <div class="hero-buttons">
+        <a routerLink="/registro" class="gym-btn gym-btn-primary gym-btn-lg">Comenzar Ahora</a>
+        <a href="#planes" class="gym-btn gym-btn-outline gym-btn-lg">Ver Planes</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Beneficios -->
+  <section class="landing-section">
+    <div class="section-header">
+      <h2>¿POR QUÉ ELEGIR GLEYFORGYM?</h2>
+      <p>Instalaciones y servicios pensados para optimizar tu rendimiento y bienestar.</p>
+    </div>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="bi bi-people-fill"></i></div>
+        <h3>Entrenadores Expertos</h3>
+        <p>Asesoría personalizada y rutinas planificadas para evitar lesiones y acelerar resultados.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="bi bi-clock-history"></i></div>
+        <h3>Horarios Flexibles</h3>
+        <p>Entrena a tu propio ritmo. Registro rápido de asistencia diaria con total control.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+        <h3>Seguimiento Continuo</h3>
+        <p>Visualización en tiempo real de tu progreso físico, peso, IMC e historial de entrenamiento.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Planes -->
+  <section id="planes" class="landing-section bg-alt">
+    <div class="section-header">
+      <h2>PLANES DE MEMBRESÍA</h2>
+      <p>Elige la opción que mejor se adapte a tu estilo de vida y objetivos.</p>
+    </div>
+    <div class="planes-grid">
+      @for (plan of planes; track plan.nombre) {
+        <div class="plan-card" [class.destacado]="plan.destacado">
+          @if (plan.destacado) {
+            <span class="plan-badge">MÁS POPULAR</span>
+          }
+          <h3>{{ plan.nombre }}</h3>
+          <div class="plan-precio">
+            <span class="currency">RD$</span>
+            <span class="amount">{{ plan.precio | number }}</span>
+            <span class="period">/ {{ plan.periodo }}</span>
+          </div>
+          <p class="plan-desc">{{ plan.desc }}</p>
+          <hr class="plan-sep">
+          <ul class="plan-features">
+            <li><i class="bi bi-check-circle-fill text-primary"></i> Acceso a sala de pesas</li>
+            <li><i class="bi bi-check-circle-fill text-primary"></i> Asesoría de entrenadores</li>
+            <li><i class="bi bi-check-circle-fill text-primary"></i> Casillero gratuito</li>
+            @if (plan.destacado || plan.precio > 5000) {
+              <li><i class="bi bi-check-circle-fill text-primary"></i> Clases grupales incluidas</li>
+              <li><i class="bi bi-check-circle-fill text-primary"></i> Rutinas personalizadas</li>
+            }
+          </ul>
+          <a routerLink="/registro" class="gym-btn" [class.gym-btn-primary]="plan.destacado" [class.gym-btn-secondary]="!plan.destacado">
+            Seleccionar Plan
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p>&copy; 2026 GleyforGym. Todos los derechos reservados. Diseñado para un estilo de vida saludable.</p>
+  </footer>
+</div>

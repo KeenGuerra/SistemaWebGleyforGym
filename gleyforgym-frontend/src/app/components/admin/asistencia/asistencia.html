@@ -1,1 +1,131 @@
-<p>asistencia works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Operaciones</div>
+      <h1>Registro de Asistencia</h1>
+      <p>Monitorea y registra los accesos diarios de los socios al gimnasio de forma manual o automatizada</p>
+    </div>
+    <button (click)="openAddModal()" class="gym-btn gym-btn-primary">
+      <i class="bi bi-clock-fill"></i> Registrar Entrada Manual
+    </button>
+  </div>
+
+  <!-- Filtro de Búsqueda -->
+  <div class="filter-bar-card gym-card">
+    <div style="flex: 1;"></div>
+    <div class="search-input-wrapper">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchChange($event)"
+        class="gym-form-control"
+        placeholder="Buscar por socio..."
+      />
+    </div>
+  </div>
+
+  <!-- Tabla de Accesos -->
+  <div class="gym-table-wrapper" style="margin-top: 1.5rem;">
+    <table class="gym-table">
+      <thead>
+        <tr>
+          <th>Socio / Cliente</th>
+          <th>Fecha de Acceso</th>
+          <th>Hora Entrada</th>
+          <th>Hora Salida</th>
+          <th>Duración Estimada</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (asis of asistenciasDecoradas(); track asis.id) {
+          <tr>
+            <td class="font-semibold">{{ asis.nombreCliente }}</td>
+            <td>
+              <span class="gym-badge gym-badge-gray"><i class="bi bi-calendar"></i> {{ asis.fecha }}</span>
+            </td>
+            <td>
+              <span class="text-success font-semibold"><i class="bi bi-box-arrow-in-right"></i> {{ asis.horaEntrada }}</span>
+            </td>
+            <td>
+              @if (asis.horaSalida) {
+                <span class="text-muted"><i class="bi bi-box-arrow-left"></i> {{ asis.horaSalida }}</span>
+              } @else {
+                <span class="gym-badge gym-badge-warning">En sala</span>
+              }
+            </td>
+            <td>
+              @if (asis.duracionMinutos) {
+                <span>{{ asis.duracionMinutos }} min</span>
+              } @else {
+                <span class="text-muted">--</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center text-muted" style="padding: 2rem;">
+              No hay asistencias registradas para esta búsqueda.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal para Asistencia Manual -->
+  @if (showModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2>Registrar Acceso de Socio</h2>
+          <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form [formGroup]="asistenciaForm" (ngSubmit)="saveAsistencia()" class="modal-form">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="clienteId">SELECCIONAR SOCIO</label>
+            <select id="clienteId" formControlName="clienteId" class="gym-form-control">
+              <option value="" disabled>Selecciona un cliente</option>
+              @for (cl of clientes(); track cl.id) {
+                <option [value]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
+              }
+            </select>
+            @if (asistenciaForm.get('clienteId')?.touched && asistenciaForm.get('clienteId')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Debes seleccionar un cliente.</div>
+            }
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="fecha">FECHA DE ACCESO</label>
+            <input type="date" id="fecha" formControlName="fecha" class="gym-form-control" />
+            @if (asistenciaForm.get('fecha')?.touched && asistenciaForm.get('fecha')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Fecha requerida.</div>
+            }
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="horaEntrada">HORA DE ENTRADA</label>
+              <input type="time" id="horaEntrada" formControlName="horaEntrada" class="gym-form-control" />
+              @if (asistenciaForm.get('horaEntrada')?.touched && asistenciaForm.get('horaEntrada')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerida.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="horaSalida">HORA DE SALIDA (OPCIONAL)</label>
+              <input type="time" id="horaSalida" formControlName="horaSalida" class="gym-form-control" />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
+            <button type="submit" class="gym-btn gym-btn-primary">Registrar Acceso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

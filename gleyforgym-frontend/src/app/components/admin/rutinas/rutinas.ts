@@ -1,9 +1,131 @@
-import { Component } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { RutinaService } from '../../../services/rutina.service';
+import { ClienteService } from '../../../services/cliente.service';
 
 @Component({
   selector: 'app-rutinas',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './rutinas.html',
   styleUrl: './rutinas.css',
 })
-export class Rutinas {}
+export class Rutinas {
+  private rutinaService = inject(RutinaService);
+  private clienteService = inject(ClienteService);
+  private fb = inject(FormBuilder);
+
+  // Filtros
+  readonly searchQuery = signal<string>('');
+
+  // Modales
+  readonly showModal = signal<boolean>(false);
+
+  // Formulario reactivo
+  rutinaForm: FormGroup = this.fb.group({
+    clienteId: ['', [Validators.required]],
+    nombre: ['', [Validators.required]],
+    nivel: ['intermedio', [Validators.required]],
+    objetivo: ['Tonificación', [Validators.required]],
+    descripcion: ['', [Validators.required]]
+  });
+
+  // Lista de clientes
+  readonly clientes = this.clienteService.clientes;
+
+  // Lista de rutinas decoradas
+  readonly rutinasDecoradas = computed(() => {
+    const list = this.rutinaService.rutinas();
+    const query = this.searchQuery().toLowerCase().trim();
+
+    const decoradas = list.map(r => {
+      const cliente = this.clienteService.getClientePorId(r.clienteId);
+      return {
+        ...r,
+        nombreCliente: cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente Desconocido'
+      };
+    });
+
+    return decoradas.filter(r =>
+      r.nombreCliente.toLowerCase().includes(query) ||
+      r.nombre.toLowerCase().includes(query) ||
+      r.objetivo.toLowerCase().includes(query)
+    );
+  });
+
+  onSearchChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+  }
+
+  openAddModal(): void {
+    this.rutinaForm.reset({
+      clienteId: '',
+      nombre: '',
+      nivel: 'intermedio',
+      objetivo: 'Tonificación',
+      descripcion: ''
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal(): void {
+    this.showModal.set(false);
+  }
+
+  saveRutina(): void {
+    if (this.rutinaForm.invalid) {
+      this.rutinaForm.markAllAsTouched();
+      return;
+    }
+
+    const val = this.rutinaForm.value;
+
+    // Auto-completar ejercicios según nivel para simular realismo premium
+    let ejerciciosSimulados: any[] = [];
+    if (val.nivel === 'principiante') {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadillas libres', series: 3, repeticiones: '12', descanso: '60s' },
+        { nombre: 'Flexiones inclinadas', series: 3, repeticiones: '10', descanso: '60s' },
+        { nombre: 'Plancha estática', series: 3, repeticiones: '30s', descanso: '45s' }
+      ];
+    } else if (val.nivel === 'intermedio') {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadilla con barra goblet', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Press de banca plano', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Remo con mancuernas', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Plancha con toques de hombro', series: 3, repeticiones: '15', descanso: '60s' }
+      ];
+    } else {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadilla trasera con barra', series: 4, repeticiones: '6-8 (pesado)', descanso: '120s' },
+        { nombre: 'Press militar con barra', series: 4, repeticiones: '8', descanso: '90s' },
+        { nombre: 'Peso muerto rumano', series: 4, repeticiones: '8', descanso: '90s' },
+        { nombre: 'Dominadas con lastre', series: 4, repeticiones: 'Máximas', descanso: '90s' },
+        { nombre: 'Rueda abdominal', series: 3, repeticiones: '12', descanso: '60s' }
+      ];
+    }
+
+    this.rutinaService.agregarRutina({
+      clienteId: Number(val.clienteId),
+      entrenadorId: 1, // Por defecto asignada por admin (entrenador 1)
+      nombre: val.nombre,
+      diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
+      nivel: val.nivel,
+      objetivo: val.objetivo,
+      descripcion: val.descripcion,
+      fechaCreacion: new Date().toISOString().split('T')[0],
+      activa: true,
+      ejercicios: ejerciciosSimulados
+    });
+
+    this.closeModal();
+  }
+
+  desactivarRutina(id: number): void {
+    if (confirm('¿Deseas dar de baja esta rutina del plan de entrenamiento del socio?')) {
+      this.rutinaService.desactivarRutina(id);
+    }
+  }
+}

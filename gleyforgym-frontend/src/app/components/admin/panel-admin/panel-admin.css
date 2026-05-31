@@ -1,0 +1,30 @@
+.dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header-flex h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .dashboard-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}

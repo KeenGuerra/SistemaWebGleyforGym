@@ -1,11 +1,30 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  // Redirigir raíz al panel del entrenador (para desarrollo)
+  // ── Pantallas Generales ─────────────────────────────
   {
     path: '',
-    redirectTo: 'entrenador/panel',
-    pathMatch: 'full',
+    title: 'GleyforGym — Gimnasio y Fitness',
+    loadComponent: () =>
+      import('./components/inicio/inicio').then(
+        m => m.Inicio
+      ),
+  },
+  {
+    path: 'login',
+    title: 'Iniciar Sesión — GleyforGym',
+    loadComponent: () =>
+      import('./components/login/login').then(
+        m => m.Login
+      ),
+  },
+  {
+    path: 'registro',
+    title: 'Registrarse — GleyforGym',
+    loadComponent: () =>
+      import('./components/registro/registro').then(
+        m => m.Registro
+      ),
   },
 
   // ── Rol Entrenador ──────────────────────────────────
@@ -152,9 +171,97 @@ export const routes: Routes = [
     ],
   },
 
+  // ── Rol Administrador ───────────────────────────────
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./components/admin/admin-layout/admin-layout').then(
+        m => m.AdminLayout
+      ),
+    children: [
+      {
+        path: '',
+        redirectTo: 'panel',
+        pathMatch: 'full',
+      },
+      {
+        path: 'panel',
+        title: 'Panel Principal — Administrador',
+        loadComponent: () =>
+          import('./components/admin/panel-admin/panel-admin').then(
+            m => m.PanelAdmin
+          ),
+      },
+      {
+        path: 'usuarios',
+        title: 'Gestión de Usuarios — Administrador',
+        loadComponent: () =>
+          import('./components/admin/usuarios/usuarios').then(
+            m => m.Usuarios
+          ),
+      },
+      {
+        path: 'clientes',
+        title: 'Gestión de Clientes — Administrador',
+        loadComponent: () =>
+          import('./components/admin/clientes/clientes').then(
+            m => m.Clientes
+          ),
+      },
+      {
+        path: 'membresias',
+        title: 'Gestión de Membresías — Administrador',
+        loadComponent: () =>
+          import('./components/admin/membresias/membresias').then(
+            m => m.Membresias
+          ),
+      },
+      {
+        path: 'pagos',
+        title: 'Gestión de Pagos — Administrador',
+        loadComponent: () =>
+          import('./components/admin/pagos/pagos').then(
+            m => m.Pagos
+          ),
+      },
+      {
+        path: 'asistencia',
+        title: 'Gestión de Asistencia — Administrador',
+        loadComponent: () =>
+          import('./components/admin/asistencia/asistencia').then(
+            m => m.Asistencia
+          ),
+      },
+      {
+        path: 'rutinas',
+        title: 'Gestión de Rutinas — Administrador',
+        loadComponent: () =>
+          import('./components/admin/rutinas/rutinas').then(
+            m => m.Rutinas
+          ),
+      },
+      {
+        path: 'perfil',
+        title: 'Mi Perfil — Administrador',
+        loadComponent: () =>
+          import('./components/admin/perfil-admin/perfil-admin').then(
+            m => m.PerfilAdmin
+          ),
+      },
+      {
+        path: 'configuracion',
+        title: 'Configuración — Administrador',
+        loadComponent: () =>
+          import('./components/admin/perfil-admin/perfil-admin').then(
+            m => m.PerfilAdmin
+          ),
+      },
+    ],
+  },
+
   // Ruta comodín
   {
     path: '**',
-    redirectTo: 'entrenador/panel',
+    redirectTo: '',
   },
 ];

@@ -1,0 +1,7 @@
+/* Estilos adicionales específicos del layout del administrador */
+/* La mayoría de los estilos generales de barra lateral y cabeceras móviles están en styles.css */
+
+.gym-nav-bottom {
+  margin-top: auto;
+  padding-top: 0;
+}

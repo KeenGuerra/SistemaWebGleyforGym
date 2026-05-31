@@ -55,9 +55,27 @@ export class ClienteService {
     return this._clientes().filter(c => c.entrenadorId === entrenadorId);
   }
 
+  registrarCliente(cliente: Omit<Cliente, 'id'>): Cliente {
+    const nuevoId = Math.max(...this._clientes().map(c => c.id), 0) + 1;
+    const nuevoCliente: Cliente = {
+      ...cliente,
+      id: nuevoId,
+      fechaRegistro: new Date().toISOString().split('T')[0],
+      activo: true
+    };
+    this._clientes.update(lista => [...lista, nuevoCliente]);
+    return nuevoCliente;
+  }
+
   actualizarCliente(cliente: Cliente): void {
     this._clientes.update(lista =>
       lista.map(c => c.id === cliente.id ? { ...c, ...cliente } : c)
+    );
+  }
+
+  eliminarCliente(id: number): void {
+    this._clientes.update(lista =>
+      lista.map(c => c.id === id ? { ...c, activo: false } : c)
     );
   }
 }

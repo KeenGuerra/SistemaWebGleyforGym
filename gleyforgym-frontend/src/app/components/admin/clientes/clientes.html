@@ -1,1 +1,269 @@
-<p>clientes works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Socios</div>
+      <h1>Gestión de Clientes</h1>
+      <p>Administra las fichas de entrenamiento, asignaciones y membresías de los clientes</p>
+    </div>
+    <button (click)="openAddModal()" class="gym-btn gym-btn-primary">
+      <i class="bi bi-person-plus-fill"></i> Registrar Cliente
+    </button>
+  </div>
+
+  <!-- Filtros y Búsqueda -->
+  <div class="filter-bar-card gym-card">
+    <div style="flex: 1;"></div>
+    <div class="search-input-wrapper">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchChange($event)"
+        class="gym-form-control"
+        placeholder="Buscar cliente..."
+      />
+    </div>
+  </div>
+
+  <!-- Tabla de Clientes -->
+  <div class="gym-table-wrapper" style="margin-top: 1.5rem;">
+    <table class="gym-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Entrenador Asignado</th>
+          <th>Membresía</th>
+          <th>Estado</th>
+          <th style="text-align: right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of clientesDecorados(); track c.id) {
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="sidebar-avatar" style="width: 32px; height: 32px; font-size: 0.75rem; background: var(--color-primary-dark);">
+                  {{ c.nombre.charAt(0) }}{{ c.apellido.charAt(0) }}
+                </div>
+                <div>
+                  <span class="user-fullname">{{ c.nombre }} {{ c.apellido }}</span>
+                  <span class="user-joined">{{ c.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ c.telefono }}</td>
+            <td>
+              <div class="trainer-assignment-cell">
+                <i class="bi bi-person-badge text-primary"></i> {{ c.nombreEntrenador }}
+              </div>
+            </td>
+            <td>
+              <div>
+                <span style="font-size: 0.85rem; font-weight: 500; display: block;">{{ c.membresiaTipo }}</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">Vence: {{ c.membresiaFin }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="gym-badge" [class.gym-badge-success]="c.activo && c.membresiaEstado === 'activa'" [class.gym-badge-danger]="!c.activo || c.membresiaEstado === 'vencida'">
+                {{ (!c.activo) ? 'INACTIVO' : (c.membresiaEstado === 'activa' ? 'ACTIVA' : 'VENCIDA') }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons-cell">
+                <button (click)="openDetailsModal(c)" class="gym-btn gym-btn-secondary gym-btn-sm gym-btn-icon" title="Ver Detalle">
+                  <i class="bi bi-eye-fill"></i>
+                </button>
+                <button (click)="openEditModal(c)" class="gym-btn gym-btn-secondary gym-btn-sm gym-btn-icon" title="Editar">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button (click)="eliminarCliente(c.id)" class="gym-btn gym-btn-danger gym-btn-sm gym-btn-icon" title="Desactivar">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center text-muted" style="padding: 2rem;">
+              No se encontraron clientes registrados.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Detalle (Ficha detallada) -->
+  @if (showDetailsModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card" style="max-width: 600px;">
+        <div class="modal-header">
+          <h2>Ficha de Cliente</h2>
+          <button (click)="closeDetailsModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="details-sheet">
+          <div class="details-hero">
+            <div class="sidebar-avatar" style="width: 56px; height: 56px; font-size: 1.3rem; margin: 0 auto 0.75rem;">
+              {{ viewingCliente()?.nombre?.charAt(0) }}{{ viewingCliente()?.apellido?.charAt(0) }}
+            </div>
+            <h3>{{ viewingCliente()?.nombre }} {{ viewingCliente()?.apellido }}</h3>
+            <p class="text-muted">{{ viewingCliente()?.email }} | {{ viewingCliente()?.telefono }}</p>
+          </div>
+
+          <div class="details-grid">
+            <div class="details-group">
+              <span class="details-label">OBJETIVO FITNESS</span>
+              <span class="details-value text-primary">{{ viewingCliente()?.objetivo }}</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">ENTRENADOR</span>
+              <span class="details-value">{{ viewingCliente()?.nombreEntrenador }}</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">PESO</span>
+              <span class="details-value">{{ viewingCliente()?.peso }} kg</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">ALTURA</span>
+              <span class="details-value">{{ viewingCliente()?.altura }} cm</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">TIPO MEMBRESÍA</span>
+              <span class="details-value">{{ viewingCliente()?.membresiaTipo }}</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">ESTADO DE ACCESO</span>
+              <span class="details-value">
+                <span class="gym-badge" [class.gym-badge-success]="viewingCliente()?.activo && viewingCliente()?.membresiaEstado === 'activa'" [class.gym-badge-danger]="!viewingCliente()?.activo || viewingCliente()?.membresiaEstado === 'vencida'">
+                  {{ (!(viewingCliente()?.activo)) ? 'INACTIVO' : (viewingCliente()?.membresiaEstado === 'activa' ? 'VIGENTE' : 'VENCIDA') }}
+                </span>
+              </span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">INICIO MEMBRESÍA</span>
+              <span class="details-value">{{ viewingCliente()?.membresiaInicio }}</span>
+            </div>
+            <div class="details-group">
+              <span class="details-label">FIN MEMBRESÍA</span>
+              <span class="details-value">{{ viewingCliente()?.membresiaFin }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 1.5rem;">
+          <button (click)="closeDetailsModal()" class="gym-btn gym-btn-secondary">Cerrar Ficha</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Agregar/Editar Cliente -->
+  @if (showModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card" style="max-width: 550px;">
+        <div class="modal-header">
+          <h2>{{ editingCliente() ? 'Editar Cliente' : 'Registrar Nuevo Cliente' }}</h2>
+          <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form [formGroup]="clienteForm" (ngSubmit)="saveCliente()" class="modal-form">
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="nombre">NOMBRE</label>
+              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" />
+              @if (clienteForm.get('nombre')?.touched && clienteForm.get('nombre')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="apellido">APELLIDO</label>
+              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" />
+              @if (clienteForm.get('apellido')?.touched && clienteForm.get('apellido')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
+              <input type="email" id="email" formControlName="email" class="gym-form-control" />
+              @if (clienteForm.get('email')?.touched && clienteForm.get('email')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Inválido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="telefono">TELÉFONO</label>
+              <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" />
+              @if (clienteForm.get('telefono')?.touched && clienteForm.get('telefono')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          <div class="gym-form-row cols-3">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="peso">PESO (KG)</label>
+              <input type="number" id="peso" formControlName="peso" class="gym-form-control" />
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="altura">ALTURA (CM)</label>
+              <input type="number" id="altura" formControlName="altura" class="gym-form-control" />
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="objetivo">OBJETIVO</label>
+              <select id="objetivo" formControlName="objetivo" class="gym-form-control">
+                <option value="Pérdida de peso">Pérdida de peso</option>
+                <option value="Ganancia muscular">Ganancia muscular</option>
+                <option value="Tonificación">Tonificación</option>
+                <option value="Resistencia">Resistencia</option>
+                <option value="Flexibilidad">Flexibilidad</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="entrenadorId">ENTRENADOR ASIGNADO</label>
+              <select id="entrenadorId" formControlName="entrenadorId" class="gym-form-control">
+                @for (tr of entrenadores(); track tr.id) {
+                  <option [value]="tr.id">{{ tr.nombre }} {{ tr.apellido }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="membresiaId">PLAN MEMBRESÍA</label>
+              <select id="membresiaId" formControlName="membresiaId" class="gym-form-control">
+                <option [value]="1">Mensual Premium (RD$ 2,500)</option>
+                <option [value]="2">Trimestral (RD$ 6,500)</option>
+                <option [value]="3">Mensual Básica (RD$ 1,800)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="activo">ESTADO DE LA CUENTA</label>
+            <select id="activo" formControlName="activo" class="gym-form-control">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
+            <button type="submit" class="gym-btn gym-btn-primary">Guardar Socio</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

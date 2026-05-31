@@ -1,1 +1,153 @@
-<p>perfil-admin works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Configuración</div>
+      <h1>Mi Perfil de Administrador</h1>
+      <p>Configura tus datos personales, información de contacto y credenciales de acceso</p>
+    </div>
+  </div>
+
+  <div class="profile-layout">
+    <!-- Columna Izquierda: Tarjeta de Presentación -->
+    <div class="profile-sidebar-card gym-card">
+      <div class="profile-avatar-wrapper">
+        <div class="gym-avatar" style="width: 80px; height: 80px; font-size: 2rem; background: var(--color-primary-dark); color: white;">
+          A
+        </div>
+      </div>
+      <h3>Administrador Principal</h3>
+      <span class="gym-badge gym-badge-orange">Super Admin</span>
+      
+      <div class="profile-meta-info" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; width: 100%;">
+        <div class="meta-item">
+          <span class="meta-label">Miembro Desde</span>
+          <span class="meta-value">01 de Enero, 2024</span>
+        </div>
+        <div class="meta-item" style="margin-top: 0.75rem;">
+          <span class="meta-label">Estado de Acceso</span>
+          <span class="meta-value text-success"><i class="bi bi-shield-fill-check"></i> Autorizado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Formularios de Edición -->
+    <div class="profile-forms-column">
+      <!-- Formulario 1: Datos Generales -->
+      <div class="gym-card">
+        <h3><i class="bi bi-person-fill text-primary"></i> Datos Generales y Contacto</h3>
+        <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Actualiza tu información personal para reportes e inicio de sesión.</p>
+        
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmitProfile()" class="profile-form">
+          @if (errorMessage()) {
+            <div class="alert-danger-box">
+              <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage() }}
+            </div>
+          }
+          @if (successMessage()) {
+            <div class="alert-success-box">
+              <i class="bi bi-check-circle-fill"></i> {{ successMessage() }}
+            </div>
+          }
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="nombre">NOMBRE</label>
+              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" />
+              @if (profileForm.get('nombre')?.touched && profileForm.get('nombre')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="apellido">APELLIDO</label>
+              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" />
+              @if (profileForm.get('apellido')?.touched && profileForm.get('apellido')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
+              <input type="email" id="email" formControlName="email" class="gym-form-control" />
+              @if (profileForm.get('email')?.touched && profileForm.get('email')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Inválido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="telefono">TELÉFONO</label>
+              <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" />
+              @if (profileForm.get('telefono')?.touched && profileForm.get('telefono')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="submit" class="gym-btn gym-btn-primary">Actualizar Datos</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Formulario 2: Seguridad / Cambiar Contraseña -->
+      <div class="gym-card" style="margin-top: 1.5rem;">
+        <h3><i class="bi bi-key-fill text-primary"></i> Seguridad e Identidad</h3>
+        <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Cambia tu contraseña periódicamente para mantener protegida la administración.</p>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()" class="profile-form">
+          @if (pwdErrorMessage()) {
+            <div class="alert-danger-box">
+              <i class="bi bi-exclamation-triangle-fill"></i> {{ pwdErrorMessage() }}
+            </div>
+          }
+          @if (pwdSuccessMessage()) {
+            <div class="alert-success-box">
+              <i class="bi bi-check-circle-fill"></i> {{ pwdSuccessMessage() }}
+            </div>
+          }
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="currentPassword">CONTRASEÑA ACTUAL</label>
+            <input type="password" id="currentPassword" formControlName="currentPassword" class="gym-form-control" placeholder="••••••••" />
+            @if (passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+            }
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="newPassword">NUEVA CONTRASEÑA</label>
+              <input type="password" id="newPassword" formControlName="newPassword" class="gym-form-control" placeholder="••••••••" />
+              @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid) {
+                <div class="gym-form-error">
+                  <i class="bi bi-info-circle"></i> Mínimo 6 caracteres.
+                </div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="confirmNewPassword">CONFIRMAR NUEVA CONTRASEÑA</label>
+              <input type="password" id="confirmNewPassword" formControlName="confirmNewPassword" class="gym-form-control" placeholder="••••••••" />
+              @if (passwordForm.get('confirmNewPassword')?.touched && passwordForm.get('confirmNewPassword')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+            </div>
+          </div>
+
+          @if (passwordForm.touched && passwordForm.errors?.['passwordMismatch']) {
+            <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
+              <i class="bi bi-exclamation-circle-fill"></i> Las nuevas contraseñas no coinciden.
+            </div>
+          }
+
+          <div class="form-actions-row">
+            <button type="submit" class="gym-btn gym-btn-primary">Actualizar Contraseña</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

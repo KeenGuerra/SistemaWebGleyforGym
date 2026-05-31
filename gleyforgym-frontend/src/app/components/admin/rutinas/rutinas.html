@@ -1,1 +1,150 @@
-<p>rutinas works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Planes</div>
+      <h1>Rutinas y Planes de Entrenamiento</h1>
+      <p>Biblioteca de rutinas asignadas a los socios, control de ejercicios y planes de actividad física</p>
+    </div>
+    <button (click)="openAddModal()" class="gym-btn gym-btn-primary">
+      <i class="bi bi-journal-plus"></i> Asignar Rutina
+    </button>
+  </div>
+
+  <!-- Filtro de Búsqueda -->
+  <div class="filter-bar-card gym-card">
+    <div style="flex: 1;"></div>
+    <div class="search-input-wrapper">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchChange($event)"
+        class="gym-form-control"
+        placeholder="Buscar por socio u objetivo..."
+      />
+    </div>
+  </div>
+
+  <!-- Biblioteca / Rejilla de Rutinas -->
+  <div class="routines-grid" style="margin-top: 1.5rem;">
+    @for (rutina of rutinasDecoradas(); track rutina.id) {
+      <div class="gym-card routine-card">
+        <div class="routine-card-header">
+          <div>
+            <span class="gym-badge gym-badge-orange" style="margin-bottom: 0.25rem;">{{ rutina.nivel | uppercase }}</span>
+            <h4>{{ rutina.nombre }}</h4>
+            <span class="routine-client-name"><i class="bi bi-person-fill"></i> Socio: {{ rutina.nombreCliente }}</span>
+          </div>
+          <button (click)="desactivarRutina(rutina.id)" class="gym-btn gym-btn-danger gym-btn-sm gym-btn-icon" title="Eliminar Rutina">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </div>
+
+        <p class="routine-desc">{{ rutina.descripcion }}</p>
+
+        <div class="exercises-section">
+          <h5><i class="bi bi-activity text-primary"></i> Ejercicios Planificados</h5>
+          <ul class="exercise-list">
+            @for (ex of rutina.ejercicios; track ex.nombre) {
+              <li>
+                <div class="exercise-item-main">
+                  <span class="exercise-name">{{ ex.nombre }}</span>
+                  <span class="exercise-specs">{{ ex.series }}x{{ ex.repeticiones }} | {{ ex.descanso }}</span>
+                </div>
+                @if (ex.notas) {
+                  <span class="exercise-notes"><i class="bi bi-info-circle"></i> {{ ex.notas }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+
+        <div class="routine-card-footer">
+          <span>Fecha de asignación: {{ rutina.fechaCreacion }}</span>
+        </div>
+      </div>
+    } @empty {
+      <div class="gym-card text-center text-muted" style="grid-column: 1 / -1; padding: 3rem;">
+        <i class="bi bi-journal-x" style="font-size: 2.5rem; display: block; margin-bottom: 1rem; color: var(--text-faint);"></i>
+        No hay rutinas registradas en este momento.
+      </div>
+    }
+  </div>
+
+  <!-- Modal Asignar Rutina -->
+  @if (showModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card" style="max-width: 500px;">
+        <div class="modal-header">
+          <h2>Asignar Nueva Rutina</h2>
+          <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form [formGroup]="rutinaForm" (ngSubmit)="saveRutina()" class="modal-form">
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="clienteId">SELECCIONAR SOCIO</label>
+            <select id="clienteId" formControlName="clienteId" class="gym-form-control">
+              <option value="" disabled>Selecciona un cliente</option>
+              @for (cl of clientes(); track cl.id) {
+                <option [value]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
+              }
+            </select>
+            @if (rutinaForm.get('clienteId')?.touched && rutinaForm.get('clienteId')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Debes seleccionar un cliente.</div>
+            }
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="nombre">NOMBRE DE LA RUTINA</label>
+            <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" placeholder="Ej: Full Body Fuerza - L/M/V" />
+            @if (rutinaForm.get('nombre')?.touched && rutinaForm.get('nombre')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Nombre requerido.</div>
+            }
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="nivel">NIVEL</label>
+              <select id="nivel" formControlName="nivel" class="gym-form-control">
+                <option value="principiante">Principiante</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+              </select>
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="objetivo">OBJETIVO</label>
+              <select id="objetivo" formControlName="objetivo" class="gym-form-control">
+                <option value="Pérdida de peso">Pérdida de peso</option>
+                <option value="Ganancia muscular">Ganancia muscular</option>
+                <option value="Tonificación">Tonificación</option>
+                <option value="Resistencia">Resistencia</option>
+                <option value="Flexibilidad">Flexibilidad</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="descripcion">DESCRIPCIÓN DE LA RUTINA</label>
+            <textarea id="descripcion" formControlName="descripcion" class="gym-form-control" rows="3" placeholder="Ingresa indicaciones o descripción general de la rutina"></textarea>
+            @if (rutinaForm.get('descripcion')?.touched && rutinaForm.get('descripcion')?.invalid) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Descripción requerida.</div>
+            }
+          </div>
+
+          <div class="alert-info-box" style="background: rgba(255,102,0,0.05); border: 1px solid rgba(255,102,0,0.15); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.78rem; display: flex; gap: 0.5rem; color: var(--text-light); margin-top: 0.5rem;">
+            <i class="bi bi-info-circle-fill text-primary" style="font-size: 1rem;"></i>
+            <span>Al guardar, el sistema asignará de forma inteligente una biblioteca de ejercicios básicos correspondientes al nivel de entrenamiento seleccionado.</span>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
+            <button type="submit" class="gym-btn gym-btn-primary">Asignar Plan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

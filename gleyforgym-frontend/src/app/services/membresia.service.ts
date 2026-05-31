@@ -32,4 +32,44 @@ export class MembresiaService {
     const diff = fin.getTime() - hoy.getTime();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
+
+  registrarMembresia(membresia: Omit<Membresia, 'id'>): Membresia {
+    const nuevoId = Math.max(...this._membresias().map(m => m.id), 0) + 1;
+    const nuevaM: Membresia = { ...membresia, id: nuevoId };
+    this._membresias.update(lista => [...lista, nuevaM]);
+    return nuevaM;
+  }
+
+  renovarMembresia(clienteId: number, tipo: string, precio: number, meses: number): void {
+    const hoy = new Date();
+    const fin = new Date();
+    fin.setMonth(hoy.getMonth() + meses);
+    const fechaInicioStr = hoy.toISOString().split('T')[0];
+    const fechaFinStr = fin.toISOString().split('T')[0];
+
+    this._membresias.update(lista => {
+      const index = lista.findIndex(m => m.clienteId === clienteId);
+      if (index > -1) {
+        return lista.map((m, idx) => idx === index ? {
+          ...m,
+          tipo,
+          precio,
+          fechaInicio: fechaInicioStr,
+          fechaFin: fechaFinStr,
+          estado: 'activa'
+        } : m);
+      } else {
+        const nuevoId = Math.max(...lista.map(m => m.id), 0) + 1;
+        return [...lista, {
+          id: nuevoId,
+          clienteId,
+          tipo,
+          precio,
+          fechaInicio: fechaInicioStr,
+          fechaFin: fechaFinStr,
+          estado: 'activa'
+        }];
+      }
+    });
+  }
 }

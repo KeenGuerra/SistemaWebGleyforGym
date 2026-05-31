@@ -1,1 +1,96 @@
-<p>login works!</p>
+<div class="auth-container">
+  <div class="auth-box">
+    <!-- Volver al Inicio -->
+    <a routerLink="/" class="back-home">
+      <i class="bi bi-arrow-left"></i> Volver al Inicio
+    </a>
+
+    <!-- Encabezado Logo -->
+    <div class="auth-header">
+      <div class="auth-logo">
+        <i class="bi bi-lightning-charge-fill text-primary"></i> GleyforGym
+      </div>
+      <h2>¡BIENVENIDO DE VUELTA!</h2>
+      <p>Ingresa tus credenciales para acceder a la plataforma</p>
+    </div>
+
+    <!-- Formulario de Acceso -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      @if (errorMessage) {
+        <div class="alert-danger-box">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <div class="gym-form-group">
+        <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="gym-form-control"
+            placeholder="ejemplo@gleyforgym.com"
+          />
+        </div>
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+          <div class="gym-form-error">
+            <i class="bi bi-info-circle"></i>
+            @if (loginForm.get('email')?.errors?.['required']) {
+              El correo es requerido.
+            } @else if (loginForm.get('email')?.errors?.['email']) {
+              Ingresa un correo electrónico válido.
+            }
+          </div>
+        }
+      </div>
+
+      <div class="gym-form-group">
+        <label class="gym-form-label" for="password">CONTRASEÑA</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-lock"></i>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="gym-form-control"
+            placeholder="••••••••"
+          />
+        </div>
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+          <div class="gym-form-error">
+            <i class="bi bi-info-circle"></i>
+            La contraseña es requerida.
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="gym-btn gym-btn-primary auth-submit-btn">
+        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+      </button>
+    </form>
+
+    <!-- Enlace a Registro -->
+    <div class="auth-footer">
+      ¿No tienes una cuenta? <a routerLink="/registro" class="text-primary">Regístrate aquí</a>
+    </div>
+
+    <!-- Quick Access para Pruebas (Mock logins) -->
+    <div class="quick-access-box">
+      <h4>ACCESO RÁPIDO PARA PRUEBAS</h4>
+      <div class="quick-buttons">
+        <button (click)="quickLogin('admin')" class="gym-btn gym-btn-secondary gym-btn-sm">
+          <i class="bi bi-shield-lock-fill text-primary"></i> Administrador
+        </button>
+        <button (click)="quickLogin('entrenador')" class="gym-btn gym-btn-secondary gym-btn-sm">
+          <i class="bi bi-person-badge-fill text-primary"></i> Entrenador
+        </button>
+        <button (click)="quickLogin('cliente')" class="gym-btn gym-btn-secondary gym-btn-sm">
+          <i class="bi bi-person-fill text-primary"></i> Cliente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

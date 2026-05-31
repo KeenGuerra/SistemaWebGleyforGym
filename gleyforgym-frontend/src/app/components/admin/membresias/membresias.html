@@ -1,1 +1,155 @@
-<p>membresias works!</p>
+<div class="gym-page">
+  <!-- Cabecera de Página -->
+  <div class="gym-page-header">
+    <div class="gym-page-header-text">
+      <div class="gym-breadcrumb">Administración / Suscripciones</div>
+      <h1>Gestión de Membresías</h1>
+      <p>Controla las suscripciones activas, renovaciones de planes y alertas de vencimiento de los socios</p>
+    </div>
+  </div>
+
+  <!-- Filtros de Estado -->
+  <div class="filter-bar-card gym-card">
+    <div class="filter-roles">
+      <button
+        (click)="setFilter('todas')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedFilter() === 'todas'"
+        [class.gym-btn-secondary]="selectedFilter() !== 'todas'">
+        Todas
+      </button>
+      <button
+        (click)="setFilter('activas')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedFilter() === 'activas'"
+        [class.gym-btn-secondary]="selectedFilter() !== 'activas'">
+        <i class="bi bi-patch-check-fill text-success"></i> Activas
+      </button>
+      <button
+        (click)="setFilter('vencidas')"
+        class="gym-btn"
+        [class.gym-btn-primary]="selectedFilter() === 'vencidas'"
+        [class.gym-btn-secondary]="selectedFilter() !== 'vencidas'">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i> Vencidas
+      </button>
+    </div>
+    <div style="flex: 1;"></div>
+  </div>
+
+  <!-- Tabla de Membresías -->
+  <div class="gym-table-wrapper" style="margin-top: 1.5rem;">
+    <table class="gym-table">
+      <thead>
+        <tr>
+          <th>Socio / Cliente</th>
+          <th>Tipo Plan</th>
+          <th>Precio</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Días Restantes</th>
+          <th>Estado</th>
+          <th style="text-align: right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of membresiasDecoradas(); track m.id) {
+          <tr>
+            <td class="font-semibold">{{ m.nombreCliente }}</td>
+            <td>
+              <span class="gym-badge gym-badge-info">{{ m.tipo }}</span>
+            </td>
+            <td>RD${{ m.precio | number }}</td>
+            <td>{{ m.fechaInicio }}</td>
+            <td>{{ m.fechaFin }}</td>
+            <td>
+              @if (m.estaVencida) {
+                <span class="text-danger font-semibold"><i class="bi bi-clock-fill"></i> Vencido</span>
+              } @else {
+                <span class="text-success font-semibold">{{ m.diasRestantesCalculados }} días</span>
+              }
+            </td>
+            <td>
+              <span class="gym-badge" [class.gym-badge-success]="!m.estaVencida" [class.gym-badge-danger]="m.estaVencida">
+                {{ m.estaVencida ? 'EXPIRADA' : 'ACTIVA' }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <button (click)="openRenewModal(m)" class="gym-btn gym-btn-primary gym-btn-sm">
+                <i class="bi bi-arrow-repeat"></i> Renovar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="text-center text-muted" style="padding: 2rem;">
+              No se encontraron membresías bajo este filtro.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de Renovación -->
+  @if (showRenewModal()) {
+    <div class="modal-overlay">
+      <div class="modal-card gym-card" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2>Renovar Suscripción de Socio</h2>
+          <button (click)="closeRenewModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <form [formGroup]="renewForm" (ngSubmit)="saveRenewal()" class="modal-form">
+          <div class="gym-form-group">
+            <label class="gym-form-label">SOCIO SELECCIONADO</label>
+            <input
+              type="text"
+              [value]="membresiasDecoradas().find(item => item.clienteId === renewForm.get('clienteId')?.value)?.nombreCliente"
+              class="gym-form-control"
+              style="background: #191919; color: #888;"
+              readonly
+            />
+          </div>
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="tipo">PLAN DE ENTRENAMIENTO</label>
+            <select id="tipo" formControlName="tipo" (change)="onPlanChange($event)" class="gym-form-control">
+              <option value="Mensual Básica">Mensual Básica (RD$ 1,800)</option>
+              <option value="Mensual Premium">Mensual Premium (RD$ 2,500)</option>
+              <option value="Trimestral">Trimestral (RD$ 6,500)</option>
+              <option value="Anual">Anual (RD$ 24,000)</option>
+            </select>
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="precio">MONTO A COBRAR (RD$)</label>
+              <input type="number" id="precio" formControlName="precio" class="gym-form-control" />
+              @if (renewForm.get('precio')?.touched && renewForm.get('precio')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Precio inválido.</div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="meses">DURACIÓN (MESES)</label>
+              <input type="number" id="meses" formControlName="meses" class="gym-form-control" />
+              @if (renewForm.get('meses')?.touched && renewForm.get('meses')?.invalid) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Duración requerida.</div>
+              }
+            </div>
+          </div>
+
+          <div class="alert-info-box" style="margin-top: 0.5rem; background: rgba(255,102,0,0.05); border: 1px solid rgba(255,102,0,0.15); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.78rem; display: flex; gap: 0.5rem; align-items: flex-start; color: var(--text-light);">
+            <i class="bi bi-info-circle-fill text-primary" style="font-size: 1rem;"></i>
+            <span>Al guardar, se renovará la membresía del cliente por la cantidad de meses indicada y se registrará un pago automático de forma instantánea.</span>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeRenewModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
+            <button type="submit" class="gym-btn gym-btn-primary">Registrar Pago e Iniciar Plan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

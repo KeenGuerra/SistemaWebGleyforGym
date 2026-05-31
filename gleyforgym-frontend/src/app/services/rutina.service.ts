@@ -1,8 +1,12 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Rutina } from '../models/rutina';
 
 @Injectable({ providedIn: 'root' })
 export class RutinaService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:8000/api/rutinas'; // Configuración base para FastAPI
+
 
   private _rutinas = signal<Rutina[]>([
     {

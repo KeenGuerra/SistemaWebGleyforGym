@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Asistencia } from '../models/asistencia';
 
 const hoy = new Date();
@@ -11,6 +12,9 @@ const hace = (dias: number) => {
 
 @Injectable({ providedIn: 'root' })
 export class AsistenciaService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:8000/api/asistencias'; // Configuración base para FastAPI
+
 
   private _asistencias = signal<Asistencia[]>([
     { id: 1,  clienteId: 5, entrenadorId: 1, fecha: hace(0),  horaEntrada: '07:00', horaSalida: '08:30', duracionMinutos: 90  },

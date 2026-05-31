@@ -7,3 +7,13 @@ export interface Cliente extends Usuario {
   peso?: number;
   altura?: number;
 }
+
+export interface ClienteDecorado extends Cliente {
+  nombreEntrenador: string;
+  membresiaTipo: string;
+  membresiaEstado: string;
+  membresiaFin: string;
+  membresiaInicio?: string;
+  membresiaPrecio?: number;
+}
+

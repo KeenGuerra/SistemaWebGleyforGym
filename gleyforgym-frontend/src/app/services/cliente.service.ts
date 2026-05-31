@@ -1,8 +1,12 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Cliente } from '../models/cliente';
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:8000/api/clientes'; // Configuración base para FastAPI
+
 
   private _clientes = signal<Cliente[]>([
     {

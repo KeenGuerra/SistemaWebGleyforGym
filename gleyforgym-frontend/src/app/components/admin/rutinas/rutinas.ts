@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { Ejercicio } from '../../../models/rutina';
 
 @Component({
   selector: 'app-rutinas',
@@ -83,7 +84,7 @@ export class Rutinas {
     const val = this.rutinaForm.value;
 
     // Auto-completar ejercicios según nivel para simular realismo premium
-    let ejerciciosSimulados: any[] = [];
+    let ejerciciosSimulados: Ejercicio[] = [];
     if (val.nivel === 'principiante') {
       ejerciciosSimulados = [
         { nombre: 'Sentadillas libres', series: 3, repeticiones: '12', descanso: '60s' },

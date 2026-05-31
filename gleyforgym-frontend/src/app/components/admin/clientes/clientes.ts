@@ -5,7 +5,7 @@ import { ClienteService } from '../../../services/cliente.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
 import { MembresiaService } from '../../../services/membresia.service';
-import { Cliente } from '../../../models/cliente';
+import { Cliente, ClienteDecorado } from '../../../models/cliente';
 
 @Component({
   selector: 'app-clientes',
@@ -28,7 +28,7 @@ export class Clientes {
   readonly showModal = signal<boolean>(false);
   readonly showDetailsModal = signal<boolean>(false);
   readonly editingCliente = signal<Cliente | null>(null);
-  readonly viewingCliente = signal<any | null>(null);
+  readonly viewingCliente = signal<ClienteDecorado | null>(null);
 
   // Formulario reactivo
   clienteForm: FormGroup = this.fb.group({
@@ -116,7 +116,7 @@ export class Clientes {
     const trainer = this.entrenadorService.getEntrenadorPorId(cliente.entrenadorId);
     const membership = this.membresiaService.getMembresiaDeCliente(cliente.id);
 
-    const fullDetails = {
+    const fullDetails: ClienteDecorado = {
       ...cliente,
       nombreEntrenador: trainer ? `${trainer.nombre} ${trainer.apellido}` : 'Sin asignar',
       membresiaTipo: membership ? membership.tipo : 'Sin membresía',
@@ -126,7 +126,7 @@ export class Clientes {
       membresiaPrecio: membership ? membership.precio : 0
     };
 
-    this.viewingCliente.set(fullDetails as any);
+    this.viewingCliente.set(fullDetails);
     this.showDetailsModal.set(true);
   }
 

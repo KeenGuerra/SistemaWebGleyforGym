@@ -1,8 +1,12 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Pago } from '../models/pago';
 
 @Injectable({ providedIn: 'root' })
 export class PagoService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:8000/api/pagos'; // Configuración base para FastAPI
+
 
   private _pagos = signal<Pago[]>([
     { id: 1, clienteId: 5, monto: 2500, fecha: '2025-05-01', concepto: 'Membresía Mensual Premium', metodo: 'tarjeta', estado: 'pagado' },

@@ -1,8 +1,12 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Membresia } from '../models/membresia';
 
 @Injectable({ providedIn: 'root' })
 export class MembresiaService {
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:8000/api/membresias'; // Configuración base para FastAPI
+
 
   private _membresias = signal<Membresia[]>([
     { id: 1, clienteId: 5, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'activa', diasRestantes: 0 },

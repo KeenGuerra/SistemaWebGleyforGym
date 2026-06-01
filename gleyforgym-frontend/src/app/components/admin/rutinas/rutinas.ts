@@ -1,21 +1,20 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
-import { Ejercicio } from '../../../models/rutina';
+import { Ejercicio, NivelRutina } from '../../../models/rutina';
 
 @Component({
   selector: 'app-rutinas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './rutinas.html',
   styleUrl: './rutinas.css',
 })
 export class Rutinas {
   private rutinaService = inject(RutinaService);
   private clienteService = inject(ClienteService);
-  private fb = inject(FormBuilder);
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -23,13 +22,25 @@ export class Rutinas {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Formulario reactivo
-  rutinaForm: FormGroup = this.fb.group({
-    clienteId: ['', [Validators.required]],
-    nombre: ['', [Validators.required]],
-    nivel: ['intermedio', [Validators.required]],
-    objetivo: ['Tonificación', [Validators.required]],
-    descripcion: ['', [Validators.required]]
+  // Writable Signals de Formulario
+  readonly clienteId = signal<number>(0);
+  readonly nombre = signal('');
+  readonly nivel = signal<NivelRutina>('intermedio');
+  readonly objetivo = signal('Tonificación');
+  readonly descripcion = signal('');
+
+  // Estados Touched
+  readonly clienteIdTouched = signal(false);
+  readonly nombreTouched = signal(false);
+  readonly descripcionTouched = signal(false);
+
+  // Validaciones reactivas
+  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
+  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
+  readonly descripcionInvalid = computed(() => this.descripcion().trim() === '');
+
+  readonly formInvalid = computed(() => {
+    return this.clienteIdInvalid() || this.nombreInvalid() || this.descripcionInvalid();
   });
 
   // Lista de clientes
@@ -61,13 +72,16 @@ export class Rutinas {
   }
 
   openAddModal(): void {
-    this.rutinaForm.reset({
-      clienteId: '',
-      nombre: '',
-      nivel: 'intermedio',
-      objetivo: 'Tonificación',
-      descripcion: ''
-    });
+    this.clienteId.set(0);
+    this.nombre.set('');
+    this.nivel.set('intermedio');
+    this.objetivo.set('Tonificación');
+    this.descripcion.set('');
+
+    this.clienteIdTouched.set(false);
+    this.nombreTouched.set(false);
+    this.descripcionTouched.set(false);
+
     this.showModal.set(true);
   }
 
@@ -76,22 +90,25 @@ export class Rutinas {
   }
 
   saveRutina(): void {
-    if (this.rutinaForm.invalid) {
-      this.rutinaForm.markAllAsTouched();
+    this.clienteIdTouched.set(true);
+    this.nombreTouched.set(true);
+    this.descripcionTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
 
-    const val = this.rutinaForm.value;
+    const nivelVal = this.nivel();
 
     // Auto-completar ejercicios según nivel para simular realismo premium
     let ejerciciosSimulados: Ejercicio[] = [];
-    if (val.nivel === 'principiante') {
+    if (nivelVal === 'principiante') {
       ejerciciosSimulados = [
         { nombre: 'Sentadillas libres', series: 3, repeticiones: '12', descanso: '60s' },
         { nombre: 'Flexiones inclinadas', series: 3, repeticiones: '10', descanso: '60s' },
         { nombre: 'Plancha estática', series: 3, repeticiones: '30s', descanso: '45s' }
       ];
-    } else if (val.nivel === 'intermedio') {
+    } else if (nivelVal === 'intermedio') {
       ejerciciosSimulados = [
         { nombre: 'Sentadilla con barra goblet', series: 4, repeticiones: '10', descanso: '90s' },
         { nombre: 'Press de banca plano', series: 4, repeticiones: '10', descanso: '90s' },
@@ -109,13 +126,13 @@ export class Rutinas {
     }
 
     this.rutinaService.agregarRutina({
-      clienteId: Number(val.clienteId),
+      clienteId: Number(this.clienteId()),
       entrenadorId: 1, // Por defecto asignada por admin (entrenador 1)
-      nombre: val.nombre,
+      nombre: this.nombre(),
       diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
-      nivel: val.nivel,
-      objetivo: val.objetivo,
-      descripcion: val.descripcion,
+      nivel: nivelVal,
+      objetivo: this.objetivo(),
+      descripcion: this.descripcion(),
       fechaCreacion: new Date().toISOString().split('T')[0],
       activa: true,
       ejercicios: ejerciciosSimulados

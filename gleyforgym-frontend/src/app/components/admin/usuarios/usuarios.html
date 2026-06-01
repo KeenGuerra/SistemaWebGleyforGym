@@ -126,20 +126,20 @@
           <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
         </div>
 
-        <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="modal-form">
+        <form (ngSubmit)="saveUser()" class="modal-form">
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre">NOMBRE</label>
-              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" placeholder="Nombre" />
-              @if (userForm.get('nombre')?.touched && userForm.get('nombre')?.invalid) {
+              <input type="text" id="nombre" name="nombre" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)" class="gym-form-control" placeholder="Nombre" />
+              @if (nombreTouched() && nombreInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido">APELLIDO</label>
-              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" placeholder="Apellido" />
-              @if (userForm.get('apellido')?.touched && userForm.get('apellido')?.invalid) {
+              <input type="text" id="apellido" name="apellido" [(ngModel)]="apellido" (blur)="apellidoTouched.set(true)" class="gym-form-control" placeholder="Apellido" />
+              @if (apellidoTouched() && apellidoInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
@@ -147,16 +147,19 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
-            <input type="email" id="email" formControlName="email" class="gym-form-control" placeholder="ejemplo@gleyforgym.com" />
-            @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+            <input type="email" id="email" name="email" [(ngModel)]="email" (blur)="emailTouched.set(true)" class="gym-form-control" placeholder="ejemplo@gleyforgym.com" />
+            @if (emailTouched() && emailInvalid()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+            }
+            @if (emailTouched() && emailFormatInvalid()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> Correo inválido.</div>
             }
           </div>
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="telefono">TELÉFONO</label>
-            <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" placeholder="809-555-1234" />
-            @if (userForm.get('telefono')?.touched && userForm.get('telefono')?.invalid) {
+            <input type="text" id="telefono" name="telefono" [(ngModel)]="telefono" (blur)="telefonoTouched.set(true)" class="gym-form-control" placeholder="809-555-1234" />
+            @if (telefonoTouched() && telefonoInvalid()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
             }
           </div>
@@ -164,7 +167,7 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="rol">ROL DE ACCESO</label>
-              <select id="rol" formControlName="rol" class="gym-form-control">
+              <select id="rol" name="rol" [(ngModel)]="rol" class="gym-form-control">
                 <option value="admin">Administrador</option>
                 <option value="entrenador">Entrenador</option>
                 <option value="cliente">Cliente</option>
@@ -173,7 +176,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="activo">ESTADO</label>
-              <select id="activo" formControlName="activo" class="gym-form-control">
+              <select id="activo" name="activo" [(ngModel)]="activo" class="gym-form-control">
                 <option [ngValue]="true">Activo</option>
                 <option [ngValue]="false">Inactivo</option>
               </select>

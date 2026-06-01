@@ -169,20 +169,20 @@
           <button (click)="closeModal()" class="close-btn"><i class="bi bi-x-lg"></i></button>
         </div>
 
-        <form [formGroup]="clienteForm" (ngSubmit)="saveCliente()" class="modal-form">
+        <form (ngSubmit)="saveCliente()" class="modal-form">
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre">NOMBRE</label>
-              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" />
-              @if (clienteForm.get('nombre')?.touched && clienteForm.get('nombre')?.invalid) {
+              <input type="text" id="nombre" name="nombre" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)" class="gym-form-control" />
+              @if (nombreTouched() && nombreInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido">APELLIDO</label>
-              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" />
-              @if (clienteForm.get('apellido')?.touched && clienteForm.get('apellido')?.invalid) {
+              <input type="text" id="apellido" name="apellido" [(ngModel)]="apellido" (blur)="apellidoTouched.set(true)" class="gym-form-control" />
+              @if (apellidoTouched() && apellidoInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
@@ -191,16 +191,19 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
-              <input type="email" id="email" formControlName="email" class="gym-form-control" />
-              @if (clienteForm.get('email')?.touched && clienteForm.get('email')?.invalid) {
+              <input type="email" id="email" name="email" [(ngModel)]="email" (blur)="emailTouched.set(true)" class="gym-form-control" />
+              @if (emailTouched() && emailInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
+              @if (emailTouched() && emailFormatInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Inválido.</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="telefono">TELÉFONO</label>
-              <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" />
-              @if (clienteForm.get('telefono')?.touched && clienteForm.get('telefono')?.invalid) {
+              <input type="text" id="telefono" name="telefono" [(ngModel)]="telefono" (blur)="telefonoTouched.set(true)" class="gym-form-control" />
+              @if (telefonoTouched() && telefonoInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
@@ -209,17 +212,23 @@
           <div class="gym-form-row cols-3">
             <div class="gym-form-group">
               <label class="gym-form-label" for="peso">PESO (KG)</label>
-              <input type="number" id="peso" formControlName="peso" class="gym-form-control" />
+              <input type="number" id="peso" name="peso" [(ngModel)]="peso" (blur)="pesoTouched.set(true)" class="gym-form-control" />
+              @if (pesoTouched() && pesoInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Rango 30-250.</div>
+              }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="altura">ALTURA (CM)</label>
-              <input type="number" id="altura" formControlName="altura" class="gym-form-control" />
+              <input type="number" id="altura" name="altura" [(ngModel)]="altura" (blur)="alturaTouched.set(true)" class="gym-form-control" />
+              @if (alturaTouched() && alturaInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Rango 100-250.</div>
+              }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="objetivo">OBJETIVO</label>
-              <select id="objetivo" formControlName="objetivo" class="gym-form-control">
+              <select id="objetivo" name="objetivo" [(ngModel)]="objetivo" (blur)="objetivoTouched.set(true)" class="gym-form-control">
                 <option value="Pérdida de peso">Pérdida de peso</option>
                 <option value="Ganancia muscular">Ganancia muscular</option>
                 <option value="Tonificación">Tonificación</option>
@@ -227,32 +236,41 @@
                 <option value="Flexibilidad">Flexibilidad</option>
                 <option value="General">General</option>
               </select>
+              @if (objetivoTouched() && objetivoInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              }
             </div>
           </div>
 
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="entrenadorId">ENTRENADOR ASIGNADO</label>
-              <select id="entrenadorId" formControlName="entrenadorId" class="gym-form-control">
+              <select id="entrenadorId" name="entrenadorId" [(ngModel)]="entrenadorId" (blur)="entrenadorIdTouched.set(true)" class="gym-form-control">
                 @for (tr of entrenadores(); track tr.id) {
-                  <option [value]="tr.id">{{ tr.nombre }} {{ tr.apellido }}</option>
+                  <option [ngValue]="tr.id">{{ tr.nombre }} {{ tr.apellido }}</option>
                 }
               </select>
+              @if (entrenadorIdTouched() && entrenadorIdInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Selecciona uno.</div>
+              }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="membresiaId">PLAN MEMBRESÍA</label>
-              <select id="membresiaId" formControlName="membresiaId" class="gym-form-control">
-                <option [value]="1">Mensual Premium (RD$ 2,500)</option>
-                <option [value]="2">Trimestral (RD$ 6,500)</option>
-                <option [value]="3">Mensual Básica (RD$ 1,800)</option>
+              <select id="membresiaId" name="membresiaId" [(ngModel)]="membresiaId" (blur)="membresiaIdTouched.set(true)" class="gym-form-control">
+                <option [ngValue]="1">Mensual Premium (RD$ 2,500)</option>
+                <option [ngValue]="2">Trimestral (RD$ 6,500)</option>
+                <option [ngValue]="3">Mensual Básica (RD$ 1,800)</option>
               </select>
+              @if (membresiaIdTouched() && membresiaIdInvalid()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Selecciona uno.</div>
+              }
             </div>
           </div>
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="activo">ESTADO DE LA CUENTA</label>
-            <select id="activo" formControlName="activo" class="gym-form-control">
+            <select id="activo" name="activo" [(ngModel)]="activo" class="gym-form-control">
               <option [ngValue]="true">Activo</option>
               <option [ngValue]="false">Inactivo</option>
             </select>

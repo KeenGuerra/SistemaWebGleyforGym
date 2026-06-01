@@ -1,35 +1,48 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login {
-  private fb = inject(FormBuilder);
   private usuarioService = inject(UsuarioService);
   private router = inject(Router);
 
-  loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
+  // Inputs del formulario como Signals
+  readonly email = signal('');
+  readonly password = signal('');
+
+  // Estados touched
+  readonly emailTouched = signal(false);
+  readonly passwordTouched = signal(false);
+
+  // Validaciones reactivas derivadas (Computed)
+  readonly emailInvalid = computed(() => this.email().trim() === '');
+  readonly emailFormatInvalid = computed(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return this.email().trim() !== '' && !emailRegex.test(this.email());
   });
+  readonly passwordInvalid = computed(() => this.password() === '');
+
+  readonly formInvalid = computed(() => this.emailInvalid() || this.emailFormatInvalid() || this.passwordInvalid());
 
   errorMessage = '';
 
   onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
+    this.emailTouched.set(true);
+    this.passwordTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
 
-    const { email, password } = this.loginForm.value;
-    const usuario = this.usuarioService.loginSimulado(email, password);
+    const usuario = this.usuarioService.loginSimulado(this.email(), this.password());
 
     if (usuario) {
       this.errorMessage = '';
@@ -40,22 +53,26 @@ export class Login {
   }
 
   quickLogin(rol: 'admin' | 'entrenador' | 'cliente'): void {
-    let email = '';
-    let pass = '';
+    let emailVal = '';
+    let passVal = '';
 
     if (rol === 'admin') {
-      email = 'admin@gleyforgym.com';
-      pass = 'admin123';
+      emailVal = 'admin@gleyforgym.com';
+      passVal = 'admin123';
     } else if (rol === 'entrenador') {
-      email = 'carlos.ramirez@gleyforgym.com';
-      pass = 'entrenador123';
+      emailVal = 'carlos.ramirez@gleyforgym.com';
+      passVal = 'entrenador123';
     } else if (rol === 'cliente') {
-      email = 'maria.gonzalez@email.com';
-      pass = 'cliente123';
+      emailVal = 'maria.gonzalez@email.com';
+      passVal = 'cliente123';
     }
 
-    this.loginForm.patchValue({ email, password: pass });
-    const usuario = this.usuarioService.loginSimulado(email, pass);
+    this.email.set(emailVal);
+    this.password.set(passVal);
+    this.emailTouched.set(true);
+    this.passwordTouched.set(true);
+
+    const usuario = this.usuarioService.loginSimulado(emailVal, passVal);
     if (usuario) {
       this.errorMessage = '';
       this.redirigirUsuario(usuario.rol);
@@ -72,3 +89,4 @@ export class Login {
     }
   }
 }
+

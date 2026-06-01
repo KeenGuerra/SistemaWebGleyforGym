@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormArray, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Rutina } from '../../../models/rutina';
@@ -7,14 +7,13 @@ import { Rutina } from '../../../models/rutina';
 @Component({
   selector: 'app-rutinas-entrenador',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [FormsModule],
   templateUrl: './rutinas-entrenador.html',
   styleUrl: './rutinas-entrenador.css',
 })
 export class RutinasEntrenador {
   private rutinaSvc = inject(RutinaService);
   private clienteSvc = inject(ClienteService);
-  private fb = inject(FormBuilder);
 
   readonly rutinas = computed(() => this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === 1));
   readonly clientes = computed(() => this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1));
@@ -26,18 +25,27 @@ export class RutinasEntrenador {
   readonly diasDisponibles = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   readonly diasSeleccionados = signal<string[]>([]);
 
-  readonly form = this.fb.nonNullable.group({
-    nombre:     ['', [Validators.required, Validators.minLength(3)]],
-    clienteId:  [0, [Validators.required, Validators.min(1)]],
-    nivel:      ['principiante', Validators.required],
-    objetivo:   ['', Validators.required],
-    descripcion:[''],
-  });
+  // Writable Signals de Formulario
+  readonly nombre = signal('');
+  readonly clienteId = signal<number>(0);
+  readonly nivel = signal('principiante');
+  readonly objetivo = signal('');
+  readonly descripcion = signal('');
 
-  get nombreInvalido(): boolean {
-    const ctrl = this.form.get('nombre');
-    return !!(ctrl?.invalid && ctrl?.touched);
-  }
+  // Estados Touched
+  readonly nombreTouched = signal(false);
+  readonly clienteIdTouched = signal(false);
+  readonly objetivoTouched = signal(false);
+
+  // Validaciones
+  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
+  readonly nombreMinLength = computed(() => this.nombre().trim() !== '' && this.nombre().trim().length < 3);
+  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
+  readonly objetivoInvalid = computed(() => this.objetivo().trim() === '');
+
+  readonly formInvalid = computed(() => {
+    return this.nombreInvalid() || this.nombreMinLength() || this.clienteIdInvalid() || this.objetivoInvalid();
+  });
 
   toggleExpandir(id: number): void {
     this.rutinaExpandida.update(v => v === id ? null : id);
@@ -60,32 +68,45 @@ export class RutinasEntrenador {
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.diasSeleccionados.set([]);
-    this.form.reset({ nivel: 'principiante' });
+    
+    // Resetear form
+    this.nombre.set('');
+    this.clienteId.set(0);
+    this.nivel.set('principiante');
+    this.objetivo.set('');
+    this.descripcion.set('');
+
+    // Resetear touched
+    this.nombreTouched.set(false);
+    this.clienteIdTouched.set(false);
+    this.objetivoTouched.set(false);
     this.mensajeExito.set('');
   }
 
   guardar(): void {
-    if (this.form.invalid || this.diasSeleccionados().length === 0) {
-      this.form.markAllAsTouched();
+    this.nombreTouched.set(true);
+    this.clienteIdTouched.set(true);
+    this.objetivoTouched.set(true);
+
+    if (this.formInvalid() || this.diasSeleccionados().length === 0) {
       return;
     }
-    const v = this.form.getRawValue();
+
     this.rutinaSvc.agregarRutina({
-      nombre:       v.nombre,
-      clienteId:    v.clienteId,
+      nombre:       this.nombre(),
+      clienteId:    this.clienteId(),
       entrenadorId: 1,
       diasSemana:   this.diasSeleccionados(),
-      nivel:        v.nivel as 'principiante' | 'intermedio' | 'avanzado',
-      objetivo:     v.objetivo,
-      descripcion:  v.descripcion,
+      nivel:        this.nivel() as 'principiante' | 'intermedio' | 'avanzado',
+      objetivo:     this.objetivo(),
+      descripcion:  this.descripcion(),
       ejercicios:   [],
       fechaCreacion: new Date().toISOString().split('T')[0],
       activa:       true,
     });
+    
     this.mensajeExito.set('Rutina creada exitosamente');
     this.mostrarFormulario.set(false);
-    this.form.reset({ nivel: 'principiante' });
-    this.diasSeleccionados.set([]);
     setTimeout(() => this.mensajeExito.set(''), 3000);
   }
 
@@ -103,9 +124,5 @@ export class RutinasEntrenador {
       : nivel === 'intermedio' ? 'gym-badge-warning'
       : 'gym-badge-danger';
   }
-
-  hasError(campo: string, error: string): boolean {
-    const ctrl = this.form.get(campo);
-    return !!(ctrl?.hasError(error) && ctrl?.touched);
-  }
 }
+

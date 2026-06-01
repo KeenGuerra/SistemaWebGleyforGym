@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ProgresoService } from '../../../services/progreso.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Progreso } from '../../../models/progreso';
@@ -8,7 +8,7 @@ import { Progreso } from '../../../models/progreso';
 @Component({
   selector: 'app-progreso-cliente',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './progreso-cliente.html',
   styleUrl: './progreso-cliente.css',
 })
@@ -16,7 +16,6 @@ export class ProgresoCliente implements OnInit {
   private route       = inject(ActivatedRoute);
   private progresoSvc = inject(ProgresoService);
   private clienteSvc  = inject(ClienteService);
-  private fb          = inject(FormBuilder);
 
   readonly clienteId = signal(0);
   readonly cliente   = computed(() => this.clienteSvc.getClientePorId(this.clienteId()));
@@ -32,50 +31,79 @@ export class ProgresoCliente implements OnInit {
   readonly mostrarFormulario = signal(false);
   readonly guardado  = signal(false);
 
-  readonly form = this.fb.nonNullable.group({
-    fecha:             ['', Validators.required],
-    peso:              [0, [Validators.required, Validators.min(20), Validators.max(300)]],
-    altura:            [0, [Validators.required, Validators.min(100), Validators.max(250)]],
-    porcentajeGrasa:   [undefined as number | undefined],
-    porcentajeMuscular:[undefined as number | undefined],
-    notas:             [''],
+  // Writable Signals del Formulario
+  readonly fecha = signal('');
+  readonly peso = signal<number>(0);
+  readonly altura = signal<number>(0);
+  readonly porcentajeGrasa = signal<number | undefined>(undefined);
+  readonly porcentajeMuscular = signal<number | undefined>(undefined);
+  readonly notas = signal('');
+
+  // Estados Touched
+  readonly fechaTouched = signal(false);
+  readonly pesoTouched = signal(false);
+  readonly alturaTouched = signal(false);
+
+  // Validaciones
+  readonly fechaInvalid = computed(() => this.fecha().trim() === '');
+  readonly pesoInvalid = computed(() => this.peso() < 20 || this.peso() > 300);
+  readonly alturaInvalid = computed(() => this.altura() < 100 || this.altura() > 250);
+
+  readonly formInvalid = computed(() => {
+    return this.fechaInvalid() || this.pesoInvalid() || this.alturaInvalid();
   });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.clienteId.set(id);
     const hoy = new Date().toISOString().split('T')[0];
-    this.form.patchValue({ fecha: hoy });
+    this.fecha.set(hoy);
   }
 
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.guardado.set(false);
+    
+    // Resetear form
+    this.fecha.set(new Date().toISOString().split('T')[0]);
+    this.peso.set(0);
+    this.altura.set(0);
+    this.porcentajeGrasa.set(undefined);
+    this.porcentajeMuscular.set(undefined);
+    this.notas.set('');
+
+    // Resetear touched
+    this.fechaTouched.set(false);
+    this.pesoTouched.set(false);
+    this.alturaTouched.set(false);
   }
 
   guardar(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    this.fechaTouched.set(true);
+    this.pesoTouched.set(true);
+    this.alturaTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
-    const v = this.form.getRawValue();
-    const altura = v.altura;
-    const imc = +(v.peso / ((altura / 100) ** 2)).toFixed(1);
+
+    const pesoVal = this.peso();
+    const alturaVal = this.altura();
+    const imc = +(pesoVal / ((alturaVal / 100) ** 2)).toFixed(1);
 
     this.progresoSvc.registrarProgreso({
       clienteId: this.clienteId(),
-      fecha: v.fecha,
-      peso: v.peso,
-      altura,
+      fecha: this.fecha(),
+      peso: pesoVal,
+      altura: alturaVal,
       imc,
-      porcentajeGrasa: v.porcentajeGrasa,
-      porcentajeMuscular: v.porcentajeMuscular,
-      notas: v.notas,
+      porcentajeGrasa: this.porcentajeGrasa(),
+      porcentajeMuscular: this.porcentajeMuscular(),
+      notas: this.notas(),
     });
 
     this.guardado.set(true);
     this.mostrarFormulario.set(false);
-    this.form.reset();
   }
 
   iniciales(nombre: string, apellido: string): string {
@@ -98,9 +126,5 @@ export class ProgresoCliente implements OnInit {
     const anterior = lista[1][campo] as number;
     return actual < anterior;
   }
-
-  hasError(campo: string, error: string): boolean {
-    const ctrl = this.form.get(campo);
-    return !!(ctrl?.hasError(error) && ctrl?.touched);
-  }
 }
+

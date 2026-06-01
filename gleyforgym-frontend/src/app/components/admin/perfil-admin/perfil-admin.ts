@@ -1,18 +1,17 @@
-import { Component, inject, signal, OnInit, effect } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-perfil-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './perfil-admin.html',
   styleUrl: './perfil-admin.css',
 })
 export class PerfilAdmin implements OnInit {
   private usuarioService = inject(UsuarioService);
-  private fb = inject(FormBuilder);
 
   // Signals para mensajes
   readonly errorMessage = signal<string>('');
@@ -21,55 +20,99 @@ export class PerfilAdmin implements OnInit {
   readonly pwdErrorMessage = signal<string>('');
   readonly pwdSuccessMessage = signal<string>('');
 
-  // Formulario de perfil
-  profileForm: FormGroup = this.fb.group({
-    nombre: ['', [Validators.required]],
-    apellido: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    telefono: ['', [Validators.required]]
+  // Writable Signals - Formulario Perfil
+  readonly nombre = signal('');
+  readonly apellido = signal('');
+  readonly email = signal('');
+  readonly telefono = signal('');
+
+  // Writable Signals - Formulario Contraseña
+  readonly currentPassword = signal('');
+  readonly newPassword = signal('');
+  readonly confirmNewPassword = signal('');
+
+  // Estados Touched - Perfil
+  readonly nombreTouched = signal(false);
+  readonly apellidoTouched = signal(false);
+  readonly emailTouched = signal(false);
+  readonly telefonoTouched = signal(false);
+
+  // Estados Touched - Contraseña
+  readonly currentPasswordTouched = signal(false);
+  readonly newPasswordTouched = signal(false);
+  readonly confirmNewPasswordTouched = signal(false);
+
+  // Validaciones reactivas - Perfil
+  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
+  readonly apellidoInvalid = computed(() => this.apellido().trim() === '');
+  readonly emailInvalid = computed(() => this.email().trim() === '');
+  readonly emailFormatInvalid = computed(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  });
+  readonly telefonoInvalid = computed(() => this.telefono().trim() === '');
+
+  readonly profileFormInvalid = computed(() => {
+    return (
+      this.nombreInvalid() ||
+      this.apellidoInvalid() ||
+      this.emailInvalid() ||
+      this.emailFormatInvalid() ||
+      this.telefonoInvalid()
+    );
   });
 
-  // Formulario de contraseña
-  passwordForm: FormGroup = this.fb.group({
-    currentPassword: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
-    confirmNewPassword: ['', [Validators.required]]
-  }, { validators: this.passwordMatchValidator });
+  // Validaciones reactivas - Contraseña
+  readonly currentPasswordInvalid = computed(() => this.currentPassword().trim() === '');
+  readonly newPasswordInvalid = computed(() => this.newPassword().trim() === '');
+  readonly newPasswordTooShort = computed(() => this.newPassword() !== '' && this.newPassword().length < 6);
+  readonly confirmNewPasswordInvalid = computed(() => this.confirmNewPassword().trim() === '');
+  readonly passwordMismatch = computed(() => {
+    return this.newPassword() !== '' && this.confirmNewPassword() !== '' && this.newPassword() !== this.confirmNewPassword();
+  });
+
+  readonly passwordFormTouched = computed(() => {
+    return this.currentPasswordTouched() || this.newPasswordTouched() || this.confirmNewPasswordTouched();
+  });
+
+  readonly passwordFormInvalid = computed(() => {
+    return (
+      this.currentPasswordInvalid() ||
+      this.newPasswordInvalid() ||
+      this.newPasswordTooShort() ||
+      this.confirmNewPasswordInvalid() ||
+      this.passwordMismatch()
+    );
+  });
 
   ngOnInit(): void {
     // Cargar datos actuales
     const admin = this.usuarioService.getUsuarioActual();
     if (admin) {
-      this.profileForm.patchValue({
-        nombre: admin.nombre,
-        apellido: admin.apellido,
-        email: admin.email,
-        telefono: admin.telefono
-      });
+      this.nombre.set(admin.nombre);
+      this.apellido.set(admin.apellido);
+      this.email.set(admin.email);
+      this.telefono.set(admin.telefono);
     }
-  }
-
-  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-    const newPassword = control.get('newPassword');
-    const confirmNewPassword = control.get('confirmNewPassword');
-    if (newPassword && confirmNewPassword && newPassword.value !== confirmNewPassword.value) {
-      return { passwordMismatch: true };
-    }
-    return null;
   }
 
   onSubmitProfile(): void {
-    if (this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
+    this.nombreTouched.set(true);
+    this.apellidoTouched.set(true);
+    this.emailTouched.set(true);
+    this.telefonoTouched.set(true);
+
+    if (this.profileFormInvalid()) {
       return;
     }
 
     const admin = this.usuarioService.getUsuarioActual();
-    const val = this.profileForm.value;
-
     this.usuarioService.actualizarUsuario({
       ...admin,
-      ...val
+      nombre: this.nombre(),
+      apellido: this.apellido(),
+      email: this.email(),
+      telefono: this.telefono()
     });
 
     this.errorMessage.set('');
@@ -78,15 +121,25 @@ export class PerfilAdmin implements OnInit {
   }
 
   onSubmitPassword(): void {
-    if (this.passwordForm.invalid) {
-      this.passwordForm.markAllAsTouched();
+    this.currentPasswordTouched.set(true);
+    this.newPasswordTouched.set(true);
+    this.confirmNewPasswordTouched.set(true);
+
+    if (this.passwordFormInvalid()) {
       return;
     }
 
     // Como es mock, simplemente simulamos éxito
     this.pwdErrorMessage.set('');
     this.pwdSuccessMessage.set('Contraseña modificada exitosamente.');
-    this.passwordForm.reset();
+    this.currentPassword.set('');
+    this.newPassword.set('');
+    this.confirmNewPassword.set('');
+
+    this.currentPasswordTouched.set(false);
+    this.newPasswordTouched.set(false);
+    this.confirmNewPasswordTouched.set(false);
+
     setTimeout(() => this.pwdSuccessMessage.set(''), 3000);
   }
 }

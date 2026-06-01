@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Asistencia } from '../../../models/asistencia';
@@ -7,14 +7,13 @@ import { Asistencia } from '../../../models/asistencia';
 @Component({
   selector: 'app-asistencia-entrenador',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [FormsModule],
   templateUrl: './asistencia-entrenador.html',
   styleUrl: './asistencia-entrenador.css',
 })
 export class AsistenciaEntrenador {
   private asistenciaSvc = inject(AsistenciaService);
   private clienteSvc    = inject(ClienteService);
-  private fb            = inject(FormBuilder);
 
   readonly fechaFiltro = signal(new Date().toISOString().split('T')[0]);
   readonly mostrarFormulario = signal(false);
@@ -45,12 +44,25 @@ export class AsistenciaEntrenador {
     this.asistenciaSvc.asistenciasHoy().length
   );
 
-  readonly form = this.fb.nonNullable.group({
-    clienteId:   [0, [Validators.required, Validators.min(1)]],
-    fecha:       [new Date().toISOString().split('T')[0], Validators.required],
-    horaEntrada: ['07:00', Validators.required],
-    horaSalida:  [''],
-    observaciones: [''],
+  // Writable Signals de Formulario
+  readonly clienteId = signal<number>(0);
+  readonly fecha = signal('');
+  readonly horaEntrada = signal('07:00');
+  readonly horaSalida = signal('');
+  readonly observaciones = signal('');
+
+  // Estados Touched
+  readonly clienteIdTouched = signal(false);
+  readonly fechaTouched = signal(false);
+  readonly horaEntradaTouched = signal(false);
+
+  // Validaciones
+  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
+  readonly fechaInvalid = computed(() => this.fecha().trim() === '');
+  readonly horaEntradaInvalid = computed(() => this.horaEntrada().trim() === '');
+
+  readonly formInvalid = computed(() => {
+    return this.clienteIdInvalid() || this.fechaInvalid() || this.horaEntradaInvalid();
   });
 
   cambiarFecha(evento: Event): void {
@@ -60,34 +72,50 @@ export class AsistenciaEntrenador {
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.mensajeExito.set('');
+
+    // Resetear form
+    this.clienteId.set(0);
+    this.fecha.set(new Date().toISOString().split('T')[0]);
+    this.horaEntrada.set('07:00');
+    this.horaSalida.set('');
+    this.observaciones.set('');
+
+    // Resetear touched
+    this.clienteIdTouched.set(false);
+    this.fechaTouched.set(false);
+    this.horaEntradaTouched.set(false);
   }
 
   registrar(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    this.clienteIdTouched.set(true);
+    this.fechaTouched.set(true);
+    this.horaEntradaTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
-    const v = this.form.getRawValue();
+
+    const horaEntradaVal = this.horaEntrada();
+    const horaSalidaVal = this.horaSalida();
     let duracion: number | undefined;
-    if (v.horaEntrada && v.horaSalida) {
-      const [hE, mE] = v.horaEntrada.split(':').map(Number);
-      const [hS, mS] = v.horaSalida.split(':').map(Number);
+    if (horaEntradaVal && horaSalidaVal) {
+      const [hE, mE] = horaEntradaVal.split(':').map(Number);
+      const [hS, mS] = horaSalidaVal.split(':').map(Number);
       duracion = (hS * 60 + mS) - (hE * 60 + mE);
     }
 
     this.asistenciaSvc.registrarAsistencia({
-      clienteId:     v.clienteId,
+      clienteId:     this.clienteId(),
       entrenadorId:  1,
-      fecha:         v.fecha,
-      horaEntrada:   v.horaEntrada,
-      horaSalida:    v.horaSalida || undefined,
+      fecha:         this.fecha(),
+      horaEntrada:   horaEntradaVal,
+      horaSalida:    horaSalidaVal || undefined,
       duracionMinutos: duracion,
-      observaciones: v.observaciones || undefined,
+      observaciones: this.observaciones() || undefined,
     });
 
     this.mensajeExito.set('Asistencia registrada correctamente');
     this.mostrarFormulario.set(false);
-    this.form.reset({ fecha: new Date().toISOString().split('T')[0], horaEntrada: '07:00' });
     setTimeout(() => this.mensajeExito.set(''), 3000);
   }
 
@@ -97,9 +125,5 @@ export class AsistenciaEntrenador {
       ? `${partes[0][0]}${partes[1][0]}`.toUpperCase()
       : nombre.substring(0, 2).toUpperCase();
   }
-
-  hasError(campo: string, error: string): boolean {
-    const ctrl = this.form.get(campo);
-    return !!(ctrl?.hasError(error) && ctrl?.touched);
-  }
 }
+

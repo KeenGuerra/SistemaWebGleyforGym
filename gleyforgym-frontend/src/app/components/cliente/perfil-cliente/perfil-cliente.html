@@ -27,13 +27,13 @@
 
       <!-- IMC card -->
       <div class="imc-card">
-        <div class="imc-valor">{{ imc }}</div>
+        <div class="imc-valor">{{ imc() }}</div>
         <div class="imc-label">IMC</div>
         <div class="imc-categoria"
-          [class.text-success]="imc >= 18.5 && imc < 25"
-          [class.text-warning]="imc >= 25 && imc < 30"
-          [class.text-danger]="imc >= 30 || imc < 18.5">
-          {{ categoriaImc }}
+          [class.text-success]="imc() >= 18.5 && imc() < 25"
+          [class.text-warning]="imc() >= 25 && imc() < 30"
+          [class.text-danger]="imc() >= 30 || imc() < 18.5">
+          {{ categoriaImc() }}
         </div>
       </div>
 
@@ -84,42 +84,45 @@
           <i class="bi bi-pencil-fill text-primary"></i>
           Editar Mis Datos
         </div>
-        <form [formGroup]="form" (ngSubmit)="guardar()" id="form-perfil-cliente">
+        <form (ngSubmit)="guardar()" id="form-perfil-cliente">
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre-cli">Nombre</label>
-              <input id="nombre-cli" type="text" class="gym-form-control" formControlName="nombre">
-              @if (hasError('nombre', 'required')) {
+              <input id="nombre-cli" name="nombre" type="text" class="gym-form-control" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)">
+              @if (nombreTouched() && nombreInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido-cli">Apellido</label>
-              <input id="apellido-cli" type="text" class="gym-form-control" formControlName="apellido">
-              @if (hasError('apellido', 'required')) {
+              <input id="apellido-cli" name="apellido" type="text" class="gym-form-control" [(ngModel)]="apellido" (blur)="apellidoTouched.set(true)">
+              @if (apellidoTouched() && apellidoInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
               }
             </div>
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="email-cli">Correo Electrónico</label>
-            <input id="email-cli" type="email" class="gym-form-control" formControlName="email">
-            @if (hasError('email', 'email')) {
-              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Correo no válido</span>
+            <input id="email-cli" name="email" type="email" class="gym-form-control" [(ngModel)]="email" (blur)="emailTouched.set(true)">
+            @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
+              <span class="gym-form-error">
+                <i class="bi bi-exclamation-circle"></i> 
+                @if (emailInvalid()) { Obligatorio } @else { Correo no válido }
+              </span>
             }
           </div>
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="tel-cli">Teléfono</label>
-              <input id="tel-cli" type="tel" class="gym-form-control" formControlName="telefono">
-              @if (hasError('telefono', 'minlength')) {
+              <input id="tel-cli" name="telefono" type="tel" class="gym-form-control" [(ngModel)]="telefono" (blur)="telefonoTouched.set(true)">
+              @if (telefonoTouched() && telefonoInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 7 dígitos</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="obj-cli">Objetivo</label>
-              <input id="obj-cli" type="text" class="gym-form-control" formControlName="objetivo" placeholder="Pérdida de peso...">
-              @if (hasError('objetivo', 'required')) {
+              <input id="obj-cli" name="objetivo" type="text" class="gym-form-control" [(ngModel)]="objetivo" (blur)="objetivoTouched.set(true)" placeholder="Pérdida de peso...">
+              @if (objetivoTouched() && objetivoInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
               }
             </div>
@@ -127,11 +130,17 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="peso-cli">Peso (kg)</label>
-              <input id="peso-cli" type="number" step="0.1" class="gym-form-control" formControlName="peso">
+              <input id="peso-cli" name="peso" type="number" step="0.1" class="gym-form-control" [(ngModel)]="peso" (blur)="pesoTouched.set(true)">
+              @if (pesoTouched() && pesoInvalid()) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Peso inválido (20 - 300)</span>
+              }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="altura-cli">Altura (cm)</label>
-              <input id="altura-cli" type="number" class="gym-form-control" formControlName="altura">
+              <input id="altura-cli" name="altura" type="number" class="gym-form-control" [(ngModel)]="altura" (blur)="alturaTouched.set(true)">
+              @if (alturaTouched() && alturaInvalid()) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Altura inválida (100 - 250)</span>
+              }
             </div>
           </div>
           <div class="d-flex gap-1">

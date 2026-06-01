@@ -91,56 +91,56 @@
           <i class="bi bi-pencil-fill text-primary"></i>
           Editar Datos
         </div>
-        <form [formGroup]="form" (ngSubmit)="guardar()" id="form-perfil-entrenador">
+        <form (ngSubmit)="guardar()" id="form-perfil-entrenador">
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
-              <label class="gym-form-label" for="nombre-ent">Nombre</label>
-              <input id="nombre-ent" type="text" class="gym-form-control" formControlName="nombre">
-              @if (hasError('nombre', 'required')) {
-                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
-              }
-              @if (hasError('nombre', 'minlength')) {
-                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 2 caracteres</span>
-              }
+               <label class="gym-form-label" for="nombre-ent">Nombre</label>
+               <input id="nombre-ent" name="nombre" type="text" class="gym-form-control" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)">
+               @if (nombreTouched() && nombreInvalid()) {
+                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+               }
+               @if (nombreTouched() && nombreMinLength()) {
+                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 2 caracteres</span>
+               }
             </div>
             <div class="gym-form-group">
-              <label class="gym-form-label" for="apellido-ent">Apellido</label>
-              <input id="apellido-ent" type="text" class="gym-form-control" formControlName="apellido">
-              @if (hasError('apellido', 'required')) {
-                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
-              }
+               <label class="gym-form-label" for="apellido-ent">Apellido</label>
+               <input id="apellido-ent" name="apellido" type="text" class="gym-form-control" [(ngModel)]="apellido" (blur)="apellidoTouched.set(true)">
+               @if (apellidoTouched() && apellidoInvalid()) {
+                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+               }
             </div>
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="email-ent">Correo Electrónico</label>
-            <input id="email-ent" type="email" class="gym-form-control" formControlName="email">
-            @if (hasError('email', 'required')) {
+            <input id="email-ent" name="email" type="email" class="gym-form-control" [(ngModel)]="email" (blur)="emailTouched.set(true)">
+            @if (emailTouched() && emailInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
             }
-            @if (hasError('email', 'email')) {
+            @if (emailTouched() && emailFormatInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Correo no válido</span>
             }
           </div>
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="tel-ent">Teléfono</label>
-              <input id="tel-ent" type="tel" class="gym-form-control" formControlName="telefono">
-              @if (hasError('telefono', 'minlength')) {
+              <input id="tel-ent" name="telefono" type="tel" class="gym-form-control" [(ngModel)]="telefono" (blur)="telefonoTouched.set(true)">
+              @if (telefonoTouched() && telefonoInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 7 dígitos</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="exp-ent">Años de Experiencia</label>
-              <input id="exp-ent" type="number" class="gym-form-control" formControlName="experiencia" min="0" max="50">
-              @if (hasError('experiencia', 'min') || hasError('experiencia', 'max')) {
+              <input id="exp-ent" name="experiencia" type="number" class="gym-form-control" [(ngModel)]="experiencia" (blur)="experienciaTouched.set(true)" min="0" max="50">
+              @if (experienciaTouched() && experienciaInvalid()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Entre 0 y 50 años</span>
               }
             </div>
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="esp-ent">Especialidad</label>
-            <input id="esp-ent" type="text" class="gym-form-control" formControlName="especialidad" placeholder="Ej: Musculación y Fuerza">
-            @if (hasError('especialidad', 'required')) {
+            <input id="esp-ent" name="especialidad" type="text" class="gym-form-control" [(ngModel)]="especialidad" (blur)="especialidadTouched.set(true)" placeholder="Ej: Musculación y Fuerza">
+            @if (especialidadTouched() && especialidadInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
             }
           </div>

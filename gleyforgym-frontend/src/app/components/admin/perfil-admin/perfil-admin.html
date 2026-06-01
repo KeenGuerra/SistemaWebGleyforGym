@@ -38,7 +38,7 @@
         <h3><i class="bi bi-person-fill text-primary"></i> Datos Generales y Contacto</h3>
         <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Actualiza tu información personal para reportes e inicio de sesión.</p>
         
-        <form [formGroup]="profileForm" (ngSubmit)="onSubmitProfile()" class="profile-form">
+        <form (ngSubmit)="onSubmitProfile()" class="profile-form">
           @if (errorMessage()) {
             <div class="alert-danger-box">
               <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage() }}
@@ -53,16 +53,30 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre">NOMBRE</label>
-              <input type="text" id="nombre" formControlName="nombre" class="gym-form-control" />
-              @if (profileForm.get('nombre')?.touched && profileForm.get('nombre')?.invalid) {
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                [(ngModel)]="nombre"
+                (blur)="nombreTouched.set(true)"
+                class="gym-form-control"
+              />
+              @if (nombreTouched() && nombreInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido">APELLIDO</label>
-              <input type="text" id="apellido" formControlName="apellido" class="gym-form-control" />
-              @if (profileForm.get('apellido')?.touched && profileForm.get('apellido')?.invalid) {
+              <input
+                type="text"
+                id="apellido"
+                name="apellido"
+                [(ngModel)]="apellido"
+                (blur)="apellidoTouched.set(true)"
+                class="gym-form-control"
+              />
+              @if (apellidoTouched() && apellidoInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
@@ -71,16 +85,30 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
-              <input type="email" id="email" formControlName="email" class="gym-form-control" />
-              @if (profileForm.get('email')?.touched && profileForm.get('email')?.invalid) {
+              <input
+                type="email"
+                id="email"
+                name="email"
+                [(ngModel)]="email"
+                (blur)="emailTouched.set(true)"
+                class="gym-form-control"
+              />
+              @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Inválido.</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="telefono">TELÉFONO</label>
-              <input type="text" id="telefono" formControlName="telefono" class="gym-form-control" />
-              @if (profileForm.get('telefono')?.touched && profileForm.get('telefono')?.invalid) {
+              <input
+                type="text"
+                id="telefono"
+                name="telefono"
+                [(ngModel)]="telefono"
+                (blur)="telefonoTouched.set(true)"
+                class="gym-form-control"
+              />
+              @if (telefonoTouched() && telefonoInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
@@ -97,7 +125,7 @@
         <h3><i class="bi bi-key-fill text-primary"></i> Seguridad e Identidad</h3>
         <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Cambia tu contraseña periódicamente para mantener protegida la administración.</p>
 
-        <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()" class="profile-form">
+        <form (ngSubmit)="onSubmitPassword()" class="profile-form">
           @if (pwdErrorMessage()) {
             <div class="alert-danger-box">
               <i class="bi bi-exclamation-triangle-fill"></i> {{ pwdErrorMessage() }}
@@ -111,8 +139,16 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="currentPassword">CONTRASEÑA ACTUAL</label>
-            <input type="password" id="currentPassword" formControlName="currentPassword" class="gym-form-control" placeholder="••••••••" />
-            @if (passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid) {
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              [(ngModel)]="currentPassword"
+              (blur)="currentPasswordTouched.set(true)"
+              class="gym-form-control"
+              placeholder="••••••••"
+            />
+            @if (currentPasswordTouched() && currentPasswordInvalid()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
             }
           </div>
@@ -120,8 +156,16 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="newPassword">NUEVA CONTRASEÑA</label>
-              <input type="password" id="newPassword" formControlName="newPassword" class="gym-form-control" placeholder="••••••••" />
-              @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid) {
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                [(ngModel)]="newPassword"
+                (blur)="newPasswordTouched.set(true)"
+                class="gym-form-control"
+                placeholder="••••••••"
+              />
+              @if (newPasswordTouched() && (newPasswordInvalid() || newPasswordTooShort())) {
                 <div class="gym-form-error">
                   <i class="bi bi-info-circle"></i> Mínimo 6 caracteres.
                 </div>
@@ -130,14 +174,22 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="confirmNewPassword">CONFIRMAR NUEVA CONTRASEÑA</label>
-              <input type="password" id="confirmNewPassword" formControlName="confirmNewPassword" class="gym-form-control" placeholder="••••••••" />
-              @if (passwordForm.get('confirmNewPassword')?.touched && passwordForm.get('confirmNewPassword')?.invalid) {
+              <input
+                type="password"
+                id="confirmNewPassword"
+                name="confirmNewPassword"
+                [(ngModel)]="confirmNewPassword"
+                (blur)="confirmNewPasswordTouched.set(true)"
+                class="gym-form-control"
+                placeholder="••••••••"
+              />
+              @if (confirmNewPasswordTouched() && confirmNewPasswordInvalid()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
               }
             </div>
           </div>
 
-          @if (passwordForm.touched && passwordForm.errors?.['passwordMismatch']) {
+          @if (passwordFormTouched() && passwordMismatch()) {
             <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
               <i class="bi bi-exclamation-circle-fill"></i> Las nuevas contraseñas no coinciden.
             </div>

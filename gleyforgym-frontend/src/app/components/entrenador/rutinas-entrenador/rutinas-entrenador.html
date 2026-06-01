@@ -25,27 +25,27 @@
         <i class="bi bi-clipboard2-plus-fill text-primary"></i>
         Crear Nueva Rutina
       </div>
-      <form [formGroup]="form" (ngSubmit)="guardar()" id="form-rutina">
+      <form (ngSubmit)="guardar()" id="form-rutina">
         <div class="gym-form-row cols-2">
           <div class="gym-form-group">
             <label class="gym-form-label" for="nombre-rutina">Nombre de la Rutina</label>
-            <input id="nombre-rutina" type="text" class="gym-form-control" formControlName="nombre" placeholder="Ej: Fuerza — Cuerpo Completo">
-            @if (hasError('nombre', 'required')) {
+            <input id="nombre-rutina" name="nombre" type="text" class="gym-form-control" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)" placeholder="Ej: Fuerza — Cuerpo Completo">
+            @if (nombreTouched() && nombreInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> El nombre es obligatorio</span>
             }
-            @if (hasError('nombre', 'minlength')) {
+            @if (nombreTouched() && nombreMinLength()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 3 caracteres</span>
             }
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="cliente-rutina">Cliente</label>
-            <select id="cliente-rutina" class="gym-form-control" formControlName="clienteId">
-              <option value="0" disabled>— Seleccionar cliente —</option>
+            <select id="cliente-rutina" name="clienteId" class="gym-form-control" [(ngModel)]="clienteId" (blur)="clienteIdTouched.set(true)">
+              <option [ngValue]="0" disabled>— Seleccionar cliente —</option>
               @for (c of clientes(); track c.id) {
-                <option [value]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
+                <option [ngValue]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
               }
             </select>
-            @if (hasError('clienteId', 'min')) {
+            @if (clienteIdTouched() && clienteIdInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Selecciona un cliente</span>
             }
           </div>
@@ -53,7 +53,7 @@
         <div class="gym-form-row cols-2">
           <div class="gym-form-group">
             <label class="gym-form-label" for="nivel-rutina">Nivel</label>
-            <select id="nivel-rutina" class="gym-form-control" formControlName="nivel">
+            <select id="nivel-rutina" name="nivel" class="gym-form-control" [(ngModel)]="nivel">
               <option value="principiante">Principiante</option>
               <option value="intermedio">Intermedio</option>
               <option value="avanzado">Avanzado</option>
@@ -61,8 +61,8 @@
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="objetivo-rutina">Objetivo</label>
-            <input id="objetivo-rutina" type="text" class="gym-form-control" formControlName="objetivo" placeholder="Pérdida de peso, ganancia muscular...">
-            @if (hasError('objetivo', 'required')) {
+            <input id="objetivo-rutina" name="objetivo" type="text" class="gym-form-control" [(ngModel)]="objetivo" (blur)="objetivoTouched.set(true)" placeholder="Pérdida de peso, ganancia muscular...">
+            @if (objetivoTouched() && objetivoInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> El objetivo es obligatorio</span>
             }
           </div>
@@ -86,7 +86,7 @@
         </div>
         <div class="gym-form-group">
           <label class="gym-form-label" for="desc-rutina">Descripción (opcional)</label>
-          <textarea id="desc-rutina" class="gym-form-control" formControlName="descripcion" rows="2" placeholder="Descripción general de la rutina..."></textarea>
+          <textarea id="desc-rutina" name="descripcion" class="gym-form-control" [(ngModel)]="descripcion" rows="2" placeholder="Descripción general de la rutina..."></textarea>
         </div>
         <div class="d-flex gap-1">
           <button type="submit" class="gym-btn gym-btn-primary">

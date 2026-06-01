@@ -1,20 +1,19 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { ClienteService } from '../../../services/cliente.service';
 
 @Component({
   selector: 'app-asistencia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.css',
 })
 export class Asistencia {
   private asistenciaService = inject(AsistenciaService);
   private clienteService = inject(ClienteService);
-  private fb = inject(FormBuilder);
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -22,12 +21,24 @@ export class Asistencia {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Formulario reactivo
-  asistenciaForm: FormGroup = this.fb.group({
-    clienteId: ['', [Validators.required]],
-    fecha: ['', [Validators.required]],
-    horaEntrada: ['', [Validators.required]],
-    horaSalida: ['']
+  // Writable Signals de Formulario
+  readonly clienteId = signal<number>(0);
+  readonly fecha = signal('');
+  readonly horaEntrada = signal('');
+  readonly horaSalida = signal('');
+
+  // Estados Touched
+  readonly clienteIdTouched = signal(false);
+  readonly fechaTouched = signal(false);
+  readonly horaEntradaTouched = signal(false);
+
+  // Validaciones
+  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
+  readonly fechaInvalid = computed(() => this.fecha().trim() === '');
+  readonly horaEntradaInvalid = computed(() => this.horaEntrada().trim() === '');
+
+  readonly formInvalid = computed(() => {
+    return this.clienteIdInvalid() || this.fechaInvalid() || this.horaEntradaInvalid();
   });
 
   // Lista de clientes
@@ -38,7 +49,7 @@ export class Asistencia {
     const list = this.asistenciaService.asistencias();
     const query = this.searchQuery().toLowerCase().trim();
 
-    const decoradas = list.map(a => {
+    const decorados = list.map(a => {
       const cliente = this.clienteService.getClientePorId(a.clienteId);
       return {
         ...a,
@@ -47,7 +58,7 @@ export class Asistencia {
     });
 
     // Ordenar por fecha y hora de entrada de forma descendente
-    const sorted = decoradas.sort((a, b) => {
+    const sorted = decorados.sort((a, b) => {
       if (a.fecha !== b.fecha) {
         return b.fecha.localeCompare(a.fecha);
       }
@@ -67,15 +78,18 @@ export class Asistencia {
 
   openAddModal(): void {
     const hoy = new Date();
-    const fecha = hoy.toISOString().split('T')[0];
-    const horaEntrada = hoy.toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
+    const fVal = hoy.toISOString().split('T')[0];
+    const hEVal = hoy.toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
 
-    this.asistenciaForm.reset({
-      clienteId: '',
-      fecha,
-      horaEntrada,
-      horaSalida: ''
-    });
+    this.clienteId.set(0);
+    this.fecha.set(fVal);
+    this.horaEntrada.set(hEVal);
+    this.horaSalida.set('');
+
+    this.clienteIdTouched.set(false);
+    this.fechaTouched.set(false);
+    this.horaEntradaTouched.set(false);
+
     this.showModal.set(true);
   }
 
@@ -84,20 +98,25 @@ export class Asistencia {
   }
 
   saveAsistencia(): void {
-    if (this.asistenciaForm.invalid) {
-      this.asistenciaForm.markAllAsTouched();
+    this.clienteIdTouched.set(true);
+    this.fechaTouched.set(true);
+    this.horaEntradaTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
 
-    const val = this.asistenciaForm.value;
-    const clId = Number(val.clienteId);
+    const clId = this.clienteId();
     const cliente = this.clienteService.getClientePorId(clId);
+
+    const horaEntradaVal = this.horaEntrada();
+    const horaSalidaVal = this.horaSalida();
 
     // Calcular duración si hay salida
     let duracion = 0;
-    if (val.horaEntrada && val.horaSalida) {
-      const [h1, m1] = val.horaEntrada.split(':').map(Number);
-      const [h2, m2] = val.horaSalida.split(':').map(Number);
+    if (horaEntradaVal && horaSalidaVal) {
+      const [h1, m1] = horaEntradaVal.split(':').map(Number);
+      const [h2, m2] = horaSalidaVal.split(':').map(Number);
       const minEntrada = h1 * 60 + m1;
       const minSalida = h2 * 60 + m2;
       duracion = Math.max(0, minSalida - minEntrada);
@@ -106,12 +125,13 @@ export class Asistencia {
     this.asistenciaService.registrarAsistencia({
       clienteId: clId,
       entrenadorId: cliente ? cliente.entrenadorId : 1,
-      fecha: val.fecha,
-      horaEntrada: val.horaEntrada,
-      horaSalida: val.horaSalida || undefined,
+      fecha: this.fecha(),
+      horaEntrada: horaEntradaVal,
+      horaSalida: horaSalidaVal || undefined,
       duracionMinutos: duracion || undefined
     });
 
     this.closeModal();
   }
 }
+

@@ -1,21 +1,20 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { PagoService } from '../../../services/pago.service';
 import { ClienteService } from '../../../services/cliente.service';
-import { Pago } from '../../../models/pago';
+import { Pago, MetodoPago, EstadoPago } from '../../../models/pago';
 
 @Component({
   selector: 'app-pagos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './pagos.html',
   styleUrl: './pagos.css',
 })
 export class Pagos {
   private pagoService = inject(PagoService);
   private clienteService = inject(ClienteService);
-  private fb = inject(FormBuilder);
 
   // Filtros
   readonly selectedFilter = signal<'todos' | 'pagado' | 'pendiente'>('todos');
@@ -24,13 +23,35 @@ export class Pagos {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Formulario reactivo
-  pagoForm: FormGroup = this.fb.group({
-    clienteId: ['', [Validators.required]],
-    monto: ['', [Validators.required, Validators.min(1)]],
-    concepto: ['Cuota Mensual', [Validators.required]],
-    metodo: ['tarjeta', [Validators.required]],
-    estado: ['pagado', [Validators.required]]
+  // Writable Signals de Formulario
+  readonly clienteId = signal<number>(0);
+  readonly monto = signal<number>(0);
+  readonly concepto = signal('Cuota Mensual');
+  readonly metodo = signal<MetodoPago>('tarjeta');
+  readonly estado = signal<EstadoPago>('pagado');
+
+  // Estados Touched
+  readonly clienteIdTouched = signal(false);
+  readonly montoTouched = signal(false);
+  readonly conceptoTouched = signal(false);
+  readonly metodoTouched = signal(false);
+  readonly estadoTouched = signal(false);
+
+  // Validaciones
+  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
+  readonly montoInvalid = computed(() => this.monto() <= 0);
+  readonly conceptoInvalid = computed(() => this.concepto().trim() === '');
+  readonly metodoInvalid = computed(() => this.metodo().trim() === '');
+  readonly estadoInvalid = computed(() => this.estado().trim() === '');
+
+  readonly formInvalid = computed(() => {
+    return (
+      this.clienteIdInvalid() ||
+      this.montoInvalid() ||
+      this.conceptoInvalid() ||
+      this.metodoInvalid() ||
+      this.estadoInvalid()
+    );
   });
 
   // Lista de clientes para el select
@@ -67,13 +88,18 @@ export class Pagos {
   }
 
   openAddModal(): void {
-    this.pagoForm.reset({
-      clienteId: '',
-      monto: '',
-      concepto: 'Membresía Mensual Premium',
-      metodo: 'tarjeta',
-      estado: 'pagado'
-    });
+    this.clienteId.set(0);
+    this.monto.set(0);
+    this.concepto.set('Membresía Mensual Premium');
+    this.metodo.set('tarjeta');
+    this.estado.set('pagado');
+
+    this.clienteIdTouched.set(false);
+    this.montoTouched.set(false);
+    this.conceptoTouched.set(false);
+    this.metodoTouched.set(false);
+    this.estadoTouched.set(false);
+
     this.showModal.set(true);
   }
 
@@ -82,21 +108,26 @@ export class Pagos {
   }
 
   savePago(): void {
-    if (this.pagoForm.invalid) {
-      this.pagoForm.markAllAsTouched();
+    this.clienteIdTouched.set(true);
+    this.montoTouched.set(true);
+    this.conceptoTouched.set(true);
+    this.metodoTouched.set(true);
+    this.estadoTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
 
-    const val = this.pagoForm.value;
     this.pagoService.agregarPago({
-      clienteId: Number(val.clienteId),
-      monto: Number(val.monto),
+      clienteId: this.clienteId(),
+      monto: this.monto(),
       fecha: new Date().toISOString().split('T')[0],
-      concepto: val.concepto,
-      metodo: val.metodo,
-      estado: val.estado
+      concepto: this.concepto(),
+      metodo: this.metodo(),
+      estado: this.estado()
     });
 
     this.closeModal();
   }
 }
+

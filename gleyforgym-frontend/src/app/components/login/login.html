@@ -15,7 +15,7 @@
     </div>
 
     <!-- Formulario de Acceso -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+    <form (ngSubmit)="onSubmit()" class="auth-form">
       @if (errorMessage) {
         <div class="alert-danger-box">
           <i class="bi bi-exclamation-triangle-fill"></i>
@@ -30,17 +30,19 @@
           <input
             type="email"
             id="email"
-            formControlName="email"
+            name="email"
+            [(ngModel)]="email"
+            (blur)="emailTouched.set(true)"
             class="gym-form-control"
             placeholder="ejemplo@gleyforgym.com"
           />
         </div>
-        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+        @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
-            @if (loginForm.get('email')?.errors?.['required']) {
+            @if (emailInvalid()) {
               El correo es requerido.
-            } @else if (loginForm.get('email')?.errors?.['email']) {
+            } @else if (emailFormatInvalid()) {
               Ingresa un correo electrónico válido.
             }
           </div>
@@ -54,12 +56,14 @@
           <input
             type="password"
             id="password"
-            formControlName="password"
+            name="password"
+            [(ngModel)]="password"
+            (blur)="passwordTouched.set(true)"
             class="gym-form-control"
             placeholder="••••••••"
           />
         </div>
-        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+        @if (passwordTouched() && passwordInvalid()) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
             La contraseña es requerida.

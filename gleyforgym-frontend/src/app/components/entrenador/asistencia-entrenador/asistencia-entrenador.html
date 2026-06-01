@@ -61,24 +61,24 @@
         <i class="bi bi-plus-circle-fill text-primary"></i>
         Nueva Asistencia
       </div>
-      <form [formGroup]="form" (ngSubmit)="registrar()" id="form-asistencia">
+      <form (ngSubmit)="registrar()" id="form-asistencia">
         <div class="gym-form-row cols-2">
           <div class="gym-form-group">
             <label class="gym-form-label" for="cliente-asist">Cliente</label>
-            <select id="cliente-asist" class="gym-form-control" formControlName="clienteId">
-              <option value="0" disabled>— Seleccionar cliente —</option>
+            <select id="cliente-asist" name="clienteId" class="gym-form-control" [(ngModel)]="clienteId" (blur)="clienteIdTouched.set(true)">
+              <option [ngValue]="0" disabled>— Seleccionar cliente —</option>
               @for (c of clientes(); track c.id) {
-                <option [value]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
+                <option [ngValue]="c.id">{{ c.nombre }} {{ c.apellido }}</option>
               }
             </select>
-            @if (hasError('clienteId', 'min')) {
+            @if (clienteIdTouched() && clienteIdInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Selecciona un cliente</span>
             }
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="fecha-asist">Fecha</label>
-            <input id="fecha-asist" type="date" class="gym-form-control" formControlName="fecha">
-            @if (hasError('fecha', 'required')) {
+            <input id="fecha-asist" name="fecha" type="date" class="gym-form-control" [(ngModel)]="fecha" (blur)="fechaTouched.set(true)">
+            @if (fechaTouched() && fechaInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> La fecha es obligatoria</span>
             }
           </div>
@@ -86,19 +86,19 @@
         <div class="gym-form-row cols-2">
           <div class="gym-form-group">
             <label class="gym-form-label" for="entrada-asist">Hora de Entrada</label>
-            <input id="entrada-asist" type="time" class="gym-form-control" formControlName="horaEntrada">
-            @if (hasError('horaEntrada', 'required')) {
+            <input id="entrada-asist" name="horaEntrada" type="time" class="gym-form-control" [(ngModel)]="horaEntrada" (blur)="horaEntradaTouched.set(true)">
+            @if (horaEntradaTouched() && horaEntradaInvalid()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> La hora de entrada es obligatoria</span>
             }
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="salida-asist">Hora de Salida (opcional)</label>
-            <input id="salida-asist" type="time" class="gym-form-control" formControlName="horaSalida">
+            <input id="salida-asist" name="horaSalida" type="time" class="gym-form-control" [(ngModel)]="horaSalida">
           </div>
         </div>
         <div class="gym-form-group">
           <label class="gym-form-label" for="obs-asist">Observaciones</label>
-          <input id="obs-asist" type="text" class="gym-form-control" formControlName="observaciones" placeholder="Notas opcionales...">
+          <input id="obs-asist" name="observaciones" type="text" class="gym-form-control" [(ngModel)]="observaciones" placeholder="Notas opcionales...">
         </div>
         <div class="d-flex gap-1">
           <button type="submit" class="gym-btn gym-btn-primary">

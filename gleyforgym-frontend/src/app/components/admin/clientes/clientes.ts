@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ClienteService } from '../../../services/cliente.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
@@ -10,7 +10,7 @@ import { Cliente, ClienteDecorado } from '../../../models/cliente';
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './clientes.html',
   styleUrl: './clientes.css',
 })
@@ -19,7 +19,6 @@ export class Clientes {
   private usuarioService = inject(UsuarioService);
   private entrenadorService = inject(EntrenadorService);
   private membresiaService = inject(MembresiaService);
-  private fb = inject(FormBuilder);
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -30,18 +29,57 @@ export class Clientes {
   readonly editingCliente = signal<Cliente | null>(null);
   readonly viewingCliente = signal<ClienteDecorado | null>(null);
 
-  // Formulario reactivo
-  clienteForm: FormGroup = this.fb.group({
-    nombre: ['', [Validators.required]],
-    apellido: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    telefono: ['', [Validators.required]],
-    activo: [true],
-    objetivo: ['Tonificación', [Validators.required]],
-    peso: [70, [Validators.min(30), Validators.max(250)]],
-    altura: [170, [Validators.min(100), Validators.max(250)]],
-    entrenadorId: [1, [Validators.required]],
-    membresiaId: [1, [Validators.required]]
+  // Writable Signals de Formulario
+  readonly nombre = signal('');
+  readonly apellido = signal('');
+  readonly email = signal('');
+  readonly telefono = signal('');
+  readonly activo = signal(true);
+  readonly objetivo = signal('Tonificación');
+  readonly peso = signal(70);
+  readonly altura = signal(170);
+  readonly entrenadorId = signal(1);
+  readonly membresiaId = signal(1);
+
+  // Estados Touched
+  readonly nombreTouched = signal(false);
+  readonly apellidoTouched = signal(false);
+  readonly emailTouched = signal(false);
+  readonly telefonoTouched = signal(false);
+  readonly objetivoTouched = signal(false);
+  readonly pesoTouched = signal(false);
+  readonly alturaTouched = signal(false);
+  readonly entrenadorIdTouched = signal(false);
+  readonly membresiaIdTouched = signal(false);
+
+  // Validaciones
+  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
+  readonly apellidoInvalid = computed(() => this.apellido().trim() === '');
+  readonly emailInvalid = computed(() => this.email().trim() === '');
+  readonly emailFormatInvalid = computed(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  });
+  readonly telefonoInvalid = computed(() => this.telefono().trim() === '');
+  readonly objetivoInvalid = computed(() => this.objetivo().trim() === '');
+  readonly pesoInvalid = computed(() => this.peso() < 30 || this.peso() > 250);
+  readonly alturaInvalid = computed(() => this.altura() < 100 || this.altura() > 250);
+  readonly entrenadorIdInvalid = computed(() => this.entrenadorId() <= 0);
+  readonly membresiaIdInvalid = computed(() => this.membresiaId() <= 0);
+
+  readonly formInvalid = computed(() => {
+    return (
+      this.nombreInvalid() ||
+      this.apellidoInvalid() ||
+      this.emailInvalid() ||
+      this.emailFormatInvalid() ||
+      this.telefonoInvalid() ||
+      this.objetivoInvalid() ||
+      this.pesoInvalid() ||
+      this.alturaInvalid() ||
+      this.entrenadorIdInvalid() ||
+      this.membresiaIdInvalid()
+    );
   });
 
   // Lista de Entrenadores Activos para el select
@@ -80,35 +118,59 @@ export class Clientes {
 
   openAddModal(): void {
     this.editingCliente.set(null);
-    this.clienteForm.reset({
-      nombre: '',
-      apellido: '',
-      email: '',
-      telefono: '',
-      activo: true,
-      objetivo: 'Tonificación',
-      peso: 70,
-      altura: 170,
-      entrenadorId: 1,
-      membresiaId: 1
-    });
+    
+    // Resetear form
+    this.nombre.set('');
+    this.apellido.set('');
+    this.email.set('');
+    this.telefono.set('');
+    this.activo.set(true);
+    this.objetivo.set('Tonificación');
+    this.peso.set(70);
+    this.altura.set(170);
+    this.entrenadorId.set(1);
+    this.membresiaId.set(1);
+
+    // Resetear touched
+    this.nombreTouched.set(false);
+    this.apellidoTouched.set(false);
+    this.emailTouched.set(false);
+    this.telefonoTouched.set(false);
+    this.objetivoTouched.set(false);
+    this.pesoTouched.set(false);
+    this.alturaTouched.set(false);
+    this.entrenadorIdTouched.set(false);
+    this.membresiaIdTouched.set(false);
+
     this.showModal.set(true);
   }
 
   openEditModal(cliente: Cliente): void {
     this.editingCliente.set(cliente);
-    this.clienteForm.patchValue({
-      nombre: cliente.nombre,
-      apellido: cliente.apellido,
-      email: cliente.email,
-      telefono: cliente.telefono,
-      activo: cliente.activo,
-      objetivo: cliente.objetivo || 'Tonificación',
-      peso: cliente.peso || 70,
-      altura: cliente.altura || 170,
-      entrenadorId: cliente.entrenadorId || 1,
-      membresiaId: cliente.membresiaId || 1
-    });
+    
+    // Cargar datos
+    this.nombre.set(cliente.nombre);
+    this.apellido.set(cliente.apellido);
+    this.email.set(cliente.email);
+    this.telefono.set(cliente.telefono);
+    this.activo.set(cliente.activo);
+    this.objetivo.set(cliente.objetivo || 'Tonificación');
+    this.peso.set(cliente.peso || 70);
+    this.altura.set(cliente.altura || 170);
+    this.entrenadorId.set(cliente.entrenadorId || 1);
+    this.membresiaId.set(cliente.membresiaId || 1);
+
+    // Resetear touched
+    this.nombreTouched.set(false);
+    this.apellidoTouched.set(false);
+    this.emailTouched.set(false);
+    this.telefonoTouched.set(false);
+    this.objetivoTouched.set(false);
+    this.pesoTouched.set(false);
+    this.alturaTouched.set(false);
+    this.entrenadorIdTouched.set(false);
+    this.membresiaIdTouched.set(false);
+
     this.showModal.set(true);
   }
 
@@ -141,12 +203,33 @@ export class Clientes {
   }
 
   saveCliente(): void {
-    if (this.clienteForm.invalid) {
-      this.clienteForm.markAllAsTouched();
+    this.nombreTouched.set(true);
+    this.apellidoTouched.set(true);
+    this.emailTouched.set(true);
+    this.telefonoTouched.set(true);
+    this.objetivoTouched.set(true);
+    this.pesoTouched.set(true);
+    this.alturaTouched.set(true);
+    this.entrenadorIdTouched.set(true);
+    this.membresiaIdTouched.set(true);
+
+    if (this.formInvalid()) {
       return;
     }
 
-    const formVal = this.clienteForm.value;
+    const formVal = {
+      nombre: this.nombre(),
+      apellido: this.apellido(),
+      email: this.email(),
+      telefono: this.telefono(),
+      activo: this.activo(),
+      objetivo: this.objetivo(),
+      peso: this.peso(),
+      altura: this.altura(),
+      entrenadorId: this.entrenadorId(),
+      membresiaId: this.membresiaId()
+    };
+    
     const editing = this.editingCliente();
 
     if (editing) {
@@ -209,3 +292,4 @@ export class Clientes {
     }
   }
 }
+

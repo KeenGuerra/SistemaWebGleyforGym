@@ -15,7 +15,7 @@
     </div>
 
     <!-- Formulario de Registro -->
-    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="auth-form">
+    <form (ngSubmit)="onSubmit()" class="auth-form">
       @if (errorMessage) {
         <div class="alert-danger-box">
           <i class="bi bi-exclamation-triangle-fill"></i>
@@ -37,11 +37,13 @@
           <input
             type="text"
             id="nombre"
-            formControlName="nombre"
+            name="nombre"
+            [(ngModel)]="nombre"
+            (blur)="nombreTouched.set(true)"
             class="gym-form-control"
             placeholder="Juan"
           />
-          @if (registroForm.get('nombre')?.touched && registroForm.get('nombre')?.invalid) {
+          @if (nombreTouched() && nombreInvalid()) {
             <div class="gym-form-error">
               <i class="bi bi-info-circle"></i> Requerido.
             </div>
@@ -53,11 +55,13 @@
           <input
             type="text"
             id="apellido"
-            formControlName="apellido"
+            name="apellido"
+            [(ngModel)]="apellido"
+            (blur)="apellidoTouched.set(true)"
             class="gym-form-control"
             placeholder="Pérez"
           />
-          @if (registroForm.get('apellido')?.touched && registroForm.get('apellido')?.invalid) {
+          @if (apellidoTouched() && apellidoInvalid()) {
             <div class="gym-form-error">
               <i class="bi bi-info-circle"></i> Requerido.
             </div>
@@ -73,17 +77,19 @@
           <input
             type="email"
             id="email"
-            formControlName="email"
+            name="email"
+            [(ngModel)]="email"
+            (blur)="emailTouched.set(true)"
             class="gym-form-control"
             placeholder="juan.perez@email.com"
           />
         </div>
-        @if (registroForm.get('email')?.touched && registroForm.get('email')?.invalid) {
+        @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
-            @if (registroForm.get('email')?.errors?.['required']) {
+            @if (emailInvalid()) {
               El correo es requerido.
-            } @else if (registroForm.get('email')?.errors?.['email']) {
+            } @else if (emailFormatInvalid()) {
               Ingresa un correo electrónico válido.
             }
           </div>
@@ -98,12 +104,14 @@
           <input
             type="text"
             id="telefono"
-            formControlName="telefono"
+            name="telefono"
+            [(ngModel)]="telefono"
+            (blur)="telefonoTouched.set(true)"
             class="gym-form-control"
             placeholder="809-555-0199"
           />
         </div>
-        @if (registroForm.get('telefono')?.touched && registroForm.get('telefono')?.invalid) {
+        @if (telefonoTouched() && telefonoInvalid()) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i> Teléfono requerido.
           </div>
@@ -117,16 +125,18 @@
           <input
             type="password"
             id="password"
-            formControlName="password"
+            name="password"
+            [(ngModel)]="password"
+            (blur)="passwordTouched.set(true)"
             class="gym-form-control"
             placeholder="••••••"
           />
-          @if (registroForm.get('password')?.touched && registroForm.get('password')?.invalid) {
+          @if (passwordTouched() && (passwordInvalid() || passwordTooShort())) {
             <div class="gym-form-error">
               <i class="bi bi-info-circle"></i>
-              @if (registroForm.get('password')?.errors?.['required']) {
+              @if (passwordInvalid()) {
                 Requerida.
-              } @else if (registroForm.get('password')?.errors?.['minlength']) {
+              } @else if (passwordTooShort()) {
                 Mínimo 6 carac.
               }
             </div>
@@ -138,11 +148,13 @@
           <input
             type="password"
             id="confirmPassword"
-            formControlName="confirmPassword"
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            (blur)="confirmPasswordTouched.set(true)"
             class="gym-form-control"
             placeholder="••••••"
           />
-          @if (registroForm.get('confirmPassword')?.touched && registroForm.get('confirmPassword')?.invalid) {
+          @if (confirmPasswordTouched() && confirmPasswordInvalid()) {
             <div class="gym-form-error">
               <i class="bi bi-info-circle"></i> Requerida.
             </div>
@@ -150,7 +162,7 @@
         </div>
       </div>
 
-      @if (registroForm.touched && registroForm.errors?.['passwordMismatch']) {
+      @if ((passwordTouched() || confirmPasswordTouched()) && passwordMismatch()) {
         <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
           <i class="bi bi-exclamation-circle-fill"></i> Las contraseñas no coinciden.
         </div>

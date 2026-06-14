@@ -2,7 +2,7 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 class MembresiaBase(BaseModel):
-    nombre: str = Field(..., min_length=1, max_length=80)
+    nombre: str = Field(..., min_length=1, max_length=50)
     descripcion: str | None = None
     precio: float = Field(..., gt=0, description="El precio debe ser positivo")
     duracion_dias: int = Field(..., gt=0, description="La duración en días debe ser positiva")
@@ -12,7 +12,7 @@ class MembresiaCreate(MembresiaBase):
     pass
 
 class MembresiaUpdate(BaseModel):
-    nombre: str | None = Field(None, min_length=1, max_length=80)
+    nombre: str | None = Field(None, min_length=1, max_length=50)
     descripcion: str | None = None
     precio: float | None = Field(None, gt=0)
     duracion_dias: int | None = Field(None, gt=0)

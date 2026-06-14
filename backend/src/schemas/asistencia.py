@@ -1,10 +1,10 @@
-from datetime import date
+from datetime import date, time
 from pydantic import BaseModel, Field
 
 class AsistenciaBase(BaseModel):
     fecha: date
-    hora_entrada: str = Field(..., description="Hora de entrada (Ej: 08:30)")
-    hora_salida: str | None = Field(None, description="Hora de salida (Ej: 10:00)")
+    hora_entrada: time = Field(..., description="Hora de entrada (Ej: 08:30)")
+    hora_salida: time | None = Field(None, description="Hora de salida (Ej: 10:00)")
     estado: str = Field("ASISTIO", pattern="^(ASISTIO|TARDE|FALTA)$")
     observaciones: str | None = Field(None, max_length=255)
 
@@ -13,8 +13,8 @@ class AsistenciaCreate(AsistenciaBase):
     entrenador_id: int | None = Field(None, gt=0)
 
 class AsistenciaUpdate(BaseModel):
-    hora_entrada: str | None = None
-    hora_salida: str | None = None
+    hora_entrada: time | None = None
+    hora_salida: time | None = None
     estado: str | None = Field(None, pattern="^(ASISTIO|TARDE|FALTA)$")
     observaciones: str | None = None
 

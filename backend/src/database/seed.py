@@ -10,7 +10,7 @@ from src.database.models import (
     Asistencia, ProgresoCliente, Ejercicio, Rutina, RutinaEjercicio,
     Objetivo, Especialidad, EntrenadorEspecialidad, GrupoMuscular, ClienteEntrenador
 )
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 import decimal
 
 def seed_db(db: Session):
@@ -24,7 +24,7 @@ def seed_db(db: Session):
             p_monto NUMERIC(10,2),
             p_metodo_pago VARCHAR(50),
             p_estado VARCHAR(20),
-            p_comprobante VARCHAR(255),
+            p_comprobante TEXT,
             p_observacion TEXT,
             p_fecha_pago DATE DEFAULT CURRENT_DATE
         ) RETURNS INTEGER AS $$
@@ -49,8 +49,8 @@ def seed_db(db: Session):
         CREATE OR REPLACE FUNCTION registrar_asistencia(
             p_cliente_id INTEGER,
             p_entrenador_id INTEGER,
-            p_hora_entrada VARCHAR(50),
-            p_hora_salida VARCHAR(50),
+            p_hora_entrada TIME,
+            p_hora_salida TIME,
             p_estado VARCHAR(20),
             p_observaciones TEXT,
             p_fecha DATE DEFAULT CURRENT_DATE
@@ -99,7 +99,7 @@ def seed_db(db: Session):
         """,
         """
         CREATE OR REPLACE FUNCTION calcular_imc(
-            p_peso NUMERIC(5,2),
+            p_peso NUMERIC(6,2),
             p_altura NUMERIC(4,2)
         ) RETURNS NUMERIC(5,2) AS $$
         BEGIN
@@ -285,13 +285,12 @@ def seed_db(db: Session):
 
     # --- Asistencias ---
     db.add_all([
-        Asistencia(cliente_id=db_clientes[0].id, entrenador_id=e1.id, fecha=date.today(), hora_entrada="08:00", hora_salida="09:30", estado="ASISTIO", observaciones="Excelente entrenamiento de pierna"),
-        Asistencia(cliente_id=db_clientes[1].id, entrenador_id=e1.id, fecha=date.today(), hora_entrada="09:15", hora_salida="10:45", estado="ASISTIO", observaciones="Rutina de pecho completada"),
-        Asistencia(cliente_id=db_clientes[2].id, entrenador_id=e2.id, fecha=date.today() - timedelta(days=1), hora_entrada="17:00", hora_salida="18:00", estado="ASISTIO", observaciones="Clase de pilates"),
+        Asistencia(cliente_id=db_clientes[0].id, entrenador_id=e1.id, fecha=date.today(), hora_entrada=time(8, 0), hora_salida=time(9, 30), estado="ASISTIO", observaciones="Excelente entrenamiento de pierna"),
+        Asistencia(cliente_id=db_clientes[1].id, entrenador_id=e1.id, fecha=date.today(), hora_entrada=time(9, 15), hora_salida=time(10, 45), estado="ASISTIO", observaciones="Rutina de pecho completada"),
+        Asistencia(cliente_id=db_clientes[2].id, entrenador_id=e2.id, fecha=date.today() - timedelta(days=1), hora_entrada=time(17, 0), hora_salida=time(18, 0), estado="ASISTIO", observaciones="Clase de pilates"),
     ])
 
     # --- Progreso Clientes ---
-    # IMC: peso / (altura * altura) -> 72 / 1.65^2 = 26.4
     db.add_all([
         ProgresoCliente(cliente_id=db_clientes[0].id, fecha=date.today() - timedelta(days=30), peso=decimal.Decimal("72.00"), altura=decimal.Decimal("1.65"), imc=decimal.Decimal("26.45"), notas="Peso inicial"),
         ProgresoCliente(cliente_id=db_clientes[0].id, fecha=date.today(), peso=decimal.Decimal("70.50"), altura=decimal.Decimal("1.65"), imc=decimal.Decimal("25.89"), notas="Reducción de grasa corporal"),

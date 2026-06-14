@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 # pyrefly: ignore [missing-import]
@@ -66,7 +66,7 @@ class AsistenciaRepository:
         db.refresh(db_asist)
         return db_asist
 
-    def registrar_salida(self, db: Session, db_asist: Asistencia, hora_salida: str) -> Asistencia:
+    def registrar_salida(self, db: Session, db_asist: Asistencia, hora_salida: time) -> Asistencia:
         db_asist.hora_salida = hora_salida
         db.commit()
         db.refresh(db_asist)

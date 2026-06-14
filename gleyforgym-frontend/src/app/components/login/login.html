@@ -78,21 +78,5 @@
     <div class="auth-footer">
       ¿No tienes una cuenta? <a routerLink="/registro" class="text-primary">Regístrate aquí</a>
     </div>
-
-    <!-- Quick Access para Pruebas (Mock logins) -->
-    <div class="quick-access-box">
-      <h4>ACCESO RÁPIDO PARA PRUEBAS</h4>
-      <div class="quick-buttons">
-        <button (click)="quickLogin('admin')" class="gym-btn gym-btn-secondary gym-btn-sm">
-          <i class="bi bi-shield-lock-fill text-primary"></i> Administrador
-        </button>
-        <button (click)="quickLogin('entrenador')" class="gym-btn gym-btn-secondary gym-btn-sm">
-          <i class="bi bi-person-badge-fill text-primary"></i> Entrenador
-        </button>
-        <button (click)="quickLogin('cliente')" class="gym-btn gym-btn-secondary gym-btn-sm">
-          <i class="bi bi-person-fill text-primary"></i> Cliente
-        </button>
-      </div>
-    </div>
   </div>
 </div>

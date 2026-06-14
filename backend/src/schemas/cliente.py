@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from pydantic import BaseModel, Field
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
@@ -6,7 +6,7 @@ from src.schemas.usuario import UsuarioResponse, UsuarioCreate
 
 class ClienteBase(BaseModel):
     objetivo_id: int | None = Field(None, description="ID del objetivo de entrenamiento")
-    peso: float | None = Field(None, gt=0, description="Peso en kg (debe ser positivo)")
+    peso: float | None = Field(None, gt=0, lt=300.00, description="Peso en kg (debe ser menor a 300)")
     altura: float | None = Field(None, gt=0, lt=3.00, description="Altura en metros (debe ser menor a 3.00)")
     fecha_nacimiento: date | None = None
     sexo: str | None = Field(None, max_length=20)
@@ -19,7 +19,7 @@ class ClienteCreate(ClienteBase):
 
 class ClienteUpdate(BaseModel):
     objetivo_id: int | None = Field(None)
-    peso: float | None = Field(None, gt=0)
+    peso: float | None = Field(None, gt=0, lt=300.00)
     altura: float | None = Field(None, gt=0, lt=3.00)
     fecha_nacimiento: date | None = None
     sexo: str | None = Field(None, max_length=20)
@@ -44,6 +44,7 @@ class ClienteResponse(ClienteBase):
     membresia_tipo: str | None = None
     membresia_estado: str | None = None
     membresia_fin: str | None = None
+    fecha_modificacion: datetime
 
     class Config:
         from_attributes = True

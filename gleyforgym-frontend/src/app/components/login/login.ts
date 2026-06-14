@@ -79,39 +79,6 @@ export class Login {
     }
   }
 
-  quickLogin(rol: string): void {
-    let emailVal = '';
-    let passVal = '';
-    const upperRol = rol.toUpperCase();
-
-    if (upperRol === 'ADMINISTRADOR' || upperRol === 'ADMIN') {
-      emailVal = 'admin@gleyforgym.com';
-      passVal = 'admin1234';
-    } else if (upperRol === 'ENTRENADOR') {
-      emailVal = 'carlos.ramirez@gleyforgym.com';
-      passVal = 'carlos1234';
-    } else if (upperRol === 'CLIENTE') {
-      emailVal = 'maria.gonzalez@email.com';
-      passVal = 'maria1234';
-    }
-
-    this.loginModel.set({
-      correo: emailVal,
-      password: passVal
-    });
-    this.correoTocado.set(true);
-    this.passwordTocado.set(true);
-
-    this.cargando.set(true);
-    this.error.set(null);
-    const usuario = this.usuarioService.loginSimulado(emailVal, passVal);
-    this.cargando.set(false);
-    if (usuario) {
-      this.error.set(null);
-      this.redirigirUsuario(usuario.rol);
-    }
-  }
-
   private redirigirUsuario(rol: string): void {
     const upperRol = rol.toUpperCase();
     if (upperRol === 'ADMINISTRADOR' || upperRol === 'ADMIN') {

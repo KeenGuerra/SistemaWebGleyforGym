@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -24,7 +24,7 @@ from src.repository.cliente_repository import cliente_repository
 router = APIRouter()
 
 class RegistrarSalidaRequest(BaseModel):
-    hora_salida: str = Field(..., description="Hora de salida en formato HH:MM")
+    hora_salida: time = Field(..., description="Hora de salida")
 
 def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
     if current_user.rol not in ["ADMINISTRADOR", "ENTRENADOR"]:

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 # pyrefly: ignore [missing-import]
@@ -26,7 +26,7 @@ class AsistenciaService:
             
         return asistencia_repository.create(db, asist_in)
 
-    def registrar_salida(self, db: Session, asistencia_id: int, hora_salida: str) -> Asistencia:
+    def registrar_salida(self, db: Session, asistencia_id: int, hora_salida: time) -> Asistencia:
         asist = asistencia_repository.get_by_id(db, asistencia_id)
         if not asist:
             raise HTTPException(

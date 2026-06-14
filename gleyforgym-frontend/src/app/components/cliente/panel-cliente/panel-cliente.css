@@ -37,3 +37,10 @@
 @media (max-width: 900px) {
   .panel-cliente-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 480px) {
+  .semana-chips {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+

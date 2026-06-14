@@ -1427,3 +1427,165 @@ a {
 .animate-delay-2 { animation-delay: 0.2s; }
 .animate-delay-3 { animation-delay: 0.3s; }
 
+/* =============================================
+   CLASES DE UTILIDAD RESPONSIVAS ADICIONALES
+   ============================================= */
+.d-none {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .d-md-none {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .d-md-block {
+    display: block !important;
+  }
+  .d-md-flex {
+    display: flex !important;
+  }
+}
+
+/* =============================================
+   BARRA DE FILTRADO Y BÚSQUEDA COMPARTIDA
+   ============================================= */
+.filter-bar-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.search-input-wrapper i {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.search-input-wrapper input {
+  padding-left: 2.25rem;
+  border-radius: var(--radius-xl);
+}
+
+@media (max-width: 768px) {
+  .filter-bar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-input-wrapper {
+    max-width: 100%;
+  }
+}
+
+/* =============================================
+   ESTILOS DE MODAL COMPARTIDOS CON ANIMACIÓN
+   ============================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8);
+  position: relative;
+  animation: modalIn 0.2s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.close-btn:hover {
+  color: var(--danger);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+@media (max-width: 480px) {
+  .modal-card {
+    padding: 1.25rem;
+  }
+}
+
+/* =============================================
+   AJUSTES RESPONSIVOS DE COMPONENTES GLOBALES
+   ============================================= */
+@media (max-width: 480px) {
+  .gym-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .gym-accordion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .gym-accordion-header > .d-flex {
+    align-self: flex-end;
+  }
+}
+
+

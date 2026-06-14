@@ -35,7 +35,7 @@
     <!-- Ingresos Mensuales -->
     <div class="gym-stat-card">
       <div class="gym-stat-label">INGRESOS DEL MES</div>
-      <div class="gym-stat-value">RD${{ ingresosMensuales() | number }}</div>
+      <div class="gym-stat-value">S/ {{ ingresosMensuales() | number }}</div>
       <div class="gym-stat-sub">Pagos registrados este mes</div>
       <div class="gym-stat-icon-box green">
         <i class="bi bi-currency-dollar"></i>
@@ -75,7 +75,7 @@
             @for (pago of ultimosPagos(); track pago.id) {
               <tr>
                 <td class="font-semibold">{{ pago.nombreCliente }}</td>
-                <td>RD${{ pago.monto | number }}</td>
+                <td>S/ {{ pago.monto | number }}</td>
                 <td class="text-muted">{{ pago.concepto }}</td>
                 <td>
                   <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'PAGADO'" [class.gym-badge-warning]="pago.estado === 'PENDIENTE'">

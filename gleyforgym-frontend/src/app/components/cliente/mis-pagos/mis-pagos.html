@@ -9,7 +9,7 @@
     <div class="gym-stat-card">
       <div>
         <div class="gym-stat-label">Total Pagado</div>
-        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">RD$ {{ totalPagado() | number }}</div>
+        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">S/ {{ totalPagado() | number }}</div>
         <div class="gym-stat-sub">Transacciones completadas</div>
       </div>
       <div class="gym-stat-icon-box green">
@@ -19,7 +19,7 @@
     <div class="gym-stat-card">
       <div>
         <div class="gym-stat-label">Pendiente por Pagar</div>
-        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">RD$ {{ totalPendiente() | number }}</div>
+        <div class="gym-stat-value" style="font-size: 1.8rem; margin-top: 0.15rem; margin-bottom: 0.15rem;">S/ {{ totalPendiente() | number }}</div>
         <div class="gym-stat-sub">Saldos activos</div>
       </div>
       <div class="gym-stat-icon-box yellow">
@@ -72,7 +72,7 @@
               <td class="text-muted">#{{ pago.id }}</td>
               <td class="fw-600">{{ pago.concepto }}</td>
               <td>{{ pago.fecha }}</td>
-              <td class="text-primary fw-600">RD$ {{ pago.monto | number }}</td>
+              <td class="text-primary fw-600">S/ {{ pago.monto | number }}</td>
               <td>
                 <span class="gym-badge {{ metodoBadgeClass(pago.metodo) }}">
                   <i class="bi {{ metodIcono(pago.metodo) }}"></i>

@@ -58,7 +58,7 @@
             <td>
               <span class="gym-badge gym-badge-info">{{ m.tipo }}</span>
             </td>
-            <td>RD${{ m.precio | number }}</td>
+            <td>S/ {{ m.precio | number }}</td>
             <td>{{ m.fechaInicio }}</td>
             <td>{{ m.fechaFin }}</td>
             <td>
@@ -114,16 +114,16 @@
           <div class="gym-form-group">
             <label class="gym-form-label" for="tipo">PLAN DE ENTRENAMIENTO</label>
             <select id="tipo" name="tipo" [ngModel]="renewForm.tipo().value()" (ngModelChange)="renewForm.tipo().set($event)" (change)="onPlanChange($event)" class="gym-form-control">
-              <option value="Mensual Básica">Mensual Básica (RD$ 1,800)</option>
-              <option value="Mensual Premium">Mensual Premium (RD$ 2,500)</option>
-              <option value="Trimestral">Trimestral (RD$ 6,500)</option>
-              <option value="Anual">Anual (RD$ 24,000)</option>
+              <option value="Mensual Básica">Mensual Básica (S/ 1,800)</option>
+              <option value="Mensual Premium">Mensual Premium (S/ 2,500)</option>
+              <option value="Trimestral">Trimestral (S/ 6,500)</option>
+              <option value="Anual">Anual (S/ 24,000)</option>
             </select>
           </div>
 
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
-              <label class="gym-form-label" for="precio">MONTO A COBRAR (RD$)</label>
+              <label class="gym-form-label" for="precio">MONTO A COBRAR (S/)</label>
               <input type="number" id="precio" name="precio" [ngModel]="renewForm.precio().value()" (ngModelChange)="renewForm.precio().set($event)" (blur)="precioTouched.set(true)" class="gym-form-control" />
               @if (precioTouched() && precioErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ precioErrores() }}</div>

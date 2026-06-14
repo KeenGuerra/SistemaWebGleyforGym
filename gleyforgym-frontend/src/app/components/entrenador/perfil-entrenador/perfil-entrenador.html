@@ -95,58 +95,52 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
                <label class="gym-form-label" for="nombre-ent">Nombre</label>
-               <input id="nombre-ent" name="nombre" type="text" class="gym-form-control" [(ngModel)]="nombre" (blur)="nombreTouched.set(true)">
-               @if (nombreTouched() && nombreInvalid()) {
-                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
-               }
-               @if (nombreTouched() && nombreMinLength()) {
-                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 2 caracteres</span>
+               <input id="nombre-ent" name="nombre" type="text" class="gym-form-control" [ngModel]="trainerForm.nombre().value()" (ngModelChange)="trainerForm.nombre().set($event)" (blur)="nombreTouched.set(true)">
+               @if (nombreTouched() && nombreErrores()) {
+                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ nombreErrores() }}</span>
                }
             </div>
             <div class="gym-form-group">
                <label class="gym-form-label" for="apellido-ent">Apellido</label>
-               <input id="apellido-ent" name="apellido" type="text" class="gym-form-control" [(ngModel)]="apellido" (blur)="apellidoTouched.set(true)">
-               @if (apellidoTouched() && apellidoInvalid()) {
-                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+               <input id="apellido-ent" name="apellido" type="text" class="gym-form-control" [ngModel]="trainerForm.apellido().value()" (ngModelChange)="trainerForm.apellido().set($event)" (blur)="apellidoTouched.set(true)">
+               @if (apellidoTouched() && apellidoErrores()) {
+                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ apellidoErrores() }}</span>
                }
             </div>
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="email-ent">Correo Electrónico</label>
-            <input id="email-ent" name="email" type="email" class="gym-form-control" [(ngModel)]="email" (blur)="emailTouched.set(true)">
-            @if (emailTouched() && emailInvalid()) {
-              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
-            }
-            @if (emailTouched() && emailFormatInvalid()) {
-              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Correo no válido</span>
+            <input id="email-ent" name="email" type="email" class="gym-form-control" [ngModel]="trainerForm.email().value()" (ngModelChange)="trainerForm.email().set($event)" (blur)="emailTouched.set(true)">
+            @if (emailTouched() && emailErrores()) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ emailErrores() }}</span>
             }
           </div>
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="tel-ent">Teléfono</label>
-              <input id="tel-ent" name="telefono" type="tel" class="gym-form-control" [(ngModel)]="telefono" (blur)="telefonoTouched.set(true)">
-              @if (telefonoTouched() && telefonoInvalid()) {
-                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Mínimo 7 dígitos</span>
+              <input id="tel-ent" name="telefono" type="tel" class="gym-form-control" [ngModel]="trainerForm.telefono().value()" (ngModelChange)="trainerForm.telefono().set($event)" (blur)="telefonoTouched.set(true)">
+              @if (telefonoTouched() && telefonoErrores()) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ telefonoErrores() }}</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="exp-ent">Años de Experiencia</label>
-              <input id="exp-ent" name="experiencia" type="number" class="gym-form-control" [(ngModel)]="experiencia" (blur)="experienciaTouched.set(true)" min="0" max="50">
-              @if (experienciaTouched() && experienciaInvalid()) {
-                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Entre 0 y 50 años</span>
+              <input id="exp-ent" name="experiencia" type="number" class="gym-form-control" [ngModel]="trainerForm.experiencia().value()" (ngModelChange)="trainerForm.experiencia().set($event)" (blur)="experienciaTouched.set(true)" min="0" max="50">
+              @if (experienciaTouched() && experienciaErrores()) {
+                <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ experienciaErrores() }}</span>
               }
             </div>
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="esp-ent">Especialidad</label>
-            <input id="esp-ent" name="especialidad" type="text" class="gym-form-control" [(ngModel)]="especialidad" (blur)="especialidadTouched.set(true)" placeholder="Ej: Musculación y Fuerza">
-            @if (especialidadTouched() && especialidadInvalid()) {
-              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> Obligatorio</span>
+            <input id="esp-ent" name="especialidad" type="text" class="gym-form-control" [ngModel]="trainerForm.especialidad().value()" (ngModelChange)="trainerForm.especialidad().set($event)" (blur)="especialidadTouched.set(true)" placeholder="Ej: Musculación y Fuerza">
+            @if (especialidadTouched() && especialidadErrores()) {
+              <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ especialidadErrores() }}</span>
             }
           </div>
           <div class="d-flex gap-1 mt-2">
-            <button type="submit" class="gym-btn gym-btn-primary">
-              <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+            <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary">
+              <i class="bi bi-check-circle-fill"></i> @if (cargando()) { Guardando... } @else { Guardar Cambios }
             </button>
             <button type="button" class="gym-btn gym-btn-secondary" (click)="cancelar()">Cancelar</button>
           </div>

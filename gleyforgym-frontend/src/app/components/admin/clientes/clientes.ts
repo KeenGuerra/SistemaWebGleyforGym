@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { ClienteService } from '../../../services/cliente.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
@@ -29,56 +30,111 @@ export class Clientes {
   readonly editingCliente = signal<Cliente | null>(null);
   readonly viewingCliente = signal<ClienteDecorado | null>(null);
 
-  // Writable Signals de Formulario
-  readonly nombre = signal('');
-  readonly apellido = signal('');
-  readonly email = signal('');
-  readonly telefono = signal('');
-  readonly activo = signal(true);
-  readonly objetivo = signal('Tonificación');
-  readonly peso = signal(70);
-  readonly altura = signal(170);
-  readonly entrenadorId = signal(1);
-  readonly membresiaId = signal(1);
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public clientModel = signal({
+    nombre: '',
+    apellido: '',
+    email: '',
+    telefono: '',
+    activo: true,
+    objetivo: 'Tonificación',
+    peso: 70,
+    altura: 170,
+    entrenadorId: 1,
+    membresiaId: 1
+  });
+  public clientForm = form(this.clientModel);
 
   // Estados Touched
-  readonly nombreTouched = signal(false);
-  readonly apellidoTouched = signal(false);
-  readonly emailTouched = signal(false);
-  readonly telefonoTouched = signal(false);
-  readonly objetivoTouched = signal(false);
-  readonly pesoTouched = signal(false);
-  readonly alturaTouched = signal(false);
-  readonly entrenadorIdTouched = signal(false);
-  readonly membresiaIdTouched = signal(false);
+  public nombreTouched = signal(false);
+  public apellidoTouched = signal(false);
+  public emailTouched = signal(false);
+  public telefonoTouched = signal(false);
+  public objetivoTouched = signal(false);
+  public pesoTouched = signal(false);
+  public alturaTouched = signal(false);
+  public entrenadorIdTouched = signal(false);
+  public membresiaIdTouched = signal(false);
 
   // Validaciones
-  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
-  readonly apellidoInvalid = computed(() => this.apellido().trim() === '');
-  readonly emailInvalid = computed(() => this.email().trim() === '');
-  readonly emailFormatInvalid = computed(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  public nombreErrores = computed(() => {
+    const valor = this.clientForm.nombre().value().trim();
+    if (!valor) return 'El nombre es obligatorio.';
+    return null;
   });
-  readonly telefonoInvalid = computed(() => this.telefono().trim() === '');
-  readonly objetivoInvalid = computed(() => this.objetivo().trim() === '');
-  readonly pesoInvalid = computed(() => this.peso() < 30 || this.peso() > 250);
-  readonly alturaInvalid = computed(() => this.altura() < 100 || this.altura() > 250);
-  readonly entrenadorIdInvalid = computed(() => this.entrenadorId() <= 0);
-  readonly membresiaIdInvalid = computed(() => this.membresiaId() <= 0);
 
-  readonly formInvalid = computed(() => {
+  public apellidoErrores = computed(() => {
+    const valor = this.clientForm.apellido().value().trim();
+    if (!valor) return 'El apellido es obligatorio.';
+    return null;
+  });
+
+  public emailErrores = computed(() => {
+    const valor = this.clientForm.email().value().trim();
+    if (!valor) return 'El correo es obligatorio.';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(valor)) return 'Ingresa un correo electrónico válido.';
+    return null;
+  });
+
+  public telefonoErrores = computed(() => {
+    const valor = this.clientForm.telefono().value().trim();
+    if (!valor) return 'El teléfono es obligatorio.';
+    const numRegex = /^\d+$/;
+    if (!numRegex.test(valor)) return 'El teléfono debe contener solo números.';
+    if (valor.length < 7 || valor.length > 15) return 'El teléfono debe tener una longitud válida (7 a 15 dígitos).';
+    return null;
+  });
+
+  public objetivoErrores = computed(() => {
+    const valor = this.clientForm.objetivo().value().trim();
+    if (!valor) return 'El objetivo es obligatorio.';
+    return null;
+  });
+
+  public pesoErrores = computed(() => {
+    const valor = this.clientForm.peso().value();
+    if (valor === null || valor === undefined) return 'El peso es obligatorio.';
+    if (valor <= 0) return 'El peso debe ser positivo.';
+    if (valor < 30 || valor > 250) return 'El peso debe estar entre 30 y 250 kg.';
+    return null;
+  });
+
+  public alturaErrores = computed(() => {
+    const valor = this.clientForm.altura().value();
+    if (valor === null || valor === undefined) return 'La altura es obligatoria.';
+    if (valor <= 0) return 'La altura debe ser positiva.';
+    if (valor < 100 || valor > 250) return 'La altura debe estar entre 100 y 250 cm.';
+    return null;
+  });
+
+  public entrenadorIdErrores = computed(() => {
+    const valor = this.clientForm.entrenadorId().value();
+    if (valor === null || valor === undefined || valor <= 0) return 'Debes seleccionar un entrenador.';
+    return null;
+  });
+
+  public membresiaIdErrores = computed(() => {
+    const valor = this.clientForm.membresiaId().value();
+    if (valor === null || valor === undefined || valor <= 0) return 'Debes seleccionar una membresía.';
+    return null;
+  });
+
+  public formularioValido = computed(() => {
     return (
-      this.nombreInvalid() ||
-      this.apellidoInvalid() ||
-      this.emailInvalid() ||
-      this.emailFormatInvalid() ||
-      this.telefonoInvalid() ||
-      this.objetivoInvalid() ||
-      this.pesoInvalid() ||
-      this.alturaInvalid() ||
-      this.entrenadorIdInvalid() ||
-      this.membresiaIdInvalid()
+      !this.nombreErrores() &&
+      !this.apellidoErrores() &&
+      !this.emailErrores() &&
+      !this.telefonoErrores() &&
+      !this.objetivoErrores() &&
+      !this.pesoErrores() &&
+      !this.alturaErrores() &&
+      !this.entrenadorIdErrores() &&
+      !this.membresiaIdErrores()
     );
   });
 
@@ -120,16 +176,18 @@ export class Clientes {
     this.editingCliente.set(null);
     
     // Resetear form
-    this.nombre.set('');
-    this.apellido.set('');
-    this.email.set('');
-    this.telefono.set('');
-    this.activo.set(true);
-    this.objetivo.set('Tonificación');
-    this.peso.set(70);
-    this.altura.set(170);
-    this.entrenadorId.set(1);
-    this.membresiaId.set(1);
+    this.clientModel.set({
+      nombre: '',
+      apellido: '',
+      email: '',
+      telefono: '',
+      activo: true,
+      objetivo: 'Tonificación',
+      peso: 70,
+      altura: 170,
+      entrenadorId: 1,
+      membresiaId: 1
+    });
 
     // Resetear touched
     this.nombreTouched.set(false);
@@ -149,16 +207,18 @@ export class Clientes {
     this.editingCliente.set(cliente);
     
     // Cargar datos
-    this.nombre.set(cliente.nombre);
-    this.apellido.set(cliente.apellido);
-    this.email.set(cliente.email);
-    this.telefono.set(cliente.telefono);
-    this.activo.set(cliente.activo);
-    this.objetivo.set(cliente.objetivo || 'Tonificación');
-    this.peso.set(cliente.peso || 70);
-    this.altura.set(cliente.altura || 170);
-    this.entrenadorId.set(cliente.entrenadorId || 1);
-    this.membresiaId.set(cliente.membresiaId || 1);
+    this.clientModel.set({
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      email: cliente.email,
+      telefono: cliente.telefono,
+      activo: cliente.activo,
+      objetivo: cliente.objetivo || 'Tonificación',
+      peso: cliente.peso || 70,
+      altura: cliente.altura || 170,
+      entrenadorId: cliente.entrenadorId || 1,
+      membresiaId: cliente.membresiaId || 1
+    });
 
     // Resetear touched
     this.nombreTouched.set(false);
@@ -213,21 +273,24 @@ export class Clientes {
     this.entrenadorIdTouched.set(true);
     this.membresiaIdTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
+    this.cargando.set(true);
+    this.error.set(null);
+
     const formVal = {
-      nombre: this.nombre(),
-      apellido: this.apellido(),
-      email: this.email(),
-      telefono: this.telefono(),
-      activo: this.activo(),
-      objetivo: this.objetivo(),
-      peso: this.peso(),
-      altura: this.altura(),
-      entrenadorId: this.entrenadorId(),
-      membresiaId: this.membresiaId()
+      nombre: this.clientForm.nombre().value(),
+      apellido: this.clientForm.apellido().value(),
+      email: this.clientForm.email().value(),
+      telefono: this.clientForm.telefono().value(),
+      activo: this.clientForm.activo().value(),
+      objetivo: this.clientForm.objetivo().value(),
+      peso: this.clientForm.peso().value(),
+      altura: this.clientForm.altura().value(),
+      entrenadorId: this.clientForm.entrenadorId().value(),
+      membresiaId: this.clientForm.membresiaId().value()
     };
     
     const editing = this.editingCliente();
@@ -282,6 +345,7 @@ export class Clientes {
       });
     }
 
+    this.cargando.set(false);
     this.closeModal();
   }
 

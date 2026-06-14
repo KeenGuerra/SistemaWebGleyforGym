@@ -16,10 +16,10 @@
 
     <!-- Formulario de Acceso -->
     <form (ngSubmit)="onSubmit()" class="auth-form">
-      @if (errorMessage) {
+      @if (error()) {
         <div class="alert-danger-box">
           <i class="bi bi-exclamation-triangle-fill"></i>
-          <span>{{ errorMessage }}</span>
+          <span>{{ error() }}</span>
         </div>
       }
 
@@ -31,20 +31,17 @@
             type="email"
             id="email"
             name="email"
-            [(ngModel)]="email"
-            (blur)="emailTouched.set(true)"
+            [ngModel]="loginModel().correo"
+            (ngModelChange)="loginModel.update(m => ({ ...m, correo: $event }))"
+            (blur)="correoTocado.set(true)"
             class="gym-form-control"
             placeholder="ejemplo@gleyforgym.com"
           />
         </div>
-        @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
+        @if (correoTocado() && correoError()) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
-            @if (emailInvalid()) {
-              El correo es requerido.
-            } @else if (emailFormatInvalid()) {
-              Ingresa un correo electrónico válido.
-            }
+            {{ correoError() }}
           </div>
         }
       </div>
@@ -57,22 +54,23 @@
             type="password"
             id="password"
             name="password"
-            [(ngModel)]="password"
-            (blur)="passwordTouched.set(true)"
+            [ngModel]="loginModel().password"
+            (ngModelChange)="loginModel.update(m => ({ ...m, password: $event }))"
+            (blur)="passwordTocado.set(true)"
             class="gym-form-control"
             placeholder="••••••••"
           />
         </div>
-        @if (passwordTouched() && passwordInvalid()) {
+        @if (passwordTocado() && passwordError()) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
-            La contraseña es requerida.
+            {{ passwordError() }}
           </div>
         }
       </div>
 
-      <button type="submit" class="gym-btn gym-btn-primary auth-submit-btn">
-        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+      <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary auth-submit-btn">
+        <i class="bi bi-box-arrow-in-right"></i> @if (cargando()) { Ingresando... } @else { Iniciar Sesión }
       </button>
     </form>
 

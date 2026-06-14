@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from src.database.connection import get_db
+from src.core.security import get_current_user
+from src.schemas.pago import PagoCreate, PagoResponse
+from src.database.models import Usuario
+from src.services.pago_service import pago_service
+
+router = APIRouter()
+
+def check_admin(current_user: Usuario = Depends(get_current_user)):
+    if current_user.rol != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Operación permitida únicamente para administradores"
+        )
+    return current_user
+
+@router.get("/", response_model=list[PagoResponse])
+def get_pagos(
+    db: Session = Depends(get_db),
+    admin_user: Usuario = Depends(check_admin)
+):
+    pagos = pago_service.obtener_todos(db)
+    return [pago_service.decorador_pago(p) for p in pagos]
+
+@router.get("/cliente/{cliente_id}", response_model=list[PagoResponse])
+def get_pagos_cliente(
+    cliente_id: int,
+    db: Session = Depends(get_db),
+    user: Usuario = Depends(get_current_user)
+):
+    if user.rol == "cliente" and user.id != cliente_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos para acceder a esta información"
+        )
+    pagos = pago_service.obtener_por_cliente(db, cliente_id)
+    return [pago_service.decorador_pago(p) for p in pagos]
+
+@router.post("/", response_model=PagoResponse, status_code=status.HTTP_201_CREATED)
+def create_pago(
+    pago_in: PagoCreate,
+    db: Session = Depends(get_db),
+    admin_user: Usuario = Depends(check_admin)
+):
+    p = pago_service.registrar_pago(db, pago_in)
+    return pago_service.decorador_pago(p)

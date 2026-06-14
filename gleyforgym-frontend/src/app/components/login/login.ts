@@ -14,41 +14,68 @@ export class Login {
   private usuarioService = inject(UsuarioService);
   private router = inject(Router);
 
-  // Inputs del formulario como Signals
-  readonly email = signal('');
-  readonly password = signal('');
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
 
-  // Estados touched
-  readonly emailTouched = signal(false);
-  readonly passwordTouched = signal(false);
+  public loginModel = signal({
+    correo: '',
+    password: ''
+  });
+
+  // Estados tocados
+  public correoTocado = signal(false);
+  public passwordTocado = signal(false);
 
   // Validaciones reactivas derivadas (Computed)
-  readonly emailInvalid = computed(() => this.email().trim() === '');
-  readonly emailFormatInvalid = computed(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  public correoError = computed(() => {
+    const valor = this.loginModel().correo.trim();
+    if (!valor) {
+      return 'El correo electrónico es obligatorio.';
+    }
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regex.test(valor)) {
+      return 'Ingrese un correo electrónico válido.';
+    }
+    return null;
   });
-  readonly passwordInvalid = computed(() => this.password() === '');
 
-  readonly formInvalid = computed(() => this.emailInvalid() || this.emailFormatInvalid() || this.passwordInvalid());
+  public passwordError = computed(() => {
+    const valor = this.loginModel().password;
+    if (!valor) {
+      return 'La contraseña es obligatoria.';
+    }
+    if (valor.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres.';
+    }
+    return null;
+  });
 
-  errorMessage = '';
+  public formularioValido = computed(() => {
+    return !this.correoError() && !this.passwordError();
+  });
 
   onSubmit(): void {
-    this.emailTouched.set(true);
-    this.passwordTouched.set(true);
+    this.correoTocado.set(true);
+    this.passwordTocado.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
-    const usuario = this.usuarioService.loginSimulado(this.email(), this.password());
+    this.cargando.set(true);
+    this.error.set(null);
 
+    const usuario = this.usuarioService.loginSimulado(
+      this.loginModel().correo,
+      this.loginModel().password
+    );
+
+    this.cargando.set(false);
     if (usuario) {
-      this.errorMessage = '';
+      this.error.set(null);
       this.redirigirUsuario(usuario.rol);
     } else {
-      this.errorMessage = 'Correo o contraseña incorrectos.';
+      this.error.set('Correo o contraseña incorrectos.');
     }
   }
 
@@ -67,14 +94,19 @@ export class Login {
       passVal = 'cliente123';
     }
 
-    this.email.set(emailVal);
-    this.password.set(passVal);
-    this.emailTouched.set(true);
-    this.passwordTouched.set(true);
+    this.loginModel.set({
+      correo: emailVal,
+      password: passVal
+    });
+    this.correoTocado.set(true);
+    this.passwordTocado.set(true);
 
+    this.cargando.set(true);
+    this.error.set(null);
     const usuario = this.usuarioService.loginSimulado(emailVal, passVal);
+    this.cargando.set(false);
     if (usuario) {
-      this.errorMessage = '';
+      this.error.set(null);
       this.redirigirUsuario(usuario.rol);
     }
   }

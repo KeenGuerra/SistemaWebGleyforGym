@@ -16,17 +16,17 @@
 
     <!-- Formulario de Registro -->
     <form (ngSubmit)="onSubmit()" class="auth-form">
-      @if (errorMessage) {
+      @if (error()) {
         <div class="alert-danger-box">
           <i class="bi bi-exclamation-triangle-fill"></i>
-          <span>{{ errorMessage }}</span>
+          <span>{{ error() }}</span>
         </div>
       }
 
-      @if (successMessage) {
+      @if (success()) {
         <div class="alert-success-box">
           <i class="bi bi-check-circle-fill"></i>
-          <span>{{ successMessage }}</span>
+          <span>{{ success() }}</span>
         </div>
       }
 
@@ -38,14 +38,15 @@
             type="text"
             id="nombre"
             name="nombre"
-            [(ngModel)]="nombre"
+            [ngModel]="usuarioForm.nombre().value()"
+            (ngModelChange)="usuarioForm.nombre().set($event)"
             (blur)="nombreTouched.set(true)"
             class="gym-form-control"
             placeholder="Juan"
           />
-          @if (nombreTouched() && nombreInvalid()) {
+          @if (nombreTouched() && nombreErrores()) {
             <div class="gym-form-error">
-              <i class="bi bi-info-circle"></i> Requerido.
+              <i class="bi bi-info-circle"></i> {{ nombreErrores() }}
             </div>
           }
         </div>
@@ -56,14 +57,15 @@
             type="text"
             id="apellido"
             name="apellido"
-            [(ngModel)]="apellido"
+            [ngModel]="usuarioForm.apellido().value()"
+            (ngModelChange)="usuarioForm.apellido().set($event)"
             (blur)="apellidoTouched.set(true)"
             class="gym-form-control"
             placeholder="Pérez"
           />
-          @if (apellidoTouched() && apellidoInvalid()) {
+          @if (apellidoTouched() && apellidoErrores()) {
             <div class="gym-form-error">
-              <i class="bi bi-info-circle"></i> Requerido.
+              <i class="bi bi-info-circle"></i> {{ apellidoErrores() }}
             </div>
           }
         </div>
@@ -78,20 +80,17 @@
             type="email"
             id="email"
             name="email"
-            [(ngModel)]="email"
+            [ngModel]="usuarioForm.email().value()"
+            (ngModelChange)="usuarioForm.email().set($event)"
             (blur)="emailTouched.set(true)"
             class="gym-form-control"
             placeholder="juan.perez@email.com"
           />
         </div>
-        @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
+        @if (emailTouched() && emailErrores()) {
           <div class="gym-form-error">
             <i class="bi bi-info-circle"></i>
-            @if (emailInvalid()) {
-              El correo es requerido.
-            } @else if (emailFormatInvalid()) {
-              Ingresa un correo electrónico válido.
-            }
+            {{ emailErrores() }}
           </div>
         }
       </div>
@@ -105,15 +104,16 @@
             type="text"
             id="telefono"
             name="telefono"
-            [(ngModel)]="telefono"
+            [ngModel]="usuarioForm.telefono().value()"
+            (ngModelChange)="usuarioForm.telefono().set($event)"
             (blur)="telefonoTouched.set(true)"
             class="gym-form-control"
-            placeholder="809-555-0199"
+            placeholder="8095550199"
           />
         </div>
-        @if (telefonoTouched() && telefonoInvalid()) {
+        @if (telefonoTouched() && telefonoErrores()) {
           <div class="gym-form-error">
-            <i class="bi bi-info-circle"></i> Teléfono requerido.
+            <i class="bi bi-info-circle"></i> {{ telefonoErrores() }}
           </div>
         }
       </div>
@@ -126,19 +126,16 @@
             type="password"
             id="password"
             name="password"
-            [(ngModel)]="password"
+            [ngModel]="usuarioForm.password().value()"
+            (ngModelChange)="usuarioForm.password().set($event)"
             (blur)="passwordTouched.set(true)"
             class="gym-form-control"
-            placeholder="••••••"
+            placeholder="••••••••"
           />
-          @if (passwordTouched() && (passwordInvalid() || passwordTooShort())) {
+          @if (passwordTouched() && passwordErrores()) {
             <div class="gym-form-error">
               <i class="bi bi-info-circle"></i>
-              @if (passwordInvalid()) {
-                Requerida.
-              } @else if (passwordTooShort()) {
-                Mínimo 6 carac.
-              }
+              {{ passwordErrores() }}
             </div>
           }
         </div>
@@ -149,27 +146,22 @@
             type="password"
             id="confirmPassword"
             name="confirmPassword"
-            [(ngModel)]="confirmPassword"
+            [ngModel]="usuarioForm.confirmPassword().value()"
+            (ngModelChange)="usuarioForm.confirmPassword().set($event)"
             (blur)="confirmPasswordTouched.set(true)"
             class="gym-form-control"
-            placeholder="••••••"
+            placeholder="••••••••"
           />
-          @if (confirmPasswordTouched() && confirmPasswordInvalid()) {
+          @if (confirmPasswordTouched() && confirmPasswordErrores()) {
             <div class="gym-form-error">
-              <i class="bi bi-info-circle"></i> Requerida.
+              <i class="bi bi-info-circle"></i> {{ confirmPasswordErrores() }}
             </div>
           }
         </div>
       </div>
 
-      @if ((passwordTouched() || confirmPasswordTouched()) && passwordMismatch()) {
-        <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
-          <i class="bi bi-exclamation-circle-fill"></i> Las contraseñas no coinciden.
-        </div>
-      }
-
-      <button type="submit" class="gym-btn gym-btn-primary auth-submit-btn">
-        <i class="bi bi-person-plus-fill"></i> Registrarse
+      <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary auth-submit-btn">
+        <i class="bi bi-person-plus-fill"></i> @if (cargando()) { Registrando... } @else { Registrarse }
       </button>
     </form>
 

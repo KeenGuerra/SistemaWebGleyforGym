@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { UsuarioService } from '../../../services/usuario.service';
 import { Usuario } from '../../../models/usuario';
 
@@ -22,37 +23,63 @@ export class Usuarios {
   readonly showModal = signal<boolean>(false);
   readonly editingUser = signal<Usuario | null>(null);
 
-  // Writable Signals de Formulario
-  readonly nombre = signal('');
-  readonly apellido = signal('');
-  readonly email = signal('');
-  readonly telefono = signal('');
-  readonly rol = signal<'admin' | 'entrenador' | 'cliente'>('cliente');
-  readonly activo = signal(true);
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public userModel = signal({
+    nombre: '',
+    apellido: '',
+    email: '',
+    telefono: '',
+    rol: 'cliente' as 'admin' | 'entrenador' | 'cliente',
+    activo: true
+  });
+  public userForm = form(this.userModel);
 
   // Estados Touched
-  readonly nombreTouched = signal(false);
-  readonly apellidoTouched = signal(false);
-  readonly emailTouched = signal(false);
-  readonly telefonoTouched = signal(false);
+  public nombreTouched = signal(false);
+  public apellidoTouched = signal(false);
+  public emailTouched = signal(false);
+  public telefonoTouched = signal(false);
 
   // Validaciones
-  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
-  readonly apellidoInvalid = computed(() => this.apellido().trim() === '');
-  readonly emailInvalid = computed(() => this.email().trim() === '');
-  readonly emailFormatInvalid = computed(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  public nombreErrores = computed(() => {
+    const valor = this.userForm.nombre().value().trim();
+    if (!valor) return 'El nombre es obligatorio.';
+    return null;
   });
-  readonly telefonoInvalid = computed(() => this.telefono().trim() === '');
 
-  readonly formInvalid = computed(() => {
+  public apellidoErrores = computed(() => {
+    const valor = this.userForm.apellido().value().trim();
+    if (!valor) return 'El apellido es obligatorio.';
+    return null;
+  });
+
+  public emailErrores = computed(() => {
+    const valor = this.userForm.email().value().trim();
+    if (!valor) return 'El correo es obligatorio.';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(valor)) return 'Ingresa un correo electrónico válido.';
+    return null;
+  });
+
+  public telefonoErrores = computed(() => {
+    const valor = this.userForm.telefono().value().trim();
+    if (!valor) return 'El teléfono es obligatorio.';
+    const numRegex = /^\d+$/;
+    if (!numRegex.test(valor)) return 'El teléfono debe contener solo números.';
+    if (valor.length < 7 || valor.length > 15) return 'El teléfono debe tener una longitud válida (7 a 15 dígitos).';
+    return null;
+  });
+
+  public formularioValido = computed(() => {
     return (
-      this.nombreInvalid() ||
-      this.apellidoInvalid() ||
-      this.emailInvalid() ||
-      this.emailFormatInvalid() ||
-      this.telefonoInvalid()
+      !this.nombreErrores() &&
+      !this.apellidoErrores() &&
+      !this.emailErrores() &&
+      !this.telefonoErrores()
     );
   });
 
@@ -86,12 +113,14 @@ export class Usuarios {
     this.editingUser.set(null);
     
     // Resetear form
-    this.nombre.set('');
-    this.apellido.set('');
-    this.email.set('');
-    this.telefono.set('');
-    this.rol.set('cliente');
-    this.activo.set(true);
+    this.userModel.set({
+      nombre: '',
+      apellido: '',
+      email: '',
+      telefono: '',
+      rol: 'cliente',
+      activo: true
+    });
 
     // Resetear touched
     this.nombreTouched.set(false);
@@ -106,12 +135,14 @@ export class Usuarios {
     this.editingUser.set(user);
     
     // Cargar datos
-    this.nombre.set(user.nombre);
-    this.apellido.set(user.apellido);
-    this.email.set(user.email);
-    this.telefono.set(user.telefono);
-    this.rol.set(user.rol);
-    this.activo.set(user.activo);
+    this.userModel.set({
+      nombre: user.nombre,
+      apellido: user.apellido,
+      email: user.email,
+      telefono: user.telefono,
+      rol: user.rol,
+      activo: user.activo
+    });
 
     // Resetear touched
     this.nombreTouched.set(false);
@@ -133,17 +164,20 @@ export class Usuarios {
     this.emailTouched.set(true);
     this.telefonoTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
+    this.cargando.set(true);
+    this.error.set(null);
+
     const formVal = {
-      nombre: this.nombre(),
-      apellido: this.apellido(),
-      email: this.email(),
-      telefono: this.telefono(),
-      rol: this.rol(),
-      activo: this.activo()
+      nombre: this.userForm.nombre().value(),
+      apellido: this.userForm.apellido().value(),
+      email: this.userForm.email().value(),
+      telefono: this.userForm.telefono().value(),
+      rol: this.userForm.rol().value(),
+      activo: this.userForm.activo().value()
     };
     
     const editing = this.editingUser();
@@ -161,6 +195,7 @@ export class Usuarios {
       });
     }
 
+    this.cargando.set(false);
     this.closeModal();
   }
 

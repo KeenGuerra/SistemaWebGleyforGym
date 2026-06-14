@@ -89,17 +89,18 @@
             <select
               id="clienteId"
               name="clienteId"
-              [(ngModel)]="clienteId"
+              [ngModel]="asistenciaForm.clienteId().value()"
+              (ngModelChange)="asistenciaForm.clienteId().set($event)"
               (blur)="clienteIdTouched.set(true)"
               class="gym-form-control"
             >
-              <option value="0" disabled>Selecciona un cliente</option>
+              <option [ngValue]="0" disabled>Selecciona un cliente</option>
               @for (cl of clientes(); track cl.id) {
-                <option [value]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
+                <option [ngValue]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
               }
             </select>
-            @if (clienteIdTouched() && clienteIdInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Debes seleccionar un cliente.</div>
+            @if (clienteIdTouched() && clienteIdErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ clienteIdErrores() }}</div>
             }
           </div>
 
@@ -109,12 +110,13 @@
               type="date"
               id="fecha"
               name="fecha"
-              [(ngModel)]="fecha"
+              [ngModel]="asistenciaForm.fecha().value()"
+              (ngModelChange)="asistenciaForm.fecha().set($event)"
               (blur)="fechaTouched.set(true)"
               class="gym-form-control"
             />
-            @if (fechaTouched() && fechaInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Fecha requerida.</div>
+            @if (fechaTouched() && fechaErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ fechaErrores() }}</div>
             }
           </div>
 
@@ -125,12 +127,13 @@
                 type="time"
                 id="horaEntrada"
                 name="horaEntrada"
-                [(ngModel)]="horaEntrada"
+                [ngModel]="asistenciaForm.horaEntrada().value()"
+                (ngModelChange)="asistenciaForm.horaEntrada().set($event)"
                 (blur)="horaEntradaTouched.set(true)"
                 class="gym-form-control"
               />
-              @if (horaEntradaTouched() && horaEntradaInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerida.</div>
+              @if (horaEntradaTouched() && horaEntradaErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ horaEntradaErrores() }}</div>
               }
             </div>
 
@@ -140,15 +143,22 @@
                 type="time"
                 id="horaSalida"
                 name="horaSalida"
-                [(ngModel)]="horaSalida"
+                [ngModel]="asistenciaForm.horaSalida().value()"
+                (ngModelChange)="asistenciaForm.horaSalida().set($event)"
+                (blur)="horaSalidaTouched.set(true)"
                 class="gym-form-control"
               />
+              @if (horaSalidaTouched() && duracionErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ duracionErrores() }}</div>
+              }
             </div>
           </div>
 
           <div class="modal-actions">
             <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
-            <button type="submit" class="gym-btn gym-btn-primary">Registrar Acceso</button>
+            <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary">
+              @if (cargando()) { Guardando... } @else { Registrar Acceso }
+            </button>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { MembresiaService } from '../../../services/membresia.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { PagoService } from '../../../services/pago.service';
@@ -25,24 +26,47 @@ export class Membresias {
   readonly showRenewModal = signal<boolean>(false);
   readonly selectedMembresia = signal<Membresia | null>(null);
 
-  // Writable Signals de Formulario
-  readonly clienteId = signal<number>(0);
-  readonly tipo = signal('Mensual Premium');
-  readonly precio = signal(2500);
-  readonly meses = signal(1);
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public renewModel = signal({
+    clienteId: 0,
+    tipo: 'Mensual Premium',
+    precio: 2500,
+    meses: 1
+  });
+  public renewForm = form(this.renewModel);
 
   // Estados Touched
-  readonly tipoTouched = signal(false);
-  readonly precioTouched = signal(false);
-  readonly mesesTouched = signal(false);
+  public tipoTouched = signal(false);
+  public precioTouched = signal(false);
+  public mesesTouched = signal(false);
 
   // Validaciones
-  readonly tipoInvalid = computed(() => this.tipo().trim() === '');
-  readonly precioInvalid = computed(() => this.precio() < 0);
-  readonly mesesInvalid = computed(() => this.meses() < 1);
+  public tipoErrores = computed(() => {
+    const valor = this.renewForm.tipo().value().trim();
+    if (!valor) return 'El tipo de membresía es obligatorio.';
+    return null;
+  });
 
-  readonly formInvalid = computed(() => {
-    return this.tipoInvalid() || this.precioInvalid() || this.mesesInvalid();
+  public precioErrores = computed(() => {
+    const valor = this.renewForm.precio().value();
+    if (valor === null || valor === undefined) return 'El precio es obligatorio.';
+    if (valor <= 0) return 'El precio debe ser un valor positivo.';
+    return null;
+  });
+
+  public mesesErrores = computed(() => {
+    const valor = this.renewForm.meses().value();
+    if (valor === null || valor === undefined) return 'Los meses son obligatorios.';
+    if (valor <= 0) return 'La cantidad de meses debe ser mayor a cero.';
+    return null;
+  });
+
+  public formularioValido = computed(() => {
+    return !this.tipoErrores() && !this.precioErrores() && !this.mesesErrores();
   });
 
   // Lista decorada con nombres
@@ -74,10 +98,12 @@ export class Membresias {
 
   openRenewModal(membresia: Membresia): void {
     this.selectedMembresia.set(membresia);
-    this.clienteId.set(membresia.clienteId);
-    this.tipo.set(membresia.tipo);
-    this.precio.set(membresia.precio);
-    this.meses.set(1);
+    this.renewModel.set({
+      clienteId: membresia.clienteId,
+      tipo: membresia.tipo,
+      precio: membresia.precio,
+      meses: 1
+    });
 
     this.tipoTouched.set(false);
     this.precioTouched.set(false);
@@ -93,7 +119,6 @@ export class Membresias {
 
   onPlanChange(event: Event): void {
     const plan = (event.target as HTMLSelectElement).value;
-    this.tipo.set(plan);
     let pVal = 2500;
     let mVal = 1;
 
@@ -111,8 +136,12 @@ export class Membresias {
       mVal = 12;
     }
 
-    this.precio.set(pVal);
-    this.meses.set(mVal);
+    this.renewModel.update(m => ({
+      ...m,
+      tipo: plan,
+      precio: pVal,
+      meses: mVal
+    }));
   }
 
   saveRenewal(): void {
@@ -120,25 +149,28 @@ export class Membresias {
     this.precioTouched.set(true);
     this.mesesTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
     const m = this.selectedMembresia();
 
     if (m) {
+      this.cargando.set(true);
+      this.error.set(null);
       // Renovar en servicio
-      this.membresiaService.renovarMembresia(m.clienteId, this.tipo(), this.precio(), this.meses());
+      this.membresiaService.renovarMembresia(m.clienteId, this.renewForm.tipo().value(), this.renewForm.precio().value(), this.renewForm.meses().value());
 
       // Registrar pago
       this.pagoService.agregarPago({
         clienteId: m.clienteId,
-        monto: this.precio(),
+        monto: this.renewForm.precio().value(),
         fecha: new Date().toISOString().split('T')[0],
-        concepto: `Renovación de Membresía ${this.tipo()}`,
+        concepto: `Renovación de Membresía ${this.renewForm.tipo().value()}`,
         metodo: 'tarjeta',
         estado: 'pagado'
       });
+      this.cargando.set(false);
     }
 
     this.closeRenewModal();

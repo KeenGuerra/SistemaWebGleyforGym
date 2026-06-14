@@ -104,37 +104,37 @@
         <form (ngSubmit)="savePago()" class="modal-form">
           <div class="gym-form-group">
             <label class="gym-form-label" for="clienteId">SELECCIONAR SOCIO</label>
-            <select id="clienteId" name="clienteId" [(ngModel)]="clienteId" (blur)="clienteIdTouched.set(true)" class="gym-form-control">
+            <select id="clienteId" name="clienteId" [ngModel]="pagoForm.clienteId().value()" (ngModelChange)="pagoForm.clienteId().set($event)" (blur)="clienteIdTouched.set(true)" class="gym-form-control">
               <option [ngValue]="0" disabled>Selecciona un cliente</option>
               @for (cl of clientes(); track cl.id) {
                 <option [ngValue]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
               }
             </select>
-            @if (clienteIdTouched() && clienteIdInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Debes seleccionar un cliente.</div>
+            @if (clienteIdTouched() && clienteIdErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ clienteIdErrores() }}</div>
             }
           </div>
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="monto">MONTO (RD$)</label>
-            <input type="number" id="monto" name="monto" [(ngModel)]="monto" (blur)="montoTouched.set(true)" class="gym-form-control" placeholder="Monto en pesos" />
-            @if (montoTouched() && montoInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Monto requerido (mayor a 0).</div>
+            <input type="number" id="monto" name="monto" [ngModel]="pagoForm.monto().value()" (ngModelChange)="pagoForm.monto().set($event)" (blur)="montoTouched.set(true)" class="gym-form-control" placeholder="Monto en pesos" />
+            @if (montoTouched() && montoErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ montoErrores() }}</div>
             }
           </div>
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="concepto">CONCEPTO / DETALLE</label>
-            <input type="text" id="concepto" name="concepto" [(ngModel)]="concepto" (blur)="conceptoTouched.set(true)" class="gym-form-control" placeholder="Ej: Pago de membresía mensual" />
-            @if (conceptoTouched() && conceptoInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Concepto requerido.</div>
+            <input type="text" id="concepto" name="concepto" [ngModel]="pagoForm.concepto().value()" (ngModelChange)="pagoForm.concepto().set($event)" (blur)="conceptoTouched.set(true)" class="gym-form-control" placeholder="Ej: Pago de membresía mensual" />
+            @if (conceptoTouched() && conceptoErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ conceptoErrores() }}</div>
             }
           </div>
 
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="metodo">MÉTODO DE PAGO</label>
-              <select id="metodo" name="metodo" [(ngModel)]="metodo" class="gym-form-control">
+              <select id="metodo" name="metodo" [ngModel]="pagoForm.metodo().value()" (ngModelChange)="pagoForm.metodo().set($event)" class="gym-form-control">
                 <option value="tarjeta">Tarjeta de Crédito</option>
                 <option value="efectivo">Efectivo</option>
                 <option value="transferencia">Transferencia Bancaria</option>
@@ -143,7 +143,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="estado">ESTADO</label>
-              <select id="estado" name="estado" [(ngModel)]="estado" class="gym-form-control">
+              <select id="estado" name="estado" [ngModel]="pagoForm.estado().value()" (ngModelChange)="pagoForm.estado().set($event)" class="gym-form-control">
                 <option value="pagado">Pagado</option>
                 <option value="pendiente">Pendiente</option>
               </select>
@@ -152,7 +152,9 @@
 
           <div class="modal-actions">
             <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
-            <button type="submit" class="gym-btn gym-btn-primary">Guardar Transacción</button>
+            <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary">
+              @if (cargando()) { Guardando... } @else { Guardar Transacción }
+            </button>
           </div>
         </form>
       </div>

@@ -104,7 +104,7 @@
             <label class="gym-form-label">SOCIO SELECCIONADO</label>
             <input
               type="text"
-              [value]="membresiasDecoradas().find(item => item.clienteId === clienteId())?.nombreCliente"
+              [value]="membresiasDecoradas().find(item => item.clienteId === renewForm.clienteId().value())?.nombreCliente"
               class="gym-form-control"
               style="background: #191919; color: #888;"
               readonly
@@ -113,7 +113,7 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="tipo">PLAN DE ENTRENAMIENTO</label>
-            <select id="tipo" name="tipo" [(ngModel)]="tipo" (change)="onPlanChange($event)" class="gym-form-control">
+            <select id="tipo" name="tipo" [ngModel]="renewForm.tipo().value()" (ngModelChange)="renewForm.tipo().set($event)" (change)="onPlanChange($event)" class="gym-form-control">
               <option value="Mensual Básica">Mensual Básica (RD$ 1,800)</option>
               <option value="Mensual Premium">Mensual Premium (RD$ 2,500)</option>
               <option value="Trimestral">Trimestral (RD$ 6,500)</option>
@@ -124,17 +124,17 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="precio">MONTO A COBRAR (RD$)</label>
-              <input type="number" id="precio" name="precio" [(ngModel)]="precio" (blur)="precioTouched.set(true)" class="gym-form-control" />
-              @if (precioTouched() && precioInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Precio inválido.</div>
+              <input type="number" id="precio" name="precio" [ngModel]="renewForm.precio().value()" (ngModelChange)="renewForm.precio().set($event)" (blur)="precioTouched.set(true)" class="gym-form-control" />
+              @if (precioTouched() && precioErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ precioErrores() }}</div>
               }
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="meses">DURACIÓN (MESES)</label>
-              <input type="number" id="meses" name="meses" [(ngModel)]="meses" (blur)="mesesTouched.set(true)" class="gym-form-control" />
-              @if (mesesTouched() && mesesInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Duración requerida.</div>
+              <input type="number" id="meses" name="meses" [ngModel]="renewForm.meses().value()" (ngModelChange)="renewForm.meses().set($event)" (blur)="mesesTouched.set(true)" class="gym-form-control" />
+              @if (mesesTouched() && mesesErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ mesesErrores() }}</div>
               }
             </div>
           </div>
@@ -146,7 +146,9 @@
 
           <div class="modal-actions">
             <button type="button" (click)="closeRenewModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
-            <button type="submit" class="gym-btn gym-btn-primary">Registrar Pago e Iniciar Plan</button>
+            <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary">
+              @if (cargando()) { Guardando... } @else { Registrar Pago e Iniciar Plan }
+            </button>
           </div>
         </form>
       </div>

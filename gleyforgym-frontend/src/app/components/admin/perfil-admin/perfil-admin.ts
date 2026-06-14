@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
@@ -13,75 +14,107 @@ import { UsuarioService } from '../../../services/usuario.service';
 export class PerfilAdmin implements OnInit {
   private usuarioService = inject(UsuarioService);
 
-  // Signals para mensajes
-  readonly errorMessage = signal<string>('');
-  readonly successMessage = signal<string>('');
+  // Signals para carga y errores
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+  public successMessage = signal<string>('');
 
-  readonly pwdErrorMessage = signal<string>('');
-  readonly pwdSuccessMessage = signal<string>('');
+  public pwdCargando = signal(false);
+  public pwdError = signal<string | null>(null);
+  public pwdSuccessMessage = signal<string>('');
 
-  // Writable Signals - Formulario Perfil
-  readonly nombre = signal('');
-  readonly apellido = signal('');
-  readonly email = signal('');
-  readonly telefono = signal('');
+  // Modelos del Formulario
+  public profileModel = signal({
+    nombre: '',
+    apellido: '',
+    email: '',
+    telefono: ''
+  });
+  public profileForm = form(this.profileModel);
 
-  // Writable Signals - Formulario Contraseña
-  readonly currentPassword = signal('');
-  readonly newPassword = signal('');
-  readonly confirmNewPassword = signal('');
+  public passwordModel = signal({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  public passwordForm = form(this.passwordModel);
 
   // Estados Touched - Perfil
-  readonly nombreTouched = signal(false);
-  readonly apellidoTouched = signal(false);
-  readonly emailTouched = signal(false);
-  readonly telefonoTouched = signal(false);
+  public nombreTouched = signal(false);
+  public apellidoTouched = signal(false);
+  public emailTouched = signal(false);
+  public telefonoTouched = signal(false);
 
   // Estados Touched - Contraseña
-  readonly currentPasswordTouched = signal(false);
-  readonly newPasswordTouched = signal(false);
-  readonly confirmNewPasswordTouched = signal(false);
+  public currentPasswordTouched = signal(false);
+  public newPasswordTouched = signal(false);
+  public confirmNewPasswordTouched = signal(false);
 
   // Validaciones reactivas - Perfil
-  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
-  readonly apellidoInvalid = computed(() => this.apellido().trim() === '');
-  readonly emailInvalid = computed(() => this.email().trim() === '');
-  readonly emailFormatInvalid = computed(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return this.email().trim() !== '' && !emailRegex.test(this.email());
+  public nombreErrores = computed(() => {
+    const valor = this.profileForm.nombre().value().trim();
+    if (!valor) return 'El nombre es obligatorio.';
+    return null;
   });
-  readonly telefonoInvalid = computed(() => this.telefono().trim() === '');
 
-  readonly profileFormInvalid = computed(() => {
+  public apellidoErrores = computed(() => {
+    const valor = this.profileForm.apellido().value().trim();
+    if (!valor) return 'El apellido es obligatorio.';
+    return null;
+  });
+
+  public emailErrores = computed(() => {
+    const valor = this.profileForm.email().value().trim();
+    if (!valor) return 'El correo es obligatorio.';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(valor)) return 'Ingresa un correo electrónico válido.';
+    return null;
+  });
+
+  public telefonoErrores = computed(() => {
+    const valor = this.profileForm.telefono().value().trim();
+    if (!valor) return 'El teléfono es obligatorio.';
+    const numRegex = /^\d+$/;
+    if (!numRegex.test(valor)) return 'El teléfono debe contener solo números.';
+    if (valor.length < 7 || valor.length > 15) return 'El teléfono debe tener una longitud válida (7 a 15 dígitos).';
+    return null;
+  });
+
+  public profileFormValido = computed(() => {
     return (
-      this.nombreInvalid() ||
-      this.apellidoInvalid() ||
-      this.emailInvalid() ||
-      this.emailFormatInvalid() ||
-      this.telefonoInvalid()
+      !this.nombreErrores() &&
+      !this.apellidoErrores() &&
+      !this.emailErrores() &&
+      !this.telefonoErrores()
     );
   });
 
   // Validaciones reactivas - Contraseña
-  readonly currentPasswordInvalid = computed(() => this.currentPassword().trim() === '');
-  readonly newPasswordInvalid = computed(() => this.newPassword().trim() === '');
-  readonly newPasswordTooShort = computed(() => this.newPassword() !== '' && this.newPassword().length < 6);
-  readonly confirmNewPasswordInvalid = computed(() => this.confirmNewPassword().trim() === '');
-  readonly passwordMismatch = computed(() => {
-    return this.newPassword() !== '' && this.confirmNewPassword() !== '' && this.newPassword() !== this.confirmNewPassword();
+  public currentPasswordErrores = computed(() => {
+    const valor = this.passwordForm.currentPassword().value();
+    if (!valor) return 'La contraseña actual es obligatoria.';
+    return null;
   });
 
-  readonly passwordFormTouched = computed(() => {
-    return this.currentPasswordTouched() || this.newPasswordTouched() || this.confirmNewPasswordTouched();
+  public newPasswordErrores = computed(() => {
+    const valor = this.passwordForm.newPassword().value();
+    if (!valor) return 'La nueva contraseña es obligatoria.';
+    if (valor.length < 8) return 'La nueva contraseña debe tener al menos 8 caracteres.';
+    return null;
   });
 
-  readonly passwordFormInvalid = computed(() => {
+  public confirmNewPasswordErrores = computed(() => {
+    const valor = this.passwordForm.confirmNewPassword().value();
+    if (!valor) return 'Confirmar contraseña es obligatorio.';
+    if (valor !== this.passwordForm.newPassword().value()) return 'Las contraseñas no coinciden.';
+    return null;
+  });
+
+  public passwordFormValido = computed(() => {
     return (
-      this.currentPasswordInvalid() ||
-      this.newPasswordInvalid() ||
-      this.newPasswordTooShort() ||
-      this.confirmNewPasswordInvalid() ||
-      this.passwordMismatch()
+      !this.currentPasswordErrores() &&
+      !this.newPasswordErrores() &&
+      !this.confirmNewPasswordErrores()
     );
   });
 
@@ -89,10 +122,12 @@ export class PerfilAdmin implements OnInit {
     // Cargar datos actuales
     const admin = this.usuarioService.getUsuarioActual();
     if (admin) {
-      this.nombre.set(admin.nombre);
-      this.apellido.set(admin.apellido);
-      this.email.set(admin.email);
-      this.telefono.set(admin.telefono);
+      this.profileModel.set({
+        nombre: admin.nombre,
+        apellido: admin.apellido,
+        email: admin.email,
+        telefono: admin.telefono
+      });
     }
   }
 
@@ -102,20 +137,24 @@ export class PerfilAdmin implements OnInit {
     this.emailTouched.set(true);
     this.telefonoTouched.set(true);
 
-    if (this.profileFormInvalid()) {
+    if (!this.profileFormValido()) {
       return;
     }
+
+    this.cargando.set(true);
+    this.error.set(null);
 
     const admin = this.usuarioService.getUsuarioActual();
     this.usuarioService.actualizarUsuario({
       ...admin,
-      nombre: this.nombre(),
-      apellido: this.apellido(),
-      email: this.email(),
-      telefono: this.telefono()
+      nombre: this.profileForm.nombre().value(),
+      apellido: this.profileForm.apellido().value(),
+      email: this.profileForm.email().value(),
+      telefono: this.profileForm.telefono().value()
     });
 
-    this.errorMessage.set('');
+    this.cargando.set(false);
+    this.error.set(null);
     this.successMessage.set('Perfil actualizado exitosamente.');
     setTimeout(() => this.successMessage.set(''), 3000);
   }
@@ -125,16 +164,23 @@ export class PerfilAdmin implements OnInit {
     this.newPasswordTouched.set(true);
     this.confirmNewPasswordTouched.set(true);
 
-    if (this.passwordFormInvalid()) {
+    if (!this.passwordFormValido()) {
       return;
     }
 
+    this.pwdCargando.set(true);
+    this.pwdError.set(null);
+
     // Como es mock, simplemente simulamos éxito
-    this.pwdErrorMessage.set('');
+    this.pwdCargando.set(false);
+    this.pwdError.set(null);
     this.pwdSuccessMessage.set('Contraseña modificada exitosamente.');
-    this.currentPassword.set('');
-    this.newPassword.set('');
-    this.confirmNewPassword.set('');
+    
+    this.passwordModel.set({
+      currentPassword: '',
+      newPassword: '',
+      confirmNewPassword: ''
+    });
 
     this.currentPasswordTouched.set(false);
     this.newPasswordTouched.set(false);

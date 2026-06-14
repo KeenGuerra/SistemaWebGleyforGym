@@ -39,9 +39,9 @@
         <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Actualiza tu información personal para reportes e inicio de sesión.</p>
         
         <form (ngSubmit)="onSubmitProfile()" class="profile-form">
-          @if (errorMessage()) {
+          @if (error()) {
             <div class="alert-danger-box">
-              <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage() }}
+              <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
             </div>
           }
           @if (successMessage()) {
@@ -57,12 +57,13 @@
                 type="text"
                 id="nombre"
                 name="nombre"
-                [(ngModel)]="nombre"
+                [ngModel]="profileForm.nombre().value()"
+                (ngModelChange)="profileForm.nombre().set($event)"
                 (blur)="nombreTouched.set(true)"
                 class="gym-form-control"
               />
-              @if (nombreTouched() && nombreInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              @if (nombreTouched() && nombreErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ nombreErrores() }}</div>
               }
             </div>
 
@@ -72,12 +73,13 @@
                 type="text"
                 id="apellido"
                 name="apellido"
-                [(ngModel)]="apellido"
+                [ngModel]="profileForm.apellido().value()"
+                (ngModelChange)="profileForm.apellido().set($event)"
                 (blur)="apellidoTouched.set(true)"
                 class="gym-form-control"
               />
-              @if (apellidoTouched() && apellidoInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              @if (apellidoTouched() && apellidoErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ apellidoErrores() }}</div>
               }
             </div>
           </div>
@@ -89,12 +91,13 @@
                 type="email"
                 id="email"
                 name="email"
-                [(ngModel)]="email"
+                [ngModel]="profileForm.email().value()"
+                (ngModelChange)="profileForm.email().set($event)"
                 (blur)="emailTouched.set(true)"
                 class="gym-form-control"
               />
-              @if (emailTouched() && (emailInvalid() || emailFormatInvalid())) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Inválido.</div>
+              @if (emailTouched() && emailErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ emailErrores() }}</div>
               }
             </div>
 
@@ -104,18 +107,21 @@
                 type="text"
                 id="telefono"
                 name="telefono"
-                [(ngModel)]="telefono"
+                [ngModel]="profileForm.telefono().value()"
+                (ngModelChange)="profileForm.telefono().set($event)"
                 (blur)="telefonoTouched.set(true)"
                 class="gym-form-control"
               />
-              @if (telefonoTouched() && telefonoInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              @if (telefonoTouched() && telefonoErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ telefonoErrores() }}</div>
               }
             </div>
           </div>
 
           <div class="form-actions-row">
-            <button type="submit" class="gym-btn gym-btn-primary">Actualizar Datos</button>
+            <button type="submit" [disabled]="!profileFormValido() || cargando()" class="gym-btn gym-btn-primary">
+              @if (cargando()) { Guardando... } @else { Actualizar Datos }
+            </button>
           </div>
         </form>
       </div>
@@ -126,9 +132,9 @@
         <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Cambia tu contraseña periódicamente para mantener protegida la administración.</p>
 
         <form (ngSubmit)="onSubmitPassword()" class="profile-form">
-          @if (pwdErrorMessage()) {
+          @if (pwdError()) {
             <div class="alert-danger-box">
-              <i class="bi bi-exclamation-triangle-fill"></i> {{ pwdErrorMessage() }}
+              <i class="bi bi-exclamation-triangle-fill"></i> {{ pwdError() }}
             </div>
           }
           @if (pwdSuccessMessage()) {
@@ -143,13 +149,14 @@
               type="password"
               id="currentPassword"
               name="currentPassword"
-              [(ngModel)]="currentPassword"
+              [ngModel]="passwordForm.currentPassword().value()"
+              (ngModelChange)="passwordForm.currentPassword().set($event)"
               (blur)="currentPasswordTouched.set(true)"
               class="gym-form-control"
               placeholder="••••••••"
             />
-            @if (currentPasswordTouched() && currentPasswordInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+            @if (currentPasswordTouched() && currentPasswordErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ currentPasswordErrores() }}</div>
             }
           </div>
 
@@ -160,14 +167,15 @@
                 type="password"
                 id="newPassword"
                 name="newPassword"
-                [(ngModel)]="newPassword"
+                [ngModel]="passwordForm.newPassword().value()"
+                (ngModelChange)="passwordForm.newPassword().set($event)"
                 (blur)="newPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"
               />
-              @if (newPasswordTouched() && (newPasswordInvalid() || newPasswordTooShort())) {
+              @if (newPasswordTouched() && newPasswordErrores()) {
                 <div class="gym-form-error">
-                  <i class="bi bi-info-circle"></i> Mínimo 6 caracteres.
+                  <i class="bi bi-info-circle"></i> {{ newPasswordErrores() }}
                 </div>
               }
             </div>
@@ -178,25 +186,22 @@
                 type="password"
                 id="confirmNewPassword"
                 name="confirmNewPassword"
-                [(ngModel)]="confirmNewPassword"
+                [ngModel]="passwordForm.confirmNewPassword().value()"
+                (ngModelChange)="passwordForm.confirmNewPassword().set($event)"
                 (blur)="confirmNewPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"
               />
-              @if (confirmNewPasswordTouched() && confirmNewPasswordInvalid()) {
-                <div class="gym-form-error"><i class="bi bi-info-circle"></i> Requerido.</div>
+              @if (confirmNewPasswordTouched() && confirmNewPasswordErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ confirmNewPasswordErrores() }}</div>
               }
             </div>
           </div>
 
-          @if (passwordFormTouched() && passwordMismatch()) {
-            <div class="gym-form-error" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
-              <i class="bi bi-exclamation-circle-fill"></i> Las nuevas contraseñas no coinciden.
-            </div>
-          }
-
           <div class="form-actions-row">
-            <button type="submit" class="gym-btn gym-btn-primary">Actualizar Contraseña</button>
+            <button type="submit" [disabled]="!passwordFormValido() || pwdCargando()" class="gym-btn gym-btn-primary">
+              @if (pwdCargando()) { Guardando... } @else { Actualizar Contraseña }
+            </button>
           </div>
         </form>
       </div>

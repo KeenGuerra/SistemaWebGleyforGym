@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
 import { MembresiaService } from '../../../services/membresia.service';
 
@@ -13,6 +13,7 @@ import { MembresiaService } from '../../../services/membresia.service';
 export class ClienteLayout {
   private usuarioSvc = inject(UsuarioService);
   private membresiaSvc = inject(MembresiaService);
+  private router = inject(Router);
 
   readonly usuario = this.usuarioSvc.usuarioActual;
   readonly iniciales = this.usuarioSvc.iniciales;
@@ -43,5 +44,10 @@ export class ClienteLayout {
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+  }
+
+  logout(): void {
+    this.closeSidebar();
+    this.router.navigate(['/login']);
   }
 }

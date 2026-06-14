@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Ejercicio, NivelRutina } from '../../../models/rutina';
@@ -22,25 +23,50 @@ export class Rutinas {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Writable Signals de Formulario
-  readonly clienteId = signal<number>(0);
-  readonly nombre = signal('');
-  readonly nivel = signal<NivelRutina>('intermedio');
-  readonly objetivo = signal('Tonificación');
-  readonly descripcion = signal('');
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public rutinaModel = signal({
+    clienteId: 0,
+    nombre: '',
+    nivel: 'intermedio' as NivelRutina,
+    objetivo: 'Tonificación',
+    descripcion: ''
+  });
+  public rutinaForm = form(this.rutinaModel);
 
   // Estados Touched
-  readonly clienteIdTouched = signal(false);
-  readonly nombreTouched = signal(false);
-  readonly descripcionTouched = signal(false);
+  public clienteIdTouched = signal(false);
+  public nombreTouched = signal(false);
+  public descripcionTouched = signal(false);
 
   // Validaciones reactivas
-  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
-  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
-  readonly descripcionInvalid = computed(() => this.descripcion().trim() === '');
+  public clienteIdErrores = computed(() => {
+    const valor = this.rutinaForm.clienteId().value();
+    if (valor === null || valor === undefined || valor <= 0) return 'Debes seleccionar un cliente.';
+    return null;
+  });
 
-  readonly formInvalid = computed(() => {
-    return this.clienteIdInvalid() || this.nombreInvalid() || this.descripcionInvalid();
+  public nombreErrores = computed(() => {
+    const valor = this.rutinaForm.nombre().value().trim();
+    if (!valor) return 'El nombre de la rutina es obligatorio.';
+    return null;
+  });
+
+  public descripcionErrores = computed(() => {
+    const valor = this.rutinaForm.descripcion().value().trim();
+    if (!valor) return 'La descripción es obligatoria.';
+    return null;
+  });
+
+  public formularioValido = computed(() => {
+    return (
+      !this.clienteIdErrores() &&
+      !this.nombreErrores() &&
+      !this.descripcionErrores()
+    );
   });
 
   // Lista de clientes
@@ -72,11 +98,13 @@ export class Rutinas {
   }
 
   openAddModal(): void {
-    this.clienteId.set(0);
-    this.nombre.set('');
-    this.nivel.set('intermedio');
-    this.objetivo.set('Tonificación');
-    this.descripcion.set('');
+    this.rutinaModel.set({
+      clienteId: 0,
+      nombre: '',
+      nivel: 'intermedio',
+      objetivo: 'Tonificación',
+      descripcion: ''
+    });
 
     this.clienteIdTouched.set(false);
     this.nombreTouched.set(false);
@@ -94,11 +122,14 @@ export class Rutinas {
     this.nombreTouched.set(true);
     this.descripcionTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
-    const nivelVal = this.nivel();
+    this.cargando.set(true);
+    this.error.set(null);
+
+    const nivelVal = this.rutinaForm.nivel().value();
 
     // Auto-completar ejercicios según nivel para simular realismo premium
     let ejerciciosSimulados: Ejercicio[] = [];
@@ -126,18 +157,19 @@ export class Rutinas {
     }
 
     this.rutinaService.agregarRutina({
-      clienteId: Number(this.clienteId()),
+      clienteId: Number(this.rutinaForm.clienteId().value()),
       entrenadorId: 1, // Por defecto asignada por admin (entrenador 1)
-      nombre: this.nombre(),
+      nombre: this.rutinaForm.nombre().value(),
       diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
       nivel: nivelVal,
-      objetivo: this.objetivo(),
-      descripcion: this.descripcion(),
+      objetivo: this.rutinaForm.objetivo().value(),
+      descripcion: this.rutinaForm.descripcion().value(),
       fechaCreacion: new Date().toISOString().split('T')[0],
       activa: true,
       ejercicios: ejerciciosSimulados
     });
 
+    this.cargando.set(false);
     this.closeModal();
   }
 

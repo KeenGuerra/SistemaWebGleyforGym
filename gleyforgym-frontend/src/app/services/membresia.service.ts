@@ -18,6 +18,10 @@ export class MembresiaService {
 
   readonly membresias = this._membresias.asReadonly();
 
+  obtenerMembresias(): Membresia[] {
+    return this._membresias();
+  }
+
   readonly membresiaActiva = computed(() =>
     this._membresias().find(m => m.clienteId === 5 && m.estado === 'activa')
   );

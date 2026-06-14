@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { ClienteService } from '../../../services/cliente.service';
 
@@ -21,24 +22,70 @@ export class Asistencia {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Writable Signals de Formulario
-  readonly clienteId = signal<number>(0);
-  readonly fecha = signal('');
-  readonly horaEntrada = signal('');
-  readonly horaSalida = signal('');
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public asistenciaModel = signal({
+    clienteId: 0,
+    fecha: '',
+    horaEntrada: '',
+    horaSalida: ''
+  });
+  public asistenciaForm = form(this.asistenciaModel);
 
   // Estados Touched
-  readonly clienteIdTouched = signal(false);
-  readonly fechaTouched = signal(false);
-  readonly horaEntradaTouched = signal(false);
+  public clienteIdTouched = signal(false);
+  public fechaTouched = signal(false);
+  public horaEntradaTouched = signal(false);
+  public horaSalidaTouched = signal(false);
 
   // Validaciones
-  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
-  readonly fechaInvalid = computed(() => this.fecha().trim() === '');
-  readonly horaEntradaInvalid = computed(() => this.horaEntrada().trim() === '');
+  public clienteIdErrores = computed(() => {
+    const valor = this.asistenciaForm.clienteId().value();
+    if (valor === null || valor === undefined || valor <= 0) return 'Debes seleccionar un cliente.';
+    return null;
+  });
 
-  readonly formInvalid = computed(() => {
-    return this.clienteIdInvalid() || this.fechaInvalid() || this.horaEntradaInvalid();
+  public fechaErrores = computed(() => {
+    const valor = this.asistenciaForm.fecha().value().trim();
+    if (!valor) return 'La fecha es obligatoria.';
+    return null;
+  });
+
+  public horaEntradaErrores = computed(() => {
+    const valor = this.asistenciaForm.horaEntrada().value().trim();
+    if (!valor) return 'La hora de entrada es obligatoria.';
+    return null;
+  });
+
+  public duracionMinutos = computed(() => {
+    const entrada = this.asistenciaForm.horaEntrada().value();
+    const salida = this.asistenciaForm.horaSalida().value();
+    if (!entrada || !salida) return null;
+    const [h1, m1] = entrada.split(':').map(Number);
+    const [h2, m2] = salida.split(':').map(Number);
+    const minEntrada = h1 * 60 + m1;
+    const minSalida = h2 * 60 + m2;
+    return minSalida - minEntrada;
+  });
+
+  public duracionErrores = computed(() => {
+    const dur = this.duracionMinutos();
+    if (dur !== null && dur <= 0) {
+      return 'La hora de salida debe ser posterior a la de entrada (Duración positiva).';
+    }
+    return null;
+  });
+
+  public formularioValido = computed(() => {
+    return (
+      !this.clienteIdErrores() &&
+      !this.fechaErrores() &&
+      !this.horaEntradaErrores() &&
+      !this.duracionErrores()
+    );
   });
 
   // Lista de clientes
@@ -81,14 +128,17 @@ export class Asistencia {
     const fVal = hoy.toISOString().split('T')[0];
     const hEVal = hoy.toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
 
-    this.clienteId.set(0);
-    this.fecha.set(fVal);
-    this.horaEntrada.set(hEVal);
-    this.horaSalida.set('');
+    this.asistenciaModel.set({
+      clienteId: 0,
+      fecha: fVal,
+      horaEntrada: hEVal,
+      horaSalida: ''
+    });
 
     this.clienteIdTouched.set(false);
     this.fechaTouched.set(false);
     this.horaEntradaTouched.set(false);
+    this.horaSalidaTouched.set(false);
 
     this.showModal.set(true);
   }
@@ -101,36 +151,33 @@ export class Asistencia {
     this.clienteIdTouched.set(true);
     this.fechaTouched.set(true);
     this.horaEntradaTouched.set(true);
+    this.horaSalidaTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
-    const clId = this.clienteId();
+    this.cargando.set(true);
+    this.error.set(null);
+
+    const clId = this.asistenciaForm.clienteId().value();
     const cliente = this.clienteService.getClientePorId(clId);
 
-    const horaEntradaVal = this.horaEntrada();
-    const horaSalidaVal = this.horaSalida();
+    const horaEntradaVal = this.asistenciaForm.horaEntrada().value();
+    const horaSalidaVal = this.asistenciaForm.horaSalida().value();
 
-    // Calcular duración si hay salida
-    let duracion = 0;
-    if (horaEntradaVal && horaSalidaVal) {
-      const [h1, m1] = horaEntradaVal.split(':').map(Number);
-      const [h2, m2] = horaSalidaVal.split(':').map(Number);
-      const minEntrada = h1 * 60 + m1;
-      const minSalida = h2 * 60 + m2;
-      duracion = Math.max(0, minSalida - minEntrada);
-    }
+    const duracion = this.duracionMinutos();
 
     this.asistenciaService.registrarAsistencia({
       clienteId: clId,
       entrenadorId: cliente ? cliente.entrenadorId : 1,
-      fecha: this.fecha(),
+      fecha: this.asistenciaForm.fecha().value(),
       horaEntrada: horaEntradaVal,
       horaSalida: horaSalidaVal || undefined,
       duracionMinutos: duracion || undefined
     });
 
+    this.cargando.set(false);
     this.closeModal();
   }
 }

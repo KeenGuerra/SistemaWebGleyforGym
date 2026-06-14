@@ -48,4 +48,9 @@ export class EntrenadorLayout {
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
+
+  logout(): void {
+    this.closeSidebar();
+    this.router.navigate(['/login']);
+  }
 }

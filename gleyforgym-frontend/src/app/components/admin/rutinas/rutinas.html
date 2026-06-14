@@ -87,17 +87,18 @@
             <select
               id="clienteId"
               name="clienteId"
-              [(ngModel)]="clienteId"
+              [ngModel]="rutinaForm.clienteId().value()"
+              (ngModelChange)="rutinaForm.clienteId().set($event)"
               (blur)="clienteIdTouched.set(true)"
               class="gym-form-control"
             >
-              <option value="0" disabled>Selecciona un cliente</option>
+              <option [ngValue]="0" disabled>Selecciona un cliente</option>
               @for (cl of clientes(); track cl.id) {
-                <option [value]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
+                <option [ngValue]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
               }
             </select>
-            @if (clienteIdTouched() && clienteIdInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Debes seleccionar un cliente.</div>
+            @if (clienteIdTouched() && clienteIdErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ clienteIdErrores() }}</div>
             }
           </div>
 
@@ -107,13 +108,14 @@
               type="text"
               id="nombre"
               name="nombre"
-              [(ngModel)]="nombre"
+              [ngModel]="rutinaForm.nombre().value()"
+              (ngModelChange)="rutinaForm.nombre().set($event)"
               (blur)="nombreTouched.set(true)"
               class="gym-form-control"
               placeholder="Ej: Full Body Fuerza - L/M/V"
             />
-            @if (nombreTouched() && nombreInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Nombre requerido.</div>
+            @if (nombreTouched() && nombreErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ nombreErrores() }}</div>
             }
           </div>
 
@@ -123,7 +125,8 @@
               <select
                 id="nivel"
                 name="nivel"
-                [(ngModel)]="nivel"
+                [ngModel]="rutinaForm.nivel().value()"
+                (ngModelChange)="rutinaForm.nivel().set($event)"
                 class="gym-form-control"
               >
                 <option value="principiante">Principiante</option>
@@ -137,7 +140,8 @@
               <select
                 id="objetivo"
                 name="objetivo"
-                [(ngModel)]="objetivo"
+                [ngModel]="rutinaForm.objetivo().value()"
+                (ngModelChange)="rutinaForm.objetivo().set($event)"
                 class="gym-form-control"
               >
                 <option value="Pérdida de peso">Pérdida de peso</option>
@@ -155,14 +159,15 @@
             <textarea
               id="descripcion"
               name="descripcion"
-              [(ngModel)]="descripcion"
+              [ngModel]="rutinaForm.descripcion().value()"
+              (ngModelChange)="rutinaForm.descripcion().set($event)"
               (blur)="descripcionTouched.set(true)"
               class="gym-form-control"
               rows="3"
               placeholder="Ingresa indicaciones o descripción general de la rutina"
             ></textarea>
-            @if (descripcionTouched() && descripcionInvalid()) {
-              <div class="gym-form-error"><i class="bi bi-info-circle"></i> Descripción requerida.</div>
+            @if (descripcionTouched() && descripcionErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ descripcionErrores() }}</div>
             }
           </div>
 
@@ -173,7 +178,9 @@
 
           <div class="modal-actions">
             <button type="button" (click)="closeModal()" class="gym-btn gym-btn-secondary">Cancelar</button>
-            <button type="submit" class="gym-btn gym-btn-primary">Asignar Plan</button>
+            <button type="submit" [disabled]="!formularioValido() || cargando()" class="gym-btn gym-btn-primary">
+              @if (cargando()) { Asignando... } @else { Asignar Plan }
+            </button>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { form } from '../../../utils/signal-form';
 import { PagoService } from '../../../services/pago.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Pago, MetodoPago, EstadoPago } from '../../../models/pago';
@@ -23,34 +24,66 @@ export class Pagos {
   // Modales
   readonly showModal = signal<boolean>(false);
 
-  // Writable Signals de Formulario
-  readonly clienteId = signal<number>(0);
-  readonly monto = signal<number>(0);
-  readonly concepto = signal('Cuota Mensual');
-  readonly metodo = signal<MetodoPago>('tarjeta');
-  readonly estado = signal<EstadoPago>('pagado');
+  // Signals de Carga y Error
+  public cargando = signal(false);
+  public error = signal<string | null>(null);
+
+  // Modelo del Formulario
+  public pagoModel = signal({
+    clienteId: 0,
+    monto: 0,
+    concepto: 'Cuota Mensual',
+    metodo: 'tarjeta' as MetodoPago,
+    estado: 'pagado' as EstadoPago
+  });
+  public pagoForm = form(this.pagoModel);
 
   // Estados Touched
-  readonly clienteIdTouched = signal(false);
-  readonly montoTouched = signal(false);
-  readonly conceptoTouched = signal(false);
-  readonly metodoTouched = signal(false);
-  readonly estadoTouched = signal(false);
+  public clienteIdTouched = signal(false);
+  public montoTouched = signal(false);
+  public conceptoTouched = signal(false);
+  public metodoTouched = signal(false);
+  public estadoTouched = signal(false);
 
   // Validaciones
-  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
-  readonly montoInvalid = computed(() => this.monto() <= 0);
-  readonly conceptoInvalid = computed(() => this.concepto().trim() === '');
-  readonly metodoInvalid = computed(() => this.metodo().trim() === '');
-  readonly estadoInvalid = computed(() => this.estado().trim() === '');
+  public clienteIdErrores = computed(() => {
+    const valor = this.pagoForm.clienteId().value();
+    if (valor === null || valor === undefined || valor <= 0) return 'Debes seleccionar un cliente.';
+    return null;
+  });
 
-  readonly formInvalid = computed(() => {
+  public montoErrores = computed(() => {
+    const valor = this.pagoForm.monto().value();
+    if (valor === null || valor === undefined) return 'El monto es obligatorio.';
+    if (valor <= 0) return 'El monto debe ser un valor positivo.';
+    return null;
+  });
+
+  public conceptoErrores = computed(() => {
+    const valor = this.pagoForm.concepto().value().trim();
+    if (!valor) return 'El concepto es obligatorio.';
+    return null;
+  });
+
+  public metodoErrores = computed(() => {
+    const valor = this.pagoForm.metodo().value().trim();
+    if (!valor) return 'El método de pago es obligatorio.';
+    return null;
+  });
+
+  public estadoErrores = computed(() => {
+    const valor = this.pagoForm.estado().value().trim();
+    if (!valor) return 'El estado de pago es obligatorio.';
+    return null;
+  });
+
+  public formularioValido = computed(() => {
     return (
-      this.clienteIdInvalid() ||
-      this.montoInvalid() ||
-      this.conceptoInvalid() ||
-      this.metodoInvalid() ||
-      this.estadoInvalid()
+      !this.clienteIdErrores() &&
+      !this.montoErrores() &&
+      !this.conceptoErrores() &&
+      !this.metodoErrores() &&
+      !this.estadoErrores()
     );
   });
 
@@ -88,11 +121,13 @@ export class Pagos {
   }
 
   openAddModal(): void {
-    this.clienteId.set(0);
-    this.monto.set(0);
-    this.concepto.set('Membresía Mensual Premium');
-    this.metodo.set('tarjeta');
-    this.estado.set('pagado');
+    this.pagoModel.set({
+      clienteId: 0,
+      monto: 0,
+      concepto: 'Membresía Mensual Premium',
+      metodo: 'tarjeta',
+      estado: 'pagado'
+    });
 
     this.clienteIdTouched.set(false);
     this.montoTouched.set(false);
@@ -114,19 +149,23 @@ export class Pagos {
     this.metodoTouched.set(true);
     this.estadoTouched.set(true);
 
-    if (this.formInvalid()) {
+    if (!this.formularioValido()) {
       return;
     }
 
+    this.cargando.set(true);
+    this.error.set(null);
+
     this.pagoService.agregarPago({
-      clienteId: this.clienteId(),
-      monto: this.monto(),
+      clienteId: this.pagoForm.clienteId().value(),
+      monto: this.pagoForm.monto().value(),
       fecha: new Date().toISOString().split('T')[0],
-      concepto: this.concepto(),
-      metodo: this.metodo(),
-      estado: this.estado()
+      concepto: this.pagoForm.concepto().value(),
+      metodo: this.pagoForm.metodo().value(),
+      estado: this.pagoForm.estado().value()
     });
 
+    this.cargando.set(false);
     this.closeModal();
   }
 }

@@ -1,8 +1,16 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.progreso_repository import progreso_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.cliente_repository import cliente_repository
-from src.schemas.progreso import ProgresoCreate
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.schemas.progreso import ProgresoCreate, ProgresoUpdate
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import ProgresoCliente
 
 class ProgresoService:
@@ -22,14 +30,10 @@ class ProgresoService:
                 detail="El peso y la altura deben ser mayores a cero"
             )
 
-        # Calcular IMC: peso (kg) / altura (m)^2
-        altura_m = progreso_in.altura / 100.0
-        imc = round(progreso_in.peso / (altura_m ** 2), 1)
-
         # Guardar en base de datos
-        db_prog = progreso_repository.create(db, progreso_in, imc)
+        db_prog = progreso_repository.create(db, progreso_in)
         
-        # Opcionalmente, actualizar el peso y altura del perfil del cliente actual
+        # Actualizar el peso y altura del perfil del cliente actual
         cliente_repository.update(
             db, 
             cliente, 
@@ -37,6 +41,15 @@ class ProgresoService:
         )
 
         return db_prog
+
+    def update_progreso(self, db: Session, progreso_id: int, progreso_in: ProgresoUpdate) -> ProgresoCliente:
+        db_prog = progreso_repository.get_by_id(db, progreso_id)
+        if not db_prog:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Registro de progreso no encontrado"
+            )
+        return progreso_repository.update(db, db_prog, progreso_in.model_dump(exclude_unset=True))
 
     def obtener_por_cliente(self, db: Session, cliente_id: int) -> list[ProgresoCliente]:
         # Validar cliente

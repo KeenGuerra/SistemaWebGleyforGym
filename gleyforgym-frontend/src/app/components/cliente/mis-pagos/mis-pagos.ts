@@ -1,11 +1,11 @@
 import { Component, inject, computed, signal } from '@angular/core';
-import { DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { PagoService } from '../../../services/pago.service';
 
 @Component({
   selector: 'app-mis-pagos',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe],
+  imports: [DecimalPipe],
   templateUrl: './mis-pagos.html',
   styleUrl: './mis-pagos.css',
 })
@@ -14,7 +14,7 @@ export class MisPagos {
 
   private readonly CLIENTE_ID = 5;
 
-  readonly filtroEstado = signal<'todos' | 'pagado' | 'pendiente' | 'cancelado'>('todos');
+  readonly filtroEstado = signal<'todos' | 'PAGADO' | 'PENDIENTE' | 'ANULADO'>('todos');
 
   readonly pagosFiltrados = computed(() => {
     const todos   = this.pagoSvc.obtenerPagos().filter(p => p.clienteId === this.CLIENTE_ID);
@@ -25,35 +25,35 @@ export class MisPagos {
 
   readonly totalPagado = computed(() =>
     this.pagoSvc.obtenerPagos()
-      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pagado')
+      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'PAGADO')
       .reduce((sum, p) => sum + p.monto, 0)
   );
 
   readonly totalPendiente = computed(() =>
     this.pagoSvc.obtenerPagos()
-      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pendiente')
+      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'PENDIENTE')
       .reduce((sum, p) => sum + p.monto, 0)
   );
 
-  cambiarFiltro(estado: 'todos' | 'pagado' | 'pendiente' | 'cancelado'): void {
+  cambiarFiltro(estado: 'todos' | 'PAGADO' | 'PENDIENTE' | 'ANULADO'): void {
     this.filtroEstado.set(estado);
   }
 
   estadoBadgeClass(estado: string): string {
-    return estado === 'pagado' ? 'gym-badge-success'
-      : estado === 'pendiente' ? 'gym-badge-warning'
+    return estado === 'PAGADO' ? 'gym-badge-success'
+      : estado === 'PENDIENTE' ? 'gym-badge-warning'
       : 'gym-badge-danger';
   }
 
   metodoBadgeClass(metodo: string): string {
-    return metodo === 'tarjeta' ? 'gym-badge-info'
-      : metodo === 'transferencia' ? 'gym-badge-orange'
+    return metodo === 'TARJETA' ? 'gym-badge-info'
+      : metodo === 'TRANSFERENCIA' ? 'gym-badge-orange'
       : 'gym-badge-gray';
   }
 
   metodIcono(metodo: string): string {
-    return metodo === 'tarjeta' ? 'bi-credit-card-fill'
-      : metodo === 'transferencia' ? 'bi-bank'
+    return metodo === 'TARJETA' ? 'bi-credit-card-fill'
+      : metodo === 'TRANSFERENCIA' ? 'bi-bank'
       : 'bi-cash-stack';
   }
 }

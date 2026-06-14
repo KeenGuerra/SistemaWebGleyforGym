@@ -1,17 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.entrenador import EntrenadorCreate, EntrenadorUpdate, EntrenadorResponse, AsignarClienteRequest
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.cliente import ClienteResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.entrenador_service import entrenador_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.cliente_service import cliente_service
 
 router = APIRouter()
 
 def check_admin(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol != "admin":
+    if current_user.rol != "ADMINISTRADOR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación permitida únicamente para administradores"
@@ -19,7 +33,7 @@ def check_admin(current_user: Usuario = Depends(get_current_user)):
     return current_user
 
 def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol not in ["admin", "entrenador"]:
+    if current_user.rol not in ["ADMINISTRADOR", "ENTRENADOR"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida para el rol de cliente"
@@ -31,7 +45,6 @@ def get_entrenadores(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    # Cualquiera autenticado puede ver la lista de entrenadores (por ejemplo, clientes para ver a quién se les asigna)
     return entrenador_service.get_all(db)
 
 @router.get("/{entrenador_id}", response_model=EntrenadorResponse)
@@ -57,13 +70,13 @@ def update_entrenador(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    # Un entrenador puede actualizar su propia información, un admin la de cualquiera
-    if user.rol == "entrenador" and user.id != entrenador_id:
+    db_ent = entrenador_service.get_by_id(db, entrenador_id)
+    if user.rol == "ENTRENADOR" and db_ent.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para modificar este perfil"
         )
-    if user.rol == "cliente":
+    if user.rol == "CLIENTE":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida"
@@ -90,13 +103,13 @@ def get_clientes_asignados(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    # Un entrenador solo puede ver sus propios clientes, a menos que sea admin
-    if user.rol == "entrenador" and user.id != entrenador_id:
+    db_ent = entrenador_service.get_by_id(db, entrenador_id)
+    if user.rol == "ENTRENADOR" and db_ent.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No puede ver los clientes asignados a otro entrenador"
         )
-    if user.rol == "cliente":
+    if user.rol == "CLIENTE":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida"

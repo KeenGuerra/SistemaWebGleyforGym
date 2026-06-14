@@ -6,19 +6,21 @@ export class EntrenadorService {
 
   private _entrenadores = signal<Entrenador[]>([
     {
-      id: 1, nombre: 'Carlos', apellido: 'Ramírez',
+      id: 1, nombre: 'Carlos', apellido: 'Ramírez', dni: '222222222222',
       email: 'carlos.ramirez@gleyforgym.com', telefono: '809-555-1234',
-      rol: 'entrenador', activo: true, fechaRegistro: '2024-01-15',
+      rol: 'ENTRENADOR', activo: true, fechaRegistro: '2024-01-15',
       especialidad: 'Musculación y Fuerza', experiencia: 8,
-      clientesAsignados: [5, 6, 7, 8, 9],
+      especialidades: ['Musculación y Fuerza'], especialidadIds: [1],
+      clientesAsignados: [5, 6],
       certificaciones: ['NSCA-CSCS', 'CrossFit Level 2']
     },
     {
-      id: 2, nombre: 'Sofía', apellido: 'Castro',
+      id: 2, nombre: 'Sofía', apellido: 'Castro', dni: '333333333333',
       email: 'sofia.castro@gleyforgym.com', telefono: '809-555-4567',
-      rol: 'entrenador', activo: true, fechaRegistro: '2024-02-01',
-      especialidad: 'Yoga y Flexibilidad', experiencia: 5,
-      clientesAsignados: [10, 11, 12],
+      rol: 'ENTRENADOR', activo: true, fechaRegistro: '2024-02-01',
+      especialidad: 'Cardio y Pilates', experiencia: 5,
+      especialidades: ['Cardio y Pilates'], especialidadIds: [2],
+      clientesAsignados: [7, 8, 9],
       certificaciones: ['RYT-200', 'TRX']
     },
   ]);

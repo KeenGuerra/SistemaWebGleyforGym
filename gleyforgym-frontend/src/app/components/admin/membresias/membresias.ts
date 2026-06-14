@@ -81,7 +81,7 @@ export class Membresias {
         ...m,
         nombreCliente: cliente ? `${cliente.nombre} ${cliente.apellido}` : 'Cliente Inactivo/Eliminado',
         diasRestantesCalculados: diasRestantes,
-        estaVencida: diasRestantes === 0 || m.estado === 'vencida'
+        estaVencida: diasRestantes === 0 || m.estado === 'VENCIDA'
       };
     });
 
@@ -167,8 +167,8 @@ export class Membresias {
         monto: this.renewForm.precio().value(),
         fecha: new Date().toISOString().split('T')[0],
         concepto: `Renovación de Membresía ${this.renewForm.tipo().value()}`,
-        metodo: 'tarjeta',
-        estado: 'pagado'
+        metodo: 'TARJETA',
+        estado: 'PAGADO'
       });
       this.cargando.set(false);
     }
@@ -176,4 +176,3 @@ export class Membresias {
     this.closeRenewModal();
   }
 }
-

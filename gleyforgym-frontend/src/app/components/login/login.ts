@@ -79,19 +79,20 @@ export class Login {
     }
   }
 
-  quickLogin(rol: 'admin' | 'entrenador' | 'cliente'): void {
+  quickLogin(rol: string): void {
     let emailVal = '';
     let passVal = '';
+    const upperRol = rol.toUpperCase();
 
-    if (rol === 'admin') {
+    if (upperRol === 'ADMINISTRADOR' || upperRol === 'ADMIN') {
       emailVal = 'admin@gleyforgym.com';
-      passVal = 'admin123';
-    } else if (rol === 'entrenador') {
+      passVal = 'admin1234';
+    } else if (upperRol === 'ENTRENADOR') {
       emailVal = 'carlos.ramirez@gleyforgym.com';
-      passVal = 'entrenador123';
-    } else if (rol === 'cliente') {
+      passVal = 'carlos1234';
+    } else if (upperRol === 'CLIENTE') {
       emailVal = 'maria.gonzalez@email.com';
-      passVal = 'cliente123';
+      passVal = 'maria1234';
     }
 
     this.loginModel.set({
@@ -112,13 +113,13 @@ export class Login {
   }
 
   private redirigirUsuario(rol: string): void {
-    if (rol === 'admin') {
+    const upperRol = rol.toUpperCase();
+    if (upperRol === 'ADMINISTRADOR' || upperRol === 'ADMIN') {
       this.router.navigate(['/admin/panel']);
-    } else if (rol === 'entrenador') {
+    } else if (upperRol === 'ENTRENADOR') {
       this.router.navigate(['/entrenador/panel']);
-    } else if (rol === 'cliente') {
+    } else if (upperRol === 'CLIENTE') {
       this.router.navigate(['/cliente/panel']);
     }
   }
 }
-

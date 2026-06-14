@@ -41,9 +41,9 @@ export class MiMembresia {
   );
 
   estadoBadgeClass(estado: string): string {
-    return estado === 'activa' ? 'gym-badge-success'
-      : estado === 'vencida' ? 'gym-badge-danger'
-      : estado === 'pendiente' ? 'gym-badge-warning'
+    return estado === 'ACTIVA' ? 'gym-badge-success'
+      : estado === 'VENCIDA' ? 'gym-badge-danger'
+      : estado === 'CANCELADA' ? 'gym-badge-warning'
       : 'gym-badge-gray';
   }
 }

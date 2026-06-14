@@ -38,12 +38,13 @@ export class Clientes {
   public clientModel = signal({
     nombre: '',
     apellido: '',
+    dni: '',
     email: '',
     telefono: '',
     activo: true,
     objetivo: 'Tonificación',
     peso: 70,
-    altura: 170,
+    altura: 1.70,
     entrenadorId: 1,
     membresiaId: 1
   });
@@ -52,6 +53,7 @@ export class Clientes {
   // Estados Touched
   public nombreTouched = signal(false);
   public apellidoTouched = signal(false);
+  public dniTouched = signal(false);
   public emailTouched = signal(false);
   public telefonoTouched = signal(false);
   public objetivoTouched = signal(false);
@@ -104,11 +106,17 @@ export class Clientes {
     return null;
   });
 
+  public dniErrores = computed(() => {
+    const valor = this.clientForm.dni().value().trim();
+    if (!valor) return 'El DNI/Cédula es obligatorio.';
+    return null;
+  });
+
   public alturaErrores = computed(() => {
     const valor = this.clientForm.altura().value();
     if (valor === null || valor === undefined) return 'La altura es obligatoria.';
     if (valor <= 0) return 'La altura debe ser positiva.';
-    if (valor < 100 || valor > 250) return 'La altura debe estar entre 100 y 250 cm.';
+    if (valor < 0.5 || valor > 2.5) return 'La altura debe estar entre 0.50 y 2.50 metros.';
     return null;
   });
 
@@ -128,6 +136,7 @@ export class Clientes {
     return (
       !this.nombreErrores() &&
       !this.apellidoErrores() &&
+      !this.dniErrores() &&
       !this.emailErrores() &&
       !this.telefonoErrores() &&
       !this.objetivoErrores() &&
@@ -154,7 +163,7 @@ export class Clientes {
         ...c,
         nombreEntrenador: trainer ? `${trainer.nombre} ${trainer.apellido}` : 'Sin asignar',
         membresiaTipo: membership ? membership.tipo : 'Sin membresía',
-        membresiaEstado: membership ? membership.estado : 'vencida',
+        membresiaEstado: membership ? membership.estado : 'VENCIDA',
         membresiaFin: membership ? membership.fechaFin : 'N/A'
       };
     });
@@ -179,12 +188,13 @@ export class Clientes {
     this.clientModel.set({
       nombre: '',
       apellido: '',
+      dni: '',
       email: '',
       telefono: '',
       activo: true,
       objetivo: 'Tonificación',
       peso: 70,
-      altura: 170,
+      altura: 1.70,
       entrenadorId: 1,
       membresiaId: 1
     });
@@ -192,6 +202,7 @@ export class Clientes {
     // Resetear touched
     this.nombreTouched.set(false);
     this.apellidoTouched.set(false);
+    this.dniTouched.set(false);
     this.emailTouched.set(false);
     this.telefonoTouched.set(false);
     this.objetivoTouched.set(false);
@@ -210,12 +221,13 @@ export class Clientes {
     this.clientModel.set({
       nombre: cliente.nombre,
       apellido: cliente.apellido,
+      dni: cliente.dni,
       email: cliente.email,
       telefono: cliente.telefono,
       activo: cliente.activo,
       objetivo: cliente.objetivo || 'Tonificación',
       peso: cliente.peso || 70,
-      altura: cliente.altura || 170,
+      altura: cliente.altura || 1.70,
       entrenadorId: cliente.entrenadorId || 1,
       membresiaId: cliente.membresiaId || 1
     });
@@ -223,6 +235,7 @@ export class Clientes {
     // Resetear touched
     this.nombreTouched.set(false);
     this.apellidoTouched.set(false);
+    this.dniTouched.set(false);
     this.emailTouched.set(false);
     this.telefonoTouched.set(false);
     this.objetivoTouched.set(false);
@@ -242,7 +255,7 @@ export class Clientes {
       ...cliente,
       nombreEntrenador: trainer ? `${trainer.nombre} ${trainer.apellido}` : 'Sin asignar',
       membresiaTipo: membership ? membership.tipo : 'Sin membresía',
-      membresiaEstado: membership ? membership.estado : 'vencida',
+      membresiaEstado: membership ? membership.estado : 'VENCIDA',
       membresiaInicio: membership ? membership.fechaInicio : 'N/A',
       membresiaFin: membership ? membership.fechaFin : 'N/A',
       membresiaPrecio: membership ? membership.precio : 0
@@ -265,6 +278,7 @@ export class Clientes {
   saveCliente(): void {
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
+    this.dniTouched.set(true);
     this.emailTouched.set(true);
     this.telefonoTouched.set(true);
     this.objetivoTouched.set(true);
@@ -283,6 +297,7 @@ export class Clientes {
     const formVal = {
       nombre: this.clientForm.nombre().value(),
       apellido: this.clientForm.apellido().value(),
+      dni: this.clientForm.dni().value(),
       email: this.clientForm.email().value(),
       telefono: this.clientForm.telefono().value(),
       activo: this.clientForm.activo().value(),
@@ -305,9 +320,10 @@ export class Clientes {
         id: editing.id,
         nombre: formVal.nombre,
         apellido: formVal.apellido,
+        dni: formVal.dni,
         email: formVal.email,
         telefono: formVal.telefono,
-        rol: 'cliente',
+        rol: 'CLIENTE',
         activo: formVal.activo,
         fechaRegistro: editing.fechaRegistro
       });
@@ -315,14 +331,16 @@ export class Clientes {
       const nuevoUsuario = this.usuarioService.registrarUsuario({
         nombre: formVal.nombre,
         apellido: formVal.apellido,
+        dni: formVal.dni,
         email: formVal.email,
         telefono: formVal.telefono,
-        rol: 'cliente',
+        rol: 'CLIENTE',
         activo: formVal.activo
       });
 
       this.clienteService.registrarCliente({
         ...nuevoUsuario,
+        objetivoId: 3, // ID por defecto ("Tonificación" o similar)
         objetivo: formVal.objetivo,
         peso: formVal.peso,
         altura: formVal.altura,

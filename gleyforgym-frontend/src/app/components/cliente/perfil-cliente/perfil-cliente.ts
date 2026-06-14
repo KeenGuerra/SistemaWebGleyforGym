@@ -93,7 +93,7 @@ export class PerfilCliente {
     const valor = this.clientForm.altura().value();
     if (valor === null || valor === undefined) return 'La altura es obligatoria.';
     if (valor <= 0) return 'La altura debe ser positiva.';
-    if (valor < 100 || valor > 250) return 'La altura debe estar entre 100 y 250 cm.';
+    if (valor < 0.5 || valor > 2.5) return 'La altura debe estar entre 0.50 y 2.50 metros.';
     return null;
   });
 
@@ -116,7 +116,7 @@ export class PerfilCliente {
       apellido: this.cliente.apellido,
       email: this.cliente.email,
       telefono: this.cliente.telefono,
-      objetivo: this.cliente.objetivo,
+      objetivo: this.cliente.objetivo ?? '',
       peso: this.cliente.peso ?? 0,
       altura: this.cliente.altura ?? 0
     });
@@ -172,10 +172,10 @@ export class PerfilCliente {
   }
 
   readonly imc = computed(() => {
-    // Si estamos editando usamos los valores del signal; si no, los del cliente estático
+    // Altura en metros. Si editando, usar form; si no, valor estático del cliente
     const p = this.modoEdicion() ? this.clientForm.peso().value() : (this.cliente.peso ?? 0);
     const a = this.modoEdicion() ? this.clientForm.altura().value() : (this.cliente.altura ?? 1);
-    return a > 0 ? +(p / ((a / 100) ** 2)).toFixed(1) : 0;
+    return a > 0 ? +(p / (a ** 2)).toFixed(1) : 0;
   });
 
   readonly categoriaImc = computed(() => {

@@ -5,15 +5,15 @@ import { Membresia } from '../models/membresia';
 @Injectable({ providedIn: 'root' })
 export class MembresiaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/membresias'; // Configuración base para FastAPI
+  private apiUrl = 'http://localhost:8000/api/membresias';
 
 
   private _membresias = signal<Membresia[]>([
-    { id: 1, clienteId: 5, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'activa', diasRestantes: 0 },
-    { id: 2, clienteId: 6, tipo: 'Trimestral', precio: 6500, fechaInicio: '2025-04-01', fechaFin: '2025-06-30', estado: 'activa', diasRestantes: 30 },
-    { id: 3, clienteId: 7, tipo: 'Mensual Básica', precio: 1800, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'activa', diasRestantes: 0 },
-    { id: 4, clienteId: 8, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-03-01', fechaFin: '2025-03-31', estado: 'vencida', diasRestantes: 0 },
-    { id: 5, clienteId: 9, tipo: 'Anual', precio: 24000, fechaInicio: '2025-01-01', fechaFin: '2025-12-31', estado: 'activa', diasRestantes: 214 },
+    { id: 1, clienteId: 5, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'ACTIVA', diasRestantes: 0 },
+    { id: 2, clienteId: 6, tipo: 'Trimestral', precio: 6500, fechaInicio: '2025-04-01', fechaFin: '2025-06-30', estado: 'ACTIVA', diasRestantes: 30 },
+    { id: 3, clienteId: 7, tipo: 'Mensual Básica', precio: 1800, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'ACTIVA', diasRestantes: 0 },
+    { id: 4, clienteId: 8, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-03-01', fechaFin: '2025-03-31', estado: 'VENCIDA', diasRestantes: 0 },
+    { id: 5, clienteId: 9, tipo: 'Anual', precio: 24000, fechaInicio: '2025-01-01', fechaFin: '2025-12-31', estado: 'ACTIVA', diasRestantes: 214 },
   ]);
 
   readonly membresias = this._membresias.asReadonly();
@@ -23,7 +23,7 @@ export class MembresiaService {
   }
 
   readonly membresiaActiva = computed(() =>
-    this._membresias().find(m => m.clienteId === 5 && m.estado === 'activa')
+    this._membresias().find(m => m.clienteId === 5 && m.estado === 'ACTIVA')
   );
 
   getMembresiaDeCliente(clienteId: number): Membresia | undefined {
@@ -31,7 +31,7 @@ export class MembresiaService {
   }
 
   getMembresiaActiva(clienteId: number): Membresia | undefined {
-    return this._membresias().find(m => m.clienteId === clienteId && m.estado === 'activa');
+    return this._membresias().find(m => m.clienteId === clienteId && m.estado === 'ACTIVA');
   }
 
   calcularDiasRestantes(fechaFin: string): number {
@@ -64,7 +64,7 @@ export class MembresiaService {
           precio,
           fechaInicio: fechaInicioStr,
           fechaFin: fechaFinStr,
-          estado: 'activa'
+          estado: 'ACTIVA'
         } : m);
       } else {
         const nuevoId = Math.max(...lista.map(m => m.id), 0) + 1;
@@ -75,7 +75,7 @@ export class MembresiaService {
           precio,
           fechaInicio: fechaInicioStr,
           fechaFin: fechaFinStr,
-          estado: 'activa'
+          estado: 'ACTIVA'
         }];
       }
     });

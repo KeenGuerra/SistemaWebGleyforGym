@@ -123,9 +123,10 @@ export class Registro {
     const nuevoUsuario = this.usuarioService.registrarUsuario({
       nombre: this.usuarioForm.nombre().value(),
       apellido: this.usuarioForm.apellido().value(),
+      dni: '',
       email: emailVal,
       telefono: this.usuarioForm.telefono().value(),
-      rol: 'cliente',
+      rol: 'CLIENTE',
       activo: true
     });
 
@@ -133,9 +134,10 @@ export class Registro {
       ...nuevoUsuario,
       membresiaId: 1,
       entrenadorId: 1,
+      objetivoId: 3,
       objetivo: 'General',
       peso: 70,
-      altura: 170
+      altura: 1.70
     });
 
     this.cargando.set(false);

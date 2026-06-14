@@ -1,10 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.progreso import ProgresoCreate, ProgresoResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.progreso_service import progreso_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.repository.cliente_repository import cliente_repository
 
 router = APIRouter()
 
@@ -14,7 +27,13 @@ def get_progresos_cliente(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    if user.rol == "cliente" and user.id != cliente_id:
+    c = cliente_repository.get_by_id(db, cliente_id)
+    if not c:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para acceder a esta información"
@@ -27,8 +46,14 @@ def create_progreso(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
+    c = cliente_repository.get_by_id(db, progreso_in.cliente_id)
+    if not c:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
     # Un cliente puede registrar su propio progreso, o un admin/entrenador para cualquier cliente
-    if user.rol == "cliente" and user.id != progreso_in.cliente_id:
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para registrar progreso en esta cuenta"

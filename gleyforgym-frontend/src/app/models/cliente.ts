@@ -3,9 +3,14 @@ import { Usuario } from './usuario';
 export interface Cliente extends Usuario {
   membresiaId: number;
   entrenadorId: number;
-  objetivo: string;
+  objetivoId: number;
+  objetivo?: string; // Mantener como string para compatibilidad de vistas
   peso?: number;
   altura?: number;
+  fechaNacimiento?: string;
+  sexo?: string;
+  direccion?: string;
+  restriccionesMedicas?: string;
 }
 
 export interface ClienteDecorado extends Cliente {
@@ -16,4 +21,3 @@ export interface ClienteDecorado extends Cliente {
   membresiaInicio?: string;
   membresiaPrecio?: number;
 }
-

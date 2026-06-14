@@ -1,11 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.auth import LoginRequest, TokenResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.usuario import UsuarioResponse, CambiarPasswordRequest
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.auth_service import auth_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.usuario_service import usuario_service
 
 router = APIRouter()

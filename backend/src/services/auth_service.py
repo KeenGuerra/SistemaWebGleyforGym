@@ -1,7 +1,13 @@
 from datetime import timedelta
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.usuario_repository import usuario_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import verify_password, create_access_token
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.auth import LoginRequest, TokenResponse
 
 class AuthService:

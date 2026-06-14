@@ -1,9 +1,17 @@
-from datetime import date, datetime
+from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.asistencia_repository import asistencia_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.cliente_repository import cliente_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.asistencia import AsistenciaCreate, AsistenciaResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Asistencia
 
 class AsistenciaService:
@@ -25,19 +33,8 @@ class AsistenciaService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Registro de asistencia no encontrado"
             )
-        
-        # Calcular duración en minutos
-        duracion = None
-        try:
-            formato = "%H:%M"
-            t1 = datetime.strptime(asist.hora_entrada, formato)
-            t2 = datetime.strptime(hora_salida, formato)
-            delta = t2 - t1
-            duracion = max(0, int(delta.total_seconds() / 60))
-        except ValueError:
-            pass  # Si el formato es inválido, no se calcula la duración
             
-        return asistencia_repository.registrar_salida(db, asist, hora_salida, duracion)
+        return asistencia_repository.registrar_salida(db, asist, hora_salida)
 
     def obtener_todas(self, db: Session) -> list[Asistencia]:
         return asistencia_repository.get_all(db)
@@ -63,7 +60,8 @@ class AsistenciaService:
             fecha=a.fecha,
             hora_entrada=a.hora_entrada,
             hora_salida=a.hora_salida,
-            duracion_minutos=a.duracion_minutos,
+            estado=a.estado,
+            observaciones=a.observaciones,
             nombre_cliente=f"{u.nombre} {u.apellido}"
         )
 

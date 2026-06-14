@@ -22,17 +22,17 @@
         Todos
       </button>
       <button
-        (click)="setFilter('pagado')"
+        (click)="setFilter('PAGADO')"
         class="gym-btn"
-        [class.gym-btn-primary]="selectedFilter() === 'pagado'"
-        [class.gym-btn-secondary]="selectedFilter() !== 'pagado'">
+        [class.gym-btn-primary]="selectedFilter() === 'PAGADO'"
+        [class.gym-btn-secondary]="selectedFilter() !== 'PAGADO'">
         <i class="bi bi-check-circle-fill text-success"></i> Pagados
       </button>
       <button
-        (click)="setFilter('pendiente')"
+        (click)="setFilter('PENDIENTE')"
         class="gym-btn"
-        [class.gym-btn-primary]="selectedFilter() === 'pendiente'"
-        [class.gym-btn-secondary]="selectedFilter() !== 'pendiente'">
+        [class.gym-btn-primary]="selectedFilter() === 'PENDIENTE'"
+        [class.gym-btn-secondary]="selectedFilter() !== 'PENDIENTE'">
         <i class="bi bi-clock-fill text-warning"></i> Pendientes
       </button>
     </div>
@@ -70,14 +70,14 @@
             <td>{{ pago.fecha }}</td>
             <td class="text-muted">{{ pago.concepto }}</td>
             <td>
-              <span style="text-transform: capitalize;">
-                <i class="bi" [class.bi-credit-card]="pago.metodo === 'tarjeta'" [class.bi-cash-coin]="pago.metodo === 'efectivo'" [class.bi-bank]="pago.metodo === 'transferencia'"></i>
+              <span>
+                <i class="bi" [class.bi-credit-card]="pago.metodo === 'TARJETA'" [class.bi-cash-coin]="pago.metodo === 'EFECTIVO'" [class.bi-bank]="pago.metodo === 'TRANSFERENCIA'"></i>
                 {{ pago.metodo }}
               </span>
             </td>
             <td>
-              <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'pagado'" [class.gym-badge-warning]="pago.estado === 'pendiente'">
-                {{ pago.estado | uppercase }}
+              <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'PAGADO'" [class.gym-badge-warning]="pago.estado === 'PENDIENTE'">
+                {{ pago.estado }}
               </span>
             </td>
           </tr>
@@ -135,17 +135,17 @@
             <div class="gym-form-group">
               <label class="gym-form-label" for="metodo">MÉTODO DE PAGO</label>
               <select id="metodo" name="metodo" [ngModel]="pagoForm.metodo().value()" (ngModelChange)="pagoForm.metodo().set($event)" class="gym-form-control">
-                <option value="tarjeta">Tarjeta de Crédito</option>
-                <option value="efectivo">Efectivo</option>
-                <option value="transferencia">Transferencia Bancaria</option>
+                <option value="TARJETA">Tarjeta de Crédito</option>
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="TRANSFERENCIA">Transferencia Bancaria</option>
               </select>
             </div>
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="estado">ESTADO</label>
               <select id="estado" name="estado" [ngModel]="pagoForm.estado().value()" (ngModelChange)="pagoForm.estado().set($event)" class="gym-form-control">
-                <option value="pagado">Pagado</option>
-                <option value="pendiente">Pendiente</option>
+                <option value="PAGADO">Pagado</option>
+                <option value="PENDIENTE">Pendiente</option>
               </select>
             </div>
           </div>

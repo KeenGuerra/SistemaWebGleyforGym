@@ -1,22 +1,38 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+from datetime import date, timedelta
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.cliente_repository import cliente_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.usuario_repository import usuario_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.entrenador_repository import entrenador_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.membresia_repository import membresia_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.cliente import ClienteCreate, ClienteUpdate, ClienteResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.usuario import UsuarioCreate
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_password_hash
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Cliente
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.core.exceptions import raise_not_found, raise_bad_request
 
 class ClienteService:
     def get_by_id(self, db: Session, cliente_id: int) -> Cliente:
         cliente = cliente_repository.get_by_id(db, cliente_id)
         if not cliente:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cliente no encontrado"
-            )
+            raise_not_found("Cliente no encontrado")
         return cliente
 
     def get_all(self, db: Session) -> list[Cliente]:
@@ -26,10 +42,14 @@ class ClienteService:
         # 1. Crear el usuario asociado primero
         existing_user = usuario_repository.get_by_correo(db, cliente_in.usuario.correo)
         if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El correo electrónico ya se encuentra registrado"
-            )
+            raise_bad_request("El correo electrónico ya se encuentra registrado")
+        
+        # Validar DNI duplicado
+        existing_dni = db.query(Cliente).join(Cliente.usuario).filter(
+            Cliente.usuario.has(dni=cliente_in.usuario.dni)
+        ).first()
+        if existing_dni:
+            raise_bad_request("El DNI ya se encuentra registrado")
         
         hashed_pw = get_password_hash(cliente_in.usuario.password)
         db_user = usuario_repository.create(db, cliente_in.usuario, hashed_pw)
@@ -49,34 +69,33 @@ class ClienteService:
             user_updates["apellido"] = cliente_in.apellido
         if cliente_in.telefono is not None:
             user_updates["telefono"] = cliente_in.telefono
+        if cliente_in.dni is not None:
+            user_updates["dni"] = cliente_in.dni
         if cliente_in.correo is not None:
             # Validar correo duplicado
             if cliente_in.correo != db_user.correo:
                 existing = usuario_repository.get_by_correo(db, cliente_in.correo)
                 if existing:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="El correo electrónico ya está en uso"
-                    )
+                    raise_bad_request("El correo electrónico ya está en uso")
             user_updates["correo"] = cliente_in.correo
         
         if cliente_in.activo is not None:
             user_updates["activo"] = cliente_in.activo
 
         if user_updates:
-            # Creamos un esquema temporal para actualizar
+            # pyrefly: ignore [missing-import]
+            # pyright: ignore [reportMissingImports]
             from src.schemas.usuario import UsuarioUpdate
             user_schema = UsuarioUpdate(**user_updates)
             usuario_repository.update(db, db_user, user_schema)
 
         # Actualizar datos de cliente
         client_updates = {}
-        if cliente_in.objetivo is not None:
-            client_updates["objetivo"] = cliente_in.objetivo
-        if cliente_in.peso is not None:
-            client_updates["peso"] = cliente_in.peso
-        if cliente_in.altura is not None:
-            client_updates["altura"] = cliente_in.altura
+        fields = ["objetivo_id", "peso", "altura", "fecha_nacimiento", "sexo", "direccion", "restricciones_medicas", "activo"]
+        for field in fields:
+            val = getattr(cliente_in, field, None)
+            if val is not None:
+                client_updates[field] = val
 
         if client_updates:
             cliente_repository.update(db, db_cliente, client_updates)
@@ -85,24 +104,18 @@ class ClienteService:
         if cliente_in.entrenador_id is not None:
             entrenador = entrenador_repository.get_by_id(db, cliente_in.entrenador_id)
             if not entrenador:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="El entrenador especificado no existe"
-                )
+                raise_not_found("El entrenador especificado no existe")
             cliente_repository.asignar_entrenador(db, cliente_id, cliente_in.entrenador_id)
 
         # Actualizar membresía asignada si viene
         if cliente_in.membresia_id is not None:
             membresia = membresia_repository.get_by_id(db, cliente_in.membresia_id)
             if not membresia:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="La membresía especificada no existe"
-                )
-            # Registrar una membresía para el cliente a partir de hoy
-            from datetime import date, timedelta
+                raise_not_found("La membresía especificada no existe")
+            
+            # Registrar una membresía para el cliente a partir de hoy (usando duracion_dias)
             hoy = date.today()
-            fin = hoy + timedelta(days=30 * membresia.duracion_meses)
+            fin = hoy + timedelta(days=membresia.duracion_dias)
             membresia_repository.registrar_cliente_membresia(db, cliente_id, membresia.id, hoy, fin)
 
         return db_cliente
@@ -125,16 +138,21 @@ class ClienteService:
         # Obtener membresía activa
         sub = cliente_repository.get_membresia_activa(db, c.id)
         membresia_id = sub.membresia_id if sub else None
-        membresia_tipo = sub.membresia.tipo if sub else None
-        membresia_estado = sub.estado if sub else "vencida"
+        membresia_tipo = sub.membresia.nombre if sub else None
+        membresia_estado = sub.estado if sub else "VENCIDA"
         membresia_fin = str(sub.fecha_fin) if sub else "N/A"
 
         return ClienteResponse(
             id=c.id,
             usuario=c.usuario,
-            objetivo=c.objetivo,
-            peso=c.peso,
-            altura=c.altura,
+            objetivo_id=c.objetivo_id,
+            peso=float(c.peso) if c.peso else None,
+            altura=float(c.altura) if c.altura else None,
+            fecha_nacimiento=c.fecha_nacimiento,
+            sexo=c.sexo,
+            direccion=c.direccion,
+            restricciones_medicas=c.restricciones_medicas,
+            activo=c.activo,
             entrenador_id=entrenador_id,
             nombre_entrenador=nombre_entrenador,
             membresia_id=membresia_id,

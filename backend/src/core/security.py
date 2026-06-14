@@ -4,8 +4,14 @@ from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.config import settings
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
 
 import bcrypt
@@ -53,6 +59,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             detail="Token inválido o expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    # pyrefly: ignore [missing-import]
+    # pyright: ignore [reportMissingImports]
     from src.repository.usuario_repository import usuario_repository
     user = usuario_repository.get_by_correo(db, correo)
     if not user or not user.activo:

@@ -1,20 +1,32 @@
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Cliente, ClienteEntrenador, ClienteMembresia, Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.cliente import ClienteBase
 
 class ClienteRepository:
     def get_by_id(self, db: Session, cliente_id: int) -> Cliente | None:
         return db.query(Cliente).filter(Cliente.id == cliente_id).first()
 
+    def get_by_usuario_id(self, db: Session, usuario_id: int) -> Cliente | None:
+        return db.query(Cliente).filter(Cliente.usuario_id == usuario_id).first()
+
     def get_all(self, db: Session) -> list[Cliente]:
         return db.query(Cliente).all()
 
     def create(self, db: Session, user_id: int, cliente_in: ClienteBase) -> Cliente:
         db_cliente = Cliente(
-            id=user_id,
-            objetivo=cliente_in.objetivo,
+            usuario_id=user_id,
+            objetivo_id=cliente_in.objetivo_id,
             peso=cliente_in.peso,
-            altura=cliente_in.altura
+            altura=cliente_in.altura,
+            fecha_nacimiento=cliente_in.fecha_nacimiento,
+            sexo=cliente_in.sexo,
+            direccion=cliente_in.direccion,
+            restricciones_medicas=cliente_in.restricciones_medicas,
+            activo=cliente_in.activo
         )
         db.add(db_cliente)
         db.commit()
@@ -55,7 +67,7 @@ class ClienteRepository:
     def get_membresia_activa(self, db: Session, cliente_id: int) -> ClienteMembresia | None:
         return db.query(ClienteMembresia).filter(
             ClienteMembresia.cliente_id == cliente_id,
-            ClienteMembresia.estado == "activa"
+            ClienteMembresia.estado == "ACTIVA"
         ).first()
 
 cliente_repository = ClienteRepository()

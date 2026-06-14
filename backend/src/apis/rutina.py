@@ -1,15 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.rutina import EjercicioCreate, EjercicioResponse, RutinaCreate, RutinaUpdate, RutinaResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.rutina_service import rutina_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.repository.cliente_repository import cliente_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.repository.entrenador_repository import entrenador_repository
 
 router = APIRouter()
 
 def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol not in ["admin", "entrenador"]:
+    if current_user.rol not in ["ADMINISTRADOR", "ENTRENADOR"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida"
@@ -50,8 +66,14 @@ def get_rutina(
     user: Usuario = Depends(get_current_user)
 ):
     r = rutina_service.obtener_por_id(db, rutina_id)
+    c = cliente_repository.get_by_id(db, r.cliente_id)
+    if not c:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente asociado a la rutina no existe"
+        )
     # Si es cliente, solo puede ver su propia rutina
-    if user.rol == "cliente" and user.id != r.cliente_id:
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para ver esta rutina"
@@ -64,7 +86,13 @@ def get_rutinas_cliente(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    if user.rol == "cliente" and user.id != cliente_id:
+    c = cliente_repository.get_by_id(db, cliente_id)
+    if not c:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para acceder a esta información"
@@ -79,8 +107,14 @@ def create_rutina(
     db: Session = Depends(get_db),
     user: Usuario = Depends(check_admin_or_trainer)
 ):
-    if user.rol == "entrenador":
-        active_entrenador_id = user.id
+    if user.rol == "ENTRENADOR":
+        ent = entrenador_repository.get_by_usuario_id(db, user.id)
+        if not ent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Entrenador no encontrado"
+            )
+        active_entrenador_id = ent.id
     else:  # admin
         if not entrenador_id:
             raise HTTPException(

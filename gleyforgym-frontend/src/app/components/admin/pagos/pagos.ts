@@ -18,7 +18,7 @@ export class Pagos {
   private clienteService = inject(ClienteService);
 
   // Filtros
-  readonly selectedFilter = signal<'todos' | 'pagado' | 'pendiente'>('todos');
+  readonly selectedFilter = signal<'todos' | 'PAGADO' | 'PENDIENTE'>('todos');
   readonly searchQuery = signal<string>('');
 
   // Modales
@@ -33,8 +33,8 @@ export class Pagos {
     clienteId: 0,
     monto: 0,
     concepto: 'Cuota Mensual',
-    metodo: 'tarjeta' as MetodoPago,
-    estado: 'pagado' as EstadoPago
+    metodo: 'TARJETA' as MetodoPago,
+    estado: 'PAGADO' as EstadoPago
   });
   public pagoForm = form(this.pagoModel);
 
@@ -111,7 +111,7 @@ export class Pagos {
     });
   });
 
-  setFilter(filter: 'todos' | 'pagado' | 'pendiente'): void {
+  setFilter(filter: 'todos' | 'PAGADO' | 'PENDIENTE'): void {
     this.selectedFilter.set(filter);
   }
 
@@ -125,8 +125,8 @@ export class Pagos {
       clienteId: 0,
       monto: 0,
       concepto: 'Membresía Mensual Premium',
-      metodo: 'tarjeta',
-      estado: 'pagado'
+      metodo: 'TARJETA',
+      estado: 'PAGADO'
     });
 
     this.clienteIdTouched.set(false);

@@ -1,5 +1,9 @@
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.usuario import UsuarioCreate, UsuarioUpdate
 
 class UsuarioRepository:
@@ -16,6 +20,7 @@ class UsuarioRepository:
         db_user = Usuario(
             nombre=user_in.nombre,
             apellido=user_in.apellido,
+            dni=user_in.dni,
             correo=user_in.correo,
             telefono=user_in.telefono,
             password_hash=password_hash,

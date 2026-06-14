@@ -18,9 +18,9 @@
         </div>
         <span class="gym-badge {{ estadoBadgeClass(m.estado) }} membresia-estado">
           @switch (m.estado) {
-            @case ('activa') { <i class="bi bi-check-circle-fill"></i> Membresía Activa }
-            @case ('vencida') { <i class="bi bi-x-circle-fill"></i> Membresía Vencida }
-            @case ('pendiente') { <i class="bi bi-clock-fill"></i> Pendiente }
+            @case ('ACTIVA') { <i class="bi bi-check-circle-fill"></i> Membresía Activa }
+            @case ('VENCIDA') { <i class="bi bi-x-circle-fill"></i> Membresía Vencida }
+            @case ('CANCELADA') { <i class="bi bi-clock-fill"></i> Cancelada }
           }
         </span>
 
@@ -92,7 +92,7 @@
           </span>
         </div>
 
-        @if (m.estado === 'activa' && diasRestantes() <= 10) {
+        @if (m.estado === 'ACTIVA' && diasRestantes() <= 10) {
           <div class="alerta-renovacion">
             <i class="bi bi-exclamation-triangle-fill"></i>
             Tu membresía vence pronto. ¡Renueva antes de la fecha de vencimiento!

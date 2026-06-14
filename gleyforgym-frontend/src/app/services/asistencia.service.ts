@@ -13,20 +13,20 @@ const hace = (dias: number) => {
 @Injectable({ providedIn: 'root' })
 export class AsistenciaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/asistencias'; // Configuración base para FastAPI
+  private apiUrl = 'http://localhost:8000/api/asistencias';
 
 
   private _asistencias = signal<Asistencia[]>([
-    { id: 1,  clienteId: 5, entrenadorId: 1, fecha: hace(0),  horaEntrada: '07:00', horaSalida: '08:30', duracionMinutos: 90  },
-    { id: 2,  clienteId: 5, entrenadorId: 1, fecha: hace(2),  horaEntrada: '07:10', horaSalida: '08:20', duracionMinutos: 70  },
-    { id: 3,  clienteId: 5, entrenadorId: 1, fecha: hace(4),  horaEntrada: '06:55', horaSalida: '08:25', duracionMinutos: 90  },
-    { id: 4,  clienteId: 5, entrenadorId: 1, fecha: hace(7),  horaEntrada: '07:00', horaSalida: '08:30', duracionMinutos: 90  },
-    { id: 5,  clienteId: 5, entrenadorId: 1, fecha: hace(9),  horaEntrada: '07:15', horaSalida: '08:15', duracionMinutos: 60  },
-    { id: 6,  clienteId: 6, entrenadorId: 1, fecha: hace(0),  horaEntrada: '09:00', horaSalida: '10:30', duracionMinutos: 90  },
-    { id: 7,  clienteId: 6, entrenadorId: 1, fecha: hace(1),  horaEntrada: '09:05', horaSalida: '10:05', duracionMinutos: 60  },
-    { id: 8,  clienteId: 7, entrenadorId: 1, fecha: hace(0),  horaEntrada: '08:00', horaSalida: '09:00', duracionMinutos: 60  },
-    { id: 9,  clienteId: 7, entrenadorId: 1, fecha: hace(3),  horaEntrada: '08:05', horaSalida: '09:15', duracionMinutos: 70  },
-    { id: 10, clienteId: 9, entrenadorId: 1, fecha: hace(0),  horaEntrada: '10:00', horaSalida: '11:00', duracionMinutos: 60  },
+    { id: 1,  clienteId: 5, entrenadorId: 1, fecha: hace(0),  horaEntrada: '07:00', horaSalida: '08:30', duracionMinutos: 90, estado: 'ASISTIO'  },
+    { id: 2,  clienteId: 5, entrenadorId: 1, fecha: hace(2),  horaEntrada: '07:10', horaSalida: '08:20', duracionMinutos: 70, estado: 'ASISTIO'  },
+    { id: 3,  clienteId: 5, entrenadorId: 1, fecha: hace(4),  horaEntrada: '06:55', horaSalida: '08:25', duracionMinutos: 90, estado: 'ASISTIO'  },
+    { id: 4,  clienteId: 5, entrenadorId: 1, fecha: hace(7),  horaEntrada: '07:00', horaSalida: '08:30', duracionMinutos: 90, estado: 'ASISTIO'  },
+    { id: 5,  clienteId: 5, entrenadorId: 1, fecha: hace(9),  horaEntrada: '07:15', horaSalida: '08:15', duracionMinutos: 60, estado: 'ASISTIO'  },
+    { id: 6,  clienteId: 6, entrenadorId: 1, fecha: hace(0),  horaEntrada: '09:00', horaSalida: '10:30', duracionMinutos: 90, estado: 'ASISTIO'  },
+    { id: 7,  clienteId: 6, entrenadorId: 1, fecha: hace(1),  horaEntrada: '09:05', horaSalida: '10:05', duracionMinutos: 60, estado: 'ASISTIO'  },
+    { id: 8,  clienteId: 7, entrenadorId: 1, fecha: hace(0),  horaEntrada: '08:00', horaSalida: '09:00', duracionMinutos: 60, estado: 'ASISTIO'  },
+    { id: 9,  clienteId: 7, entrenadorId: 1, fecha: hace(3),  horaEntrada: '08:05', horaSalida: '09:15', duracionMinutos: 70, estado: 'ASISTIO'  },
+    { id: 10, clienteId: 9, entrenadorId: 2, fecha: hace(0),  horaEntrada: '10:00', horaSalida: '11:00', duracionMinutos: 60, estado: 'ASISTIO'  },
   ]);
 
   readonly asistencias = this._asistencias.asReadonly();

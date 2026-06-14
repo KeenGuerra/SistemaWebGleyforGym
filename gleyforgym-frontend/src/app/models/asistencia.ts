@@ -6,5 +6,6 @@ export interface Asistencia {
   horaEntrada: string;
   horaSalida?: string;
   duracionMinutos?: number;
+  estado?: 'ASISTIO' | 'TARDE' | 'FALTA' | string;
   observaciones?: string;
 }

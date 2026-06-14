@@ -78,8 +78,8 @@
                 <td>RD${{ pago.monto | number }}</td>
                 <td class="text-muted">{{ pago.concepto }}</td>
                 <td>
-                  <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'pagado'" [class.gym-badge-warning]="pago.estado === 'pendiente'">
-                    {{ pago.estado | uppercase }}
+                  <span class="gym-badge" [class.gym-badge-success]="pago.estado === 'PAGADO'" [class.gym-badge-warning]="pago.estado === 'PENDIENTE'">
+                    {{ pago.estado }}
                   </span>
                 </td>
               </tr>

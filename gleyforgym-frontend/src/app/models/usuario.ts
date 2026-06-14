@@ -2,9 +2,10 @@ export interface Usuario {
   id: number;
   nombre: string;
   apellido: string;
+  dni: string;
   email: string;
   telefono: string;
-  rol: 'admin' | 'entrenador' | 'cliente';
+  rol: 'ADMINISTRADOR' | 'ENTRENADOR' | 'CLIENTE';
   activo: boolean;
   fechaRegistro: string;
   avatar?: string;

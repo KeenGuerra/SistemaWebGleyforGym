@@ -1,5 +1,10 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import ProgresoCliente
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.progreso import ProgresoCreate
 
 class ProgresoRepository:
@@ -9,7 +14,16 @@ class ProgresoRepository:
     def get_by_cliente(self, db: Session, cliente_id: int) -> list[ProgresoCliente]:
         return db.query(ProgresoCliente).filter(ProgresoCliente.cliente_id == cliente_id).order_by(ProgresoCliente.fecha.desc()).all()
 
-    def create(self, db: Session, progreso_in: ProgresoCreate, imc: float) -> ProgresoCliente:
+    def create(self, db: Session, progreso_in: ProgresoCreate) -> ProgresoCliente:
+        # Calcular IMC usando la función almacenada en PostgreSQL
+        try:
+            query = text("SELECT calcular_imc(:peso, :altura)")
+            res = db.execute(query, {"peso": progreso_in.peso, "altura": progreso_in.altura})
+            imc = res.scalar()
+        except Exception:
+            # Fallback si falla
+            imc = round(progreso_in.peso / (progreso_in.altura * progreso_in.altura), 2)
+
         db_prog = ProgresoCliente(
             cliente_id=progreso_in.cliente_id,
             fecha=progreso_in.fecha,
@@ -21,6 +35,23 @@ class ProgresoRepository:
             notas=progreso_in.notas
         )
         db.add(db_prog)
+        db.commit()
+        db.refresh(db_prog)
+        return db_prog
+
+    def update(self, db: Session, db_prog: ProgresoCliente, data: dict) -> ProgresoCliente:
+        for field, value in data.items():
+            if hasattr(db_prog, field):
+                setattr(db_prog, field, value)
+        
+        # Recalcular IMC si cambian peso o altura
+        try:
+            query = text("SELECT calcular_imc(:peso, :altura)")
+            res = db.execute(query, {"peso": db_prog.peso, "altura": db_prog.altura})
+            db_prog.imc = res.scalar()
+        except Exception:
+            db_prog.imc = round(float(db_prog.peso) / (float(db_prog.altura) * float(db_prog.altura)), 2)
+
         db.commit()
         db.refresh(db_prog)
         return db_prog

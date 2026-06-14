@@ -73,7 +73,7 @@
         </div>
         <div class="gym-info-row">
           <span class="label">Altura</span>
-          <span class="value">{{ cliente.altura ?? '—' }} cm</span>
+          <span class="value">{{ cliente.altura ?? '—' }} m</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Fecha de Registro</span>
@@ -135,8 +135,8 @@
               }
             </div>
             <div class="gym-form-group">
-              <label class="gym-form-label" for="altura-cli">Altura (cm)</label>
-              <input id="altura-cli" name="altura" type="number" class="gym-form-control" [ngModel]="clientForm.altura().value()" (ngModelChange)="clientForm.altura().set($event)" (blur)="alturaTouched.set(true)">
+              <label class="gym-form-label" for="altura-cli">Altura (m)</label>
+              <input id="altura-cli" name="altura" type="number" step="0.01" class="gym-form-control" [ngModel]="clientForm.altura().value()" (ngModelChange)="clientForm.altura().set($event)" (blur)="alturaTouched.set(true)">
               @if (alturaTouched() && alturaErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ alturaErrores() }}</span>
               }

@@ -23,7 +23,7 @@ export class PanelAdmin {
   readonly totalActivos = computed(() => this.clienteService.clientesActivos().length);
 
   readonly membresiasActivas = computed(() =>
-    this.membresiaService.membresias().filter(m => m.estado === 'activa').length
+    this.membresiaService.membresias().filter(m => m.estado === 'ACTIVA').length
   );
 
   readonly ingresosMensuales = computed(() => {
@@ -31,7 +31,7 @@ export class PanelAdmin {
     const hoy = new Date();
     const esteMes = hoy.toISOString().substring(0, 7); // "YYYY-MM"
     return pagos
-      .filter(p => p.fecha.startsWith(esteMes) && p.estado === 'pagado')
+      .filter(p => p.fecha.startsWith(esteMes) && p.estado === 'PAGADO')
       .reduce((sum, p) => sum + p.monto, 0);
   });
 

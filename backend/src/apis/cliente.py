@@ -1,15 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.cliente import ClienteCreate, ClienteUpdate, ClienteResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.cliente_service import cliente_service
 
 router = APIRouter()
 
 def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol not in ["admin", "entrenador"]:
+    if current_user.rol not in ["ADMINISTRADOR", "ENTRENADOR"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida para el rol de cliente"
@@ -17,7 +27,7 @@ def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
     return current_user
 
 def check_admin(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol != "admin":
+    if current_user.rol != "ADMINISTRADOR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación permitida únicamente para administradores"
@@ -38,13 +48,12 @@ def get_cliente(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    # Un cliente puede ver su propia información, un admin/entrenador cualquiera
-    if user.rol == "cliente" and user.id != cliente_id:
+    c = cliente_service.get_by_id(db, cliente_id)
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para acceder a esta información"
         )
-    c = cliente_service.get_by_id(db, cliente_id)
     return cliente_service.decorador_cliente(db, c)
 
 @router.post("/", response_model=ClienteResponse, status_code=status.HTTP_201_CREATED)
@@ -63,8 +72,8 @@ def update_cliente(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    # Un cliente puede actualizar algunos de sus datos si es él mismo (o admin/entrenador)
-    if user.rol == "cliente" and user.id != cliente_id:
+    c = cliente_service.get_by_id(db, cliente_id)
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para modificar este perfil"

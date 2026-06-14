@@ -92,9 +92,9 @@
               <td class="text-muted">{{ cliente.objetivo }}</td>
               <td>
                 @switch (getMembresiaEstado(cliente.id)) {
-                  @case ('activa') { <span class="gym-badge gym-badge-success">Activa</span> }
-                  @case ('vencida') { <span class="gym-badge gym-badge-danger">Vencida</span> }
-                  @case ('pendiente') { <span class="gym-badge gym-badge-warning">Pendiente</span> }
+                  @case ('ACTIVA') { <span class="gym-badge gym-badge-success">Activa</span> }
+                  @case ('VENCIDA') { <span class="gym-badge gym-badge-danger">Vencida</span> }
+                  @case ('CANCELADA') { <span class="gym-badge gym-badge-warning">Cancelada</span> }
                   @default { <span class="gym-badge gym-badge-gray">Sin membresía</span> }
                 }
               </td>

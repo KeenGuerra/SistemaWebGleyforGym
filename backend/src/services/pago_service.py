@@ -1,9 +1,14 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.pago_repository import pago_repository
-from src.repository.cliente_repository import cliente_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.database.models import ClienteMembresia, Pago
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.pago import PagoCreate, PagoResponse
-from src.database.models import Pago
 
 class PagoService:
     def registrar_pago(self, db: Session, pago_in: PagoCreate) -> Pago:
@@ -14,12 +19,12 @@ class PagoService:
                 detail="El monto del pago debe ser mayor a cero"
             )
             
-        # Validar cliente
-        cliente = cliente_repository.get_by_id(db, pago_in.cliente_id)
-        if not cliente:
+        # Validar membresía del cliente
+        sub = db.query(ClienteMembresia).filter(ClienteMembresia.id == pago_in.cliente_membresia_id).first()
+        if not sub:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Cliente no encontrado"
+                detail="Suscripción de membresía no encontrada"
             )
             
         return pago_repository.create(db, pago_in)
@@ -29,6 +34,9 @@ class PagoService:
 
     def obtener_por_cliente(self, db: Session, cliente_id: int) -> list[Pago]:
         # Validar cliente
+        # pyrefly: ignore [missing-import]
+        # pyright: ignore [reportMissingImports]
+        from src.repository.cliente_repository import cliente_repository
         cliente = cliente_repository.get_by_id(db, cliente_id)
         if not cliente:
             raise HTTPException(
@@ -38,16 +46,19 @@ class PagoService:
         return pago_repository.get_by_cliente(db, cliente_id)
 
     def decorador_pago(self, p: Pago) -> PagoResponse:
-        u = p.cliente.usuario
+        sub = p.cliente_membresia
+        cli = sub.cliente
+        u = cli.usuario
         return PagoResponse(
             id=p.id,
-            cliente_id=p.cliente_id,
-            monto=p.monto,
-            fecha=p.fecha,
-            concepto=p.concepto,
-            metodo=p.metodo,
+            cliente_membresia_id=p.cliente_membresia_id,
+            cliente_id=cli.id,
+            monto=float(p.monto),
+            fecha_pago=p.fecha_pago,
+            metodo_pago=p.metodo_pago,
             estado=p.estado,
             comprobante=p.comprobante,
+            observacion=p.observacion,
             nombre_cliente=f"{u.nombre} {u.apellido}"
         )
 

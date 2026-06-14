@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import engine, Base, SessionLocal
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.seed import seed_db
 
 # Crear tablas en la base de datos si no existen
@@ -36,15 +40,36 @@ app.add_middleware(
 )
 
 # Importar routers
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.auth import router as auth_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.usuario import router as usuario_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.cliente import router as cliente_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.entrenador import router as entrenador_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.membresia import router as membresia_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.pago import router as pago_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.asistencia import router as asistencia_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.progreso import router as progreso_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.apis.rutina import router as rutina_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.apis.dashboard import router as dashboard_router
 
 # Registrar rutas
 app.include_router(auth_router, prefix="/api/auth", tags=["Autenticación"])
@@ -56,6 +81,7 @@ app.include_router(pago_router, prefix="/api/pagos", tags=["Pagos"])
 app.include_router(asistencia_router, prefix="/api/asistencias", tags=["Asistencias"])
 app.include_router(progreso_router, prefix="/api/progresos", tags=["Progreso de Clientes"])
 app.include_router(rutina_router, prefix="/api/rutinas", tags=["Rutinas y Ejercicios"])
+app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
 
 @app.get("/")
 def read_root():

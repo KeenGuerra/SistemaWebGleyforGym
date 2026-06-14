@@ -1,15 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.usuario_service import usuario_service
 
 router = APIRouter()
 
 def check_admin(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol != "admin":
+    if current_user.rol != "ADMINISTRADOR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación permitida únicamente para administradores"

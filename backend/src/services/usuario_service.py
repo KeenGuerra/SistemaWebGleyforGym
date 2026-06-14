@@ -1,8 +1,16 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.repository.usuario_repository import usuario_repository
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_password_hash, verify_password
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.usuario import UsuarioCreate, UsuarioUpdate, CambiarPasswordRequest
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
 
 class UsuarioService:

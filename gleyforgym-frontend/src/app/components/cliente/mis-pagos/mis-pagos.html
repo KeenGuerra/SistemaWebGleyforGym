@@ -33,14 +33,14 @@
     <div class="d-flex align-center gap-1 flex-wrap">
       <span class="text-muted font-sm">Filtrar:</span>
       <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'todos'" [class.gym-btn-secondary]="filtroEstado() !== 'todos'" (click)="cambiarFiltro('todos')">Todos</button>
-      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'pagado'" [class.gym-btn-secondary]="filtroEstado() !== 'pagado'" (click)="cambiarFiltro('pagado')">
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'PAGADO'" [class.gym-btn-secondary]="filtroEstado() !== 'PAGADO'" (click)="cambiarFiltro('PAGADO')">
         <i class="bi bi-check-circle-fill text-success"></i> Pagados
       </button>
-      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'pendiente'" [class.gym-btn-secondary]="filtroEstado() !== 'pendiente'" (click)="cambiarFiltro('pendiente')">
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'PENDIENTE'" [class.gym-btn-secondary]="filtroEstado() !== 'PENDIENTE'" (click)="cambiarFiltro('PENDIENTE')">
         <i class="bi bi-clock-fill text-warning"></i> Pendientes
       </button>
-      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'cancelado'" [class.gym-btn-secondary]="filtroEstado() !== 'cancelado'" (click)="cambiarFiltro('cancelado')">
-        <i class="bi bi-x-circle-fill text-danger"></i> Cancelados
+      <button class="gym-btn" [class.gym-btn-primary]="filtroEstado() === 'ANULADO'" [class.gym-btn-secondary]="filtroEstado() !== 'ANULADO'" (click)="cambiarFiltro('ANULADO')">
+        <i class="bi bi-x-circle-fill text-danger"></i> Anulados
       </button>
     </div>
   </div>
@@ -76,15 +76,15 @@
               <td>
                 <span class="gym-badge {{ metodoBadgeClass(pago.metodo) }}">
                   <i class="bi {{ metodIcono(pago.metodo) }}"></i>
-                  {{ pago.metodo | titlecase }}
+                  {{ pago.metodo }}
                 </span>
               </td>
               <td>
                 <span class="gym-badge {{ estadoBadgeClass(pago.estado) }}">
                   @switch (pago.estado) {
-                    @case ('pagado') { <i class="bi bi-check-circle-fill"></i> Pagado }
-                    @case ('pendiente') { <i class="bi bi-clock-fill"></i> Pendiente }
-                    @case ('cancelado') { <i class="bi bi-x-circle-fill"></i> Cancelado }
+                    @case ('PAGADO') { <i class="bi bi-check-circle-fill"></i> Pagado }
+                    @case ('PENDIENTE') { <i class="bi bi-clock-fill"></i> Pendiente }
+                    @case ('ANULADO') { <i class="bi bi-x-circle-fill"></i> Anulado }
                   }
                 </span>
               </td>

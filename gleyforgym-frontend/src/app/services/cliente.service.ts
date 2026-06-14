@@ -5,39 +5,43 @@ import { Cliente } from '../models/cliente';
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/clientes'; // Configuración base para FastAPI
-
+  private apiUrl = 'http://localhost:8000/api/clientes';
 
   private _clientes = signal<Cliente[]>([
     {
-      id: 5, nombre: 'María', apellido: 'González', email: 'maria.gonzalez@email.com',
-      telefono: '809-555-5678', rol: 'cliente', activo: true,
+      id: 5, nombre: 'María', apellido: 'González', dni: '444444444444', email: 'maria.gonzalez@email.com',
+      telefono: '809-555-5678', rol: 'CLIENTE', activo: true,
       fechaRegistro: '2024-03-10', membresiaId: 1, entrenadorId: 1,
-      objetivo: 'Pérdida de peso', peso: 68, altura: 165
+      objetivoId: 2, objetivo: 'Perder peso', peso: 68, altura: 1.65,
+      fechaNacimiento: '1999-05-15', sexo: 'Femenino', direccion: 'Calle Principal #123, Santo Domingo', restriccionesMedicas: 'Ninguna'
     },
     {
-      id: 6, nombre: 'José', apellido: 'Martínez', email: 'jose.martinez@email.com',
-      telefono: '809-555-9012', rol: 'cliente', activo: true,
+      id: 6, nombre: 'José', apellido: 'Martínez', dni: '555555555555', email: 'jose.martinez@email.com',
+      telefono: '809-555-9012', rol: 'CLIENTE', activo: true,
       fechaRegistro: '2024-02-20', membresiaId: 2, entrenadorId: 1,
-      objetivo: 'Ganancia muscular', peso: 78, altura: 178
+      objetivoId: 1, objetivo: 'Ganar masa muscular', peso: 78, altura: 1.78,
+      fechaNacimiento: '1995-10-22', sexo: 'Masculino', direccion: 'Calle Secundaria #456, Santo Domingo', restriccionesMedicas: 'Ninguna'
     },
     {
-      id: 7, nombre: 'Ana', apellido: 'López', email: 'ana.lopez@email.com',
-      telefono: '809-555-3456', rol: 'cliente', activo: true,
-      fechaRegistro: '2024-04-05', membresiaId: 3, entrenadorId: 1,
-      objetivo: 'Tonificación', peso: 62, altura: 162
+      id: 7, nombre: 'Ana', apellido: 'López', dni: '666666666666', email: 'ana.lopez@email.com',
+      telefono: '809-555-3456', rol: 'CLIENTE', activo: true,
+      fechaRegistro: '2024-04-05', membresiaId: 3, entrenadorId: 2,
+      objetivoId: 3, objetivo: 'Tonificación', peso: 62, altura: 1.60,
+      fechaNacimiento: '2001-01-30', sexo: 'Femenino', direccion: 'Av. Winston Churchill #789, Santo Domingo', restriccionesMedicas: 'Ninguna'
     },
     {
-      id: 8, nombre: 'Pedro', apellido: 'Sánchez', email: 'pedro.sanchez@email.com',
-      telefono: '809-555-7890', rol: 'cliente', activo: false,
-      fechaRegistro: '2024-01-30', membresiaId: 4, entrenadorId: 1,
-      objetivo: 'Resistencia', peso: 85, altura: 180
+      id: 8, nombre: 'Pedro', apellido: 'Sánchez', dni: '888888888888', email: 'pedro.sanchez@email.com',
+      telefono: '809-555-7890', rol: 'CLIENTE', activo: false,
+      fechaRegistro: '2024-01-30', membresiaId: 4, entrenadorId: 2,
+      objetivoId: 4, objetivo: 'Resistencia', peso: 85, altura: 1.80,
+      fechaNacimiento: '1990-11-12', sexo: 'Masculino', direccion: 'Calle 5 #55, Santo Domingo', restriccionesMedicas: 'Asma leve'
     },
     {
-      id: 9, nombre: 'Laura', apellido: 'Díaz', email: 'laura.diaz@email.com',
-      telefono: '809-555-2345', rol: 'cliente', activo: true,
-      fechaRegistro: '2024-05-12', membresiaId: 5, entrenadorId: 1,
-      objetivo: 'Flexibilidad', peso: 55, altura: 158
+      id: 9, nombre: 'Laura', apellido: 'Díaz', dni: '777777777777', email: 'laura.diaz@email.com',
+      telefono: '809-555-2345', rol: 'CLIENTE', activo: true,
+      fechaRegistro: '2024-05-12', membresiaId: 5, entrenadorId: 2,
+      objetivoId: 5, objetivo: 'Salud general', peso: 55, altura: 1.68,
+      fechaNacimiento: '1997-07-07', sexo: 'Femenino', direccion: 'Calle Lope de Vega #10, Santo Domingo', restriccionesMedicas: 'Ninguna'
     },
   ]);
 

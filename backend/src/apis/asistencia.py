@@ -2,11 +2,24 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.connection import get_db
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.core.security import get_current_user
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.schemas.asistencia import AsistenciaCreate, AsistenciaResponse
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
 from src.services.asistencia_service import asistencia_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.repository.cliente_repository import cliente_repository
 
 router = APIRouter()
 
@@ -14,7 +27,7 @@ class RegistrarSalidaRequest(BaseModel):
     hora_salida: str = Field(..., description="Hora de salida en formato HH:MM")
 
 def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
-    if current_user.rol not in ["admin", "entrenador"]:
+    if current_user.rol not in ["ADMINISTRADOR", "ENTRENADOR"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Operación no permitida"
@@ -35,7 +48,13 @@ def get_asistencias_cliente(
     db: Session = Depends(get_db),
     user: Usuario = Depends(get_current_user)
 ):
-    if user.rol == "cliente" and user.id != cliente_id:
+    c = cliente_repository.get_by_id(db, cliente_id)
+    if not c:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+    if user.rol == "CLIENTE" and c.usuario_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tiene permisos para acceder a esta información"

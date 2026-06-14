@@ -31,9 +31,10 @@ export class Usuarios {
   public userModel = signal({
     nombre: '',
     apellido: '',
+    dni: '',
     email: '',
     telefono: '',
-    rol: 'cliente' as 'admin' | 'entrenador' | 'cliente',
+    rol: 'CLIENTE' as 'ADMINISTRADOR' | 'ENTRENADOR' | 'CLIENTE',
     activo: true
   });
   public userForm = form(this.userModel);
@@ -95,7 +96,8 @@ export class Usuarios {
         u.nombre.toLowerCase().includes(query) ||
         u.apellido.toLowerCase().includes(query) ||
         u.email.toLowerCase().includes(query) ||
-        u.telefono.includes(query);
+        u.telefono.includes(query) ||
+        u.dni.toLowerCase().includes(query);
       return matchRol && matchSearch;
     });
   });
@@ -116,9 +118,10 @@ export class Usuarios {
     this.userModel.set({
       nombre: '',
       apellido: '',
+      dni: '',
       email: '',
       telefono: '',
-      rol: 'cliente',
+      rol: 'CLIENTE',
       activo: true
     });
 
@@ -138,6 +141,7 @@ export class Usuarios {
     this.userModel.set({
       nombre: user.nombre,
       apellido: user.apellido,
+      dni: user.dni,
       email: user.email,
       telefono: user.telefono,
       rol: user.rol,
@@ -174,6 +178,7 @@ export class Usuarios {
     const formVal = {
       nombre: this.userForm.nombre().value(),
       apellido: this.userForm.apellido().value(),
+      dni: this.userForm.dni().value(),
       email: this.userForm.email().value(),
       telefono: this.userForm.telefono().value(),
       rol: this.userForm.rol().value(),

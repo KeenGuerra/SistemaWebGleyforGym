@@ -66,8 +66,8 @@
               </div>
             </td>
             <td>
-              <span class="gym-badge" [class.gym-badge-success]="c.activo && c.membresiaEstado === 'activa'" [class.gym-badge-danger]="!c.activo || c.membresiaEstado === 'vencida'">
-                {{ (!c.activo) ? 'INACTIVO' : (c.membresiaEstado === 'activa' ? 'ACTIVA' : 'VENCIDA') }}
+            <span class="gym-badge" [class.gym-badge-success]="c.activo && c.membresiaEstado === 'ACTIVA'" [class.gym-badge-danger]="!c.activo || c.membresiaEstado === 'VENCIDA'">
+                {{ (!c.activo) ? 'INACTIVO' : (c.membresiaEstado === 'ACTIVA' ? 'ACTIVA' : 'VENCIDA') }}
               </span>
             </td>
             <td style="text-align: right;">
@@ -128,7 +128,7 @@
             </div>
             <div class="details-group">
               <span class="details-label">ALTURA</span>
-              <span class="details-value">{{ viewingCliente()?.altura }} cm</span>
+              <span class="details-value">{{ viewingCliente()?.altura }} m</span>
             </div>
             <div class="details-group">
               <span class="details-label">TIPO MEMBRESÍA</span>
@@ -137,8 +137,8 @@
             <div class="details-group">
               <span class="details-label">ESTADO DE ACCESO</span>
               <span class="details-value">
-                <span class="gym-badge" [class.gym-badge-success]="viewingCliente()?.activo && viewingCliente()?.membresiaEstado === 'activa'" [class.gym-badge-danger]="!viewingCliente()?.activo || viewingCliente()?.membresiaEstado === 'vencida'">
-                  {{ (!(viewingCliente()?.activo)) ? 'INACTIVO' : (viewingCliente()?.membresiaEstado === 'activa' ? 'VIGENTE' : 'VENCIDA') }}
+                <span class="gym-badge" [class.gym-badge-success]="viewingCliente()?.activo && viewingCliente()?.membresiaEstado === 'ACTIVA'" [class.gym-badge-danger]="!viewingCliente()?.activo || viewingCliente()?.membresiaEstado === 'VENCIDA'">
+                  {{ (!(viewingCliente()?.activo)) ? 'INACTIVO' : (viewingCliente()?.membresiaEstado === 'ACTIVA' ? 'VIGENTE' : 'VENCIDA') }}
                 </span>
               </span>
             </div>
@@ -188,6 +188,14 @@
             </div>
           </div>
 
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="dni">DNI / CÉDULA</label>
+            <input type="text" id="dni" name="dni" [ngModel]="clientForm.dni().value()" (ngModelChange)="clientForm.dni().set($event)" (blur)="dniTouched.set(true)" class="gym-form-control" placeholder="Número de cédula" />
+            @if (dniTouched() && dniErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ dniErrores() }}</div>
+            }
+          </div>
+
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
@@ -216,8 +224,8 @@
             </div>
 
             <div class="gym-form-group">
-              <label class="gym-form-label" for="altura">ALTURA (CM)</label>
-              <input type="number" id="altura" name="altura" [ngModel]="clientForm.altura().value()" (ngModelChange)="clientForm.altura().set($event)" (blur)="alturaTouched.set(true)" class="gym-form-control" />
+              <label class="gym-form-label" for="altura">ALTURA (M)</label>
+              <input type="number" id="altura" name="altura" step="0.01" [ngModel]="clientForm.altura().value()" (ngModelChange)="clientForm.altura().set($event)" (blur)="alturaTouched.set(true)" class="gym-form-control" />
               @if (alturaTouched() && alturaErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ alturaErrores() }}</div>
               }

@@ -22,24 +22,24 @@
         Todos
       </button>
       <button
-        (click)="setRolFilter('admin')"
+        (click)="setRolFilter('ADMINISTRADOR')"
         class="gym-btn"
-        [class.gym-btn-primary]="selectedRolFilter() === 'admin'"
-        [class.gym-btn-secondary]="selectedRolFilter() !== 'admin'">
+        [class.gym-btn-primary]="selectedRolFilter() === 'ADMINISTRADOR'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'ADMINISTRADOR'">
         Administradores
       </button>
       <button
-        (click)="setRolFilter('entrenador')"
+        (click)="setRolFilter('ENTRENADOR')"
         class="gym-btn"
-        [class.gym-btn-primary]="selectedRolFilter() === 'entrenador'"
-        [class.gym-btn-secondary]="selectedRolFilter() !== 'entrenador'">
+        [class.gym-btn-primary]="selectedRolFilter() === 'ENTRENADOR'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'ENTRENADOR'">
         Entrenadores
       </button>
       <button
-        (click)="setRolFilter('cliente')"
+        (click)="setRolFilter('CLIENTE')"
         class="gym-btn"
-        [class.gym-btn-primary]="selectedRolFilter() === 'cliente'"
-        [class.gym-btn-secondary]="selectedRolFilter() !== 'cliente'">
+        [class.gym-btn-primary]="selectedRolFilter() === 'CLIENTE'"
+        [class.gym-btn-secondary]="selectedRolFilter() !== 'CLIENTE'">
         Clientes
       </button>
     </div>
@@ -86,8 +86,8 @@
             <td>{{ user.email }}</td>
             <td>{{ user.telefono }}</td>
             <td>
-              <span class="gym-badge" [class.gym-badge-orange]="user.rol === 'admin'" [class.gym-badge-blue]="user.rol === 'entrenador'" [class.gym-badge-gray]="user.rol === 'cliente'">
-                {{ user.rol | uppercase }}
+              <span class="gym-badge" [class.gym-badge-orange]="user.rol === 'ADMINISTRADOR'" [class.gym-badge-blue]="user.rol === 'ENTRENADOR'" [class.gym-badge-gray]="user.rol === 'CLIENTE'">
+                {{ user.rol }}
               </span>
             </td>
             <td>
@@ -161,13 +161,18 @@
             }
           </div>
 
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="dni">DNI / CÉDULA</label>
+            <input type="text" id="dni" name="dni" [ngModel]="userForm.dni().value()" (ngModelChange)="userForm.dni().set($event)" class="gym-form-control" placeholder="Número de cédula" />
+          </div>
+
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="rol">ROL DE ACCESO</label>
               <select id="rol" name="rol" [ngModel]="userForm.rol().value()" (ngModelChange)="userForm.rol().set($event)" class="gym-form-control">
-                <option value="admin">Administrador</option>
-                <option value="entrenador">Entrenador</option>
-                <option value="cliente">Cliente</option>
+                <option value="ADMINISTRADOR">Administrador</option>
+                <option value="ENTRENADOR">Entrenador</option>
+                <option value="CLIENTE">Cliente</option>
               </select>
             </div>
 

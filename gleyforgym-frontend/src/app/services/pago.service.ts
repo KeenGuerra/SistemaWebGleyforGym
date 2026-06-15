@@ -8,7 +8,7 @@ import { MembresiaService } from './membresia.service';
 export class PagoService {
   private http = inject(HttpClient);
   private membresiaService = inject(MembresiaService);
-  private apiUrl = 'http://localhost:8000/api/pagos';
+  private apiUrl = 'http://localhost:8000/api/pagos/';
 
   private _pagos = signal<Pago[]>([]);
 

@@ -6,11 +6,14 @@ import { Rutina } from '../models/rutina';
 @Injectable({ providedIn: 'root' })
 export class RutinaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/rutinas';
+  private apiUrl = 'http://localhost:8000/api/rutinas/';
+  private objetivosUrl = 'http://localhost:8000/api/objetivos/';
 
   private _rutinas = signal<Rutina[]>([]);
+  private _objetivos = signal<{ id: number; nombre: string }[]>([]);
 
   readonly rutinas = this._rutinas.asReadonly();
+  readonly objetivos = this._objetivos.asReadonly();
 
   readonly rutinasActivas = computed(() =>
     this._rutinas().filter(r => r.activa)
@@ -50,6 +53,27 @@ export class RutinaService {
     }
   }
 
+  // Carga objetivos con caché — no vuelve a pedir si ya están en memoria
+  async cargarObjetivos(): Promise<void> {
+    if (this._objetivos().length > 0) return;
+    try {
+      const resp = await firstValueFrom(this.http.get<any[]>(this.objetivosUrl));
+      this._objetivos.set(resp.map(o => ({ id: o.id, nombre: o.nombre })));
+    } catch (err) {
+      console.error('Error al cargar objetivos:', err);
+    }
+  }
+
+  // Resuelve el ID de un objetivo por nombre (insensible a mayúsculas)
+  private resolverObjetivoId(nombreObjetivo: string): number {
+    const lista = this._objetivos();
+    if (lista.length === 0) return 1;
+    const match = lista.find(o =>
+      o.nombre.toLowerCase().trim() === nombreObjetivo.toLowerCase().trim()
+    );
+    return match ? match.id : (lista[0]?.id ?? 1);
+  }
+
   obtenerRutinas(): Rutina[] {
     return this._rutinas();
   }
@@ -63,44 +87,23 @@ export class RutinaService {
   }
 
   async agregarRutina(rutina: Omit<Rutina, 'id'>): Promise<void> {
-    let catalog: any[] = [];
-    try {
-      catalog = await firstValueFrom(this.http.get<any[]>('http://localhost:8000/api/rutinas/ejercicios'));
-    } catch (e) {
-      console.error('No se pudo cargar el catálogo de ejercicios:', e);
-    }
+    // 1. Resolver objetivo_id dinámicamente desde la BD
+    await this.cargarObjetivos();
+    const objetivoId = this.resolverObjetivoId(rutina.objetivo);
 
+    // 2. Preparar ejercicios (vacío al crear normalmente)
     const ejerciciosPayload: any[] = [];
     for (let i = 0; i < rutina.ejercicios.length; i++) {
       const ej = rutina.ejercicios[i];
-      let match = catalog.find(x => x.nombre.toLowerCase().trim() === ej.nombre.toLowerCase().trim());
-      
-      if (!match) {
-        try {
-          match = await firstValueFrom(this.http.post<any>('http://localhost:8000/api/rutinas/ejercicios', {
-            nombre: ej.nombre,
-            descripcion: 'Ejercicio autogenerado',
-            grupo_muscular_id: 1, // General
-            nivel: 'principiante',
-            video_url: '',
-            activo: true
-          }));
-          catalog.push(match);
-        } catch (err) {
-          match = { id: 1 };
-        }
-      }
-
       const descansoSegundos = parseInt(ej.descanso.replace(/\D/g, '')) || 60;
-      
       ejerciciosPayload.push({
         series: ej.series,
-        repeticiones: ej.repeticiones,
+        repeticiones: String(ej.repeticiones),
         descanso_segundos: descansoSegundos,
-        dia_semana: rutina.diasSemana && rutina.diasSemana.length > 0 ? rutina.diasSemana[0] : 'Lunes',
+        dia_semana: rutina.diasSemana?.length > 0 ? rutina.diasSemana[0] : 'Lunes',
         orden: i + 1,
         notas: ej.notas || '',
-        ejercicio_id: match.id
+        ejercicio_id: 1
       });
     }
 
@@ -108,13 +111,19 @@ export class RutinaService {
       nombre: rutina.nombre,
       nivel: rutina.nivel || 'principiante',
       descripcion: rutina.descripcion || '',
-      objetivo_id: 3, // Tonificación
+      objetivo_id: objetivoId,
       cliente_id: rutina.clienteId,
       ejercicios: ejerciciosPayload
     };
 
+    // entrenador_id solo se envía como query param cuando el rol es ADMINISTRADOR
+    // si es ENTRENADOR, el backend lo resuelve desde el token JWT
+    const entrenadorParam = rutina.entrenadorId && rutina.entrenadorId > 0
+      ? `?entrenador_id=${rutina.entrenadorId}`
+      : '';
+
     const response = await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}?entrenador_id=${rutina.entrenadorId || 1}`, payload)
+      this.http.post<any>(`${this.apiUrl}${entrenadorParam}`, payload)
     );
     const nuevaR = this.mapToRutina(response);
     this._rutinas.update(lista => [...lista, nuevaR]);
@@ -128,7 +137,7 @@ export class RutinaService {
       activa: datos.activa
     };
     const response = await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/${id}`, payload)
+      this.http.put<any>(`${this.apiUrl}${id}`, payload)
     );
     const actR = this.mapToRutina(response);
     this._rutinas.update(lista =>
@@ -137,7 +146,7 @@ export class RutinaService {
   }
 
   async desactivarRutina(id: number): Promise<void> {
-    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}${id}`));
     this._rutinas.update(lista =>
       lista.map(r => r.id === id ? { ...r, activa: false } : r)
     );

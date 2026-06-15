@@ -1,22 +1,49 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
-import { Rutina } from '../../../models/rutina';
+import { EntrenadorService } from '../../../services/entrenador.service';
+import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-rutinas-entrenador',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './rutinas-entrenador.html',
   styleUrl: './rutinas-entrenador.css',
 })
-export class RutinasEntrenador {
+export class RutinasEntrenador implements OnInit {
   private rutinaSvc = inject(RutinaService);
   private clienteSvc = inject(ClienteService);
+  private entrenadorSvc = inject(EntrenadorService);
+  private usuarioSvc = inject(UsuarioService);
 
-  readonly rutinas = computed(() => this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === 1));
-  readonly clientes = computed(() => this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1));
+  ngOnInit(): void {
+    this.entrenadorSvc.cargarEntrenadores();
+    this.rutinaSvc.cargarRutinas();
+    this.clienteSvc.cargarClientes();
+  }
+
+  // ID real del entrenador logueado (resuelto dinámicamente desde el token)
+  private readonly entrenadorIdActual = computed(() => {
+    const usuarioId = this.usuarioSvc.usuarioActual().id;
+    const ent = this.entrenadorSvc.getEntrenadorPorUsuarioId(usuarioId);
+    return ent?.id ?? 0;
+  });
+
+  // ✅ Usa signals reactivos → actualización automática al crear/eliminar
+  readonly rutinas = computed(() => {
+    const eid = this.entrenadorIdActual();
+    const todas = this.rutinaSvc.rutinas();
+    return eid > 0 ? todas.filter(r => r.entrenadorId === eid) : todas;
+  });
+
+  readonly clientes = computed(() => {
+    const eid = this.entrenadorIdActual();
+    const todos = this.clienteSvc.clientes();
+    return eid > 0 ? todos.filter(c => c.entrenadorId === eid) : todos;
+  });
 
   readonly rutinaExpandida = signal<number | null>(null);
   readonly mostrarFormulario = signal(false);
@@ -27,27 +54,43 @@ export class RutinasEntrenador {
   readonly diasDisponibles = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   readonly diasSeleccionados = signal<string[]>([]);
 
-  // Writable Signals de Formulario
-  readonly nombre = signal('');
-  readonly clienteId = signal<number>(0);
-  readonly nivel = signal('principiante');
-  readonly objetivo = signal('');
-  readonly descripcion = signal('');
+  // Signals de formulario (usados con (ngModelChange) para que computed() los detecte)
+  readonly nombreSig = signal('');
+  readonly clienteIdSig = signal(0);
+  readonly nivelSig = signal('principiante');
+  readonly objetivoSig = signal('');
+  readonly descripcionSig = signal('');
+
+  // Propiedades planas que ngModel usa como intermediarias
+  get nombreVal() { return this.nombreSig(); }
+  set nombreVal(v: string) { this.nombreSig.set(v); }
+
+  get clienteIdVal() { return this.clienteIdSig(); }
+  set clienteIdVal(v: number) { this.clienteIdSig.set(+v); }
+
+  get nivelVal() { return this.nivelSig(); }
+  set nivelVal(v: string) { this.nivelSig.set(v); }
+
+  get objetivoVal() { return this.objetivoSig(); }
+  set objetivoVal(v: string) { this.objetivoSig.set(v); }
+
+  get descripcionVal() { return this.descripcionSig(); }
+  set descripcionVal(v: string) { this.descripcionSig.set(v); }
 
   // Estados Touched
   readonly nombreTouched = signal(false);
   readonly clienteIdTouched = signal(false);
   readonly objetivoTouched = signal(false);
 
-  // Validaciones
-  readonly nombreInvalid = computed(() => this.nombre().trim() === '');
-  readonly nombreMinLength = computed(() => this.nombre().trim() !== '' && this.nombre().trim().length < 3);
-  readonly clienteIdInvalid = computed(() => this.clienteId() <= 0);
-  readonly objetivoInvalid = computed(() => this.objetivo().trim() === '');
+  // Validaciones reactivas (computed detecta cambios en los signals)
+  readonly nombreInvalid = computed(() => this.nombreSig().trim() === '');
+  readonly nombreMinLength = computed(() => this.nombreSig().trim() !== '' && this.nombreSig().trim().length < 3);
+  readonly clienteIdInvalid = computed(() => this.clienteIdSig() <= 0);
+  readonly objetivoInvalid = computed(() => this.objetivoSig().trim() === '');
 
-  readonly formInvalid = computed(() => {
-    return this.nombreInvalid() || this.nombreMinLength() || this.clienteIdInvalid() || this.objetivoInvalid();
-  });
+  readonly formInvalid = computed(() =>
+    this.nombreInvalid() || this.nombreMinLength() || this.clienteIdInvalid() || this.objetivoInvalid()
+  );
 
   toggleExpandir(id: number): void {
     this.rutinaExpandida.update(v => v === id ? null : id);
@@ -71,13 +114,13 @@ export class RutinasEntrenador {
     this.mostrarFormulario.update(v => !v);
     this.diasSeleccionados.set([]);
     this.error.set(null);
-    
-    // Resetear form
-    this.nombre.set('');
-    this.clienteId.set(0);
-    this.nivel.set('principiante');
-    this.objetivo.set('');
-    this.descripcion.set('');
+
+    // Resetear signals del formulario
+    this.nombreSig.set('');
+    this.clienteIdSig.set(0);
+    this.nivelSig.set('principiante');
+    this.objetivoSig.set('');
+    this.descripcionSig.set('');
 
     // Resetear touched
     this.nombreTouched.set(false);
@@ -98,33 +141,40 @@ export class RutinasEntrenador {
     this.cargando.set(true);
     this.error.set(null);
 
+    const entId = this.entrenadorIdActual();
+
     try {
       await this.rutinaSvc.agregarRutina({
-        nombre:       this.nombre(),
-        clienteId:    this.clienteId(),
-        entrenadorId: 1,
-        diasSemana:   this.diasSeleccionados(),
-        nivel:        this.nivel() as 'principiante' | 'intermedio' | 'avanzado',
-        objetivo:     this.objetivo(),
-        descripcion:  this.descripcion(),
-        ejercicios:   [],
+        nombre:        this.nombreSig(),
+        clienteId:     this.clienteIdSig(),
+        entrenadorId:  entId,
+        diasSemana:    this.diasSeleccionados(),
+        nivel:         this.nivelSig() as 'principiante' | 'intermedio' | 'avanzado',
+        objetivo:      this.objetivoSig(),
+        descripcion:   this.descripcionSig(),
+        ejercicios:    [],
         fechaCreacion: new Date().toISOString().split('T')[0],
-        activa:       true,
+        activa:        true,
       });
-      
+
       this.cargando.set(false);
       this.mensajeExito.set('Rutina creada exitosamente');
       this.mostrarFormulario.set(false);
-      setTimeout(() => this.mensajeExito.set(''), 3000);
+      this.nombreSig.set('');
+      this.clienteIdSig.set(0);
+      this.nivelSig.set('principiante');
+      this.objetivoSig.set('');
+      this.descripcionSig.set('');
+      this.diasSeleccionados.set([]);
+      setTimeout(() => this.mensajeExito.set(''), 3500);
     } catch (err: any) {
       this.cargando.set(false);
       let errorMsg = 'Error al registrar la rutina. Inténtelo de nuevo.';
-      if (err && err.error) {
+      if (err?.error) {
         if (typeof err.error.detail === 'string') {
           errorMsg = err.error.detail;
         } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
-          const firstErr = err.error.detail[0];
-          errorMsg = firstErr.msg || 'Error de validación';
+          errorMsg = err.error.detail[0].msg || 'Error de validación';
         } else if (err.error.message) {
           errorMsg = err.error.message;
         }
@@ -137,8 +187,11 @@ export class RutinasEntrenador {
     if (confirm('¿Deseas dar de baja esta rutina del plan de entrenamiento del socio?')) {
       try {
         await this.rutinaSvc.desactivarRutina(id);
-      } catch (err) {
-        console.error('Error al desactivar rutina:', err);
+        this.mensajeExito.set('Rutina desactivada correctamente.');
+        setTimeout(() => this.mensajeExito.set(''), 3000);
+      } catch (err: any) {
+        const detail = err?.error?.detail;
+        this.error.set(typeof detail === 'string' ? detail : 'Error al desactivar la rutina.');
       }
     }
   }
@@ -154,4 +207,3 @@ export class RutinasEntrenador {
       : 'gym-badge-danger';
   }
 }
-

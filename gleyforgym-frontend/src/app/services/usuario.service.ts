@@ -6,7 +6,7 @@ import { Usuario } from '../models/usuario';
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/usuarios';
+  private apiUrl = 'http://localhost:8000/api/usuarios/';
 
   private _usuarios = signal<Usuario[]>([]);
   private _usuarioActual = signal<Usuario | null>(null);
@@ -149,7 +149,7 @@ export class UsuarioService {
       password: (usuario as any).password || undefined
     };
     const response = await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/${usuario.id}`, payload)
+      this.http.put<any>(`${this.apiUrl}${usuario.id}`, payload)
     );
     const actU = this.mapToUsuario(response);
     this._usuarios.update(lista =>
@@ -161,7 +161,7 @@ export class UsuarioService {
   }
 
   async eliminarUsuario(id: number): Promise<void> {
-    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}${id}`));
     this._usuarios.update(lista =>
       lista.map(u => u.id === id ? { ...u, activo: false } : u)
     );

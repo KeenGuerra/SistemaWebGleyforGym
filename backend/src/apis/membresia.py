@@ -44,16 +44,14 @@ def check_admin_or_trainer(current_user: Usuario = Depends(get_current_user)):
 
 @router.get("/", response_model=list[MembresiaResponse])
 def get_membresias_catalogo(
-    db: Session = Depends(get_db),
-    user: Usuario = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     return membresia_service.get_catalog_all(db)
 
 @router.get("/{membresia_id}", response_model=MembresiaResponse)
 def get_membresia_catalogo_item(
     membresia_id: int,
-    db: Session = Depends(get_db),
-    user: Usuario = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     return membresia_service.get_catalog_by_id(db, membresia_id)
 

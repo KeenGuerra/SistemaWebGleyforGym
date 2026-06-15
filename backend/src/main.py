@@ -70,6 +70,9 @@ from src.apis.rutina import router as rutina_router
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
 from src.apis.dashboard import router as dashboard_router
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.apis.objetivo import router as objetivo_router
 
 # Registrar rutas
 app.include_router(auth_router, prefix="/api/auth", tags=["Autenticación"])
@@ -82,6 +85,7 @@ app.include_router(asistencia_router, prefix="/api/asistencias", tags=["Asistenc
 app.include_router(progreso_router, prefix="/api/progresos", tags=["Progreso de Clientes"])
 app.include_router(rutina_router, prefix="/api/rutinas", tags=["Rutinas y Ejercicios"])
 app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
+app.include_router(objetivo_router, prefix="/api/objetivos", tags=["Objetivos"])
 
 @app.get("/")
 def read_root():

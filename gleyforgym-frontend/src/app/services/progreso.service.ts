@@ -6,7 +6,7 @@ import { Progreso } from '../models/progreso';
 @Injectable({ providedIn: 'root' })
 export class ProgresoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/progresos';
+  private apiUrl = 'http://localhost:8000/api/progresos/';
 
   private _progresos = signal<Progreso[]>([]);
 

@@ -79,7 +79,7 @@ export class Rutinas implements OnInit {
 
   // Lista de rutinas decoradas
   readonly rutinasDecoradas = computed(() => {
-    const list = this.rutinaService.rutinas();
+    const list = this.rutinaService.rutinas().filter(r => r.activa);
     const query = this.searchQuery().toLowerCase().trim();
 
     const decoradas = list.map(r => {

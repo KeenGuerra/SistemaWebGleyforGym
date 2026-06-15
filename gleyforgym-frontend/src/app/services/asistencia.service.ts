@@ -9,7 +9,7 @@ const fmt = (d: Date) => d.toISOString().split('T')[0];
 @Injectable({ providedIn: 'root' })
 export class AsistenciaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/asistencias';
+  private apiUrl = 'http://localhost:8000/api/asistencias/';
 
   private _asistencias = signal<Asistencia[]>([]);
 
@@ -65,11 +65,11 @@ export class AsistenciaService {
       hora_entrada: asistencia.horaEntrada || new Date().toLocaleTimeString('es-ES', { hour12: false }).substring(0, 5)
     };
     
-    let response = await firstValueFrom(this.http.post<any>(`${this.apiUrl}/entrada`, payload));
+    let response = await firstValueFrom(this.http.post<any>(`${this.apiUrl}entrada`, payload));
 
     if (asistencia.horaSalida) {
       response = await firstValueFrom(
-        this.http.put<any>(`${this.apiUrl}/${response.id}/salida`, {
+        this.http.put<any>(`${this.apiUrl}${response.id}/salida`, {
           hora_salida: asistencia.horaSalida
         })
       );

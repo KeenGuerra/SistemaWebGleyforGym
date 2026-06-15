@@ -6,7 +6,7 @@ import { Entrenador } from '../models/entrenador';
 @Injectable({ providedIn: 'root' })
 export class EntrenadorService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/entrenadores';
+  private apiUrl = 'http://localhost:8000/api/entrenadores/';
 
   private _entrenadores = signal<Entrenador[]>([]);
 
@@ -33,8 +33,9 @@ export class EntrenadorService {
       especialidadIds: e.especialidades ? e.especialidades.map((sp: any) => sp.id) : [],
       especialidad: e.especialidades && e.especialidades.length > 0 ? e.especialidades[0].nombre : 'General',
       clientesAsignados: [],
-      certificaciones: []
-    };
+      certificaciones: [],
+      usuarioId: e.usuario.id  // Necesario para localizar al entrenador logueado
+    } as any;
   }
 
   async cargarEntrenadores(): Promise<Entrenador[]> {
@@ -57,6 +58,11 @@ export class EntrenadorService {
     return this._entrenadores().find(e => e.id === id);
   }
 
+  // Busca el entrenador por el ID de usuario (para el usuario logueado)
+  getEntrenadorPorUsuarioId(usuarioId: number): Entrenador | undefined {
+    return this._entrenadores().find(e => (e as any).usuarioId === usuarioId);
+  }
+
   async actualizarEntrenador(entrenador: Partial<Entrenador> & { id: number }): Promise<void> {
     const payload = {
       experiencia_anios: entrenador.experiencia,
@@ -68,7 +74,7 @@ export class EntrenadorService {
       activo: entrenador.activo
     };
     const response = await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/${entrenador.id}`, payload)
+      this.http.put<any>(`${this.apiUrl}${entrenador.id}`, payload)
     );
     const actE = this.mapToEntrenador(response);
     this._entrenadores.update(lista =>

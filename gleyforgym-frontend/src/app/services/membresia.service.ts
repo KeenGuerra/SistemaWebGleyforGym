@@ -6,7 +6,7 @@ import { Membresia, PlanMembresia } from '../models/membresia';
 @Injectable({ providedIn: 'root' })
 export class MembresiaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/membresias';
+  private apiUrl = 'http://localhost:8000/api/membresias/';
 
   private _membresias = signal<Membresia[]>([]);
   private _planes = signal<PlanMembresia[]>([]);
@@ -33,7 +33,7 @@ export class MembresiaService {
 
   async cargarMembresias(): Promise<Membresia[]> {
     try {
-      const resp = await firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/suscripciones/todas`));
+      const resp = await firstValueFrom(this.http.get<any[]>(`${this.apiUrl}suscripciones/todas`));
       const mapped = resp.map(cm => this.mapToMembresia(cm));
       this._membresias.set(mapped);
       return mapped;
@@ -76,7 +76,7 @@ export class MembresiaService {
     };
 
     const response = await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/renovar`, payload)
+      this.http.post<any>(`${this.apiUrl}renovar`, payload)
     );
     const nuevaM = this.mapToMembresia(response);
     this._membresias.update(lista => [...lista.filter(m => m.clienteId !== membresia.clienteId), nuevaM]);
@@ -110,7 +110,7 @@ export class MembresiaService {
     };
 
     const response = await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/renovar`, payload)
+      this.http.post<any>(`${this.apiUrl}renovar`, payload)
     );
     const nuevaM = this.mapToMembresia(response);
     this._membresias.update(lista => [...lista.filter(m => m.clienteId !== clienteId), nuevaM]);
@@ -149,7 +149,7 @@ export class MembresiaService {
     if (plan.activa !== undefined) payload.activa = plan.activa;
 
     const resp = await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/${id}`, payload)
+      this.http.put<any>(`${this.apiUrl}${id}`, payload)
     );
     const updated = this.mapToPlanMembresia(resp);
     this._planes.update(lista => lista.map(p => p.id === id ? updated : p));

@@ -6,7 +6,7 @@ import { Cliente } from '../models/cliente';
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/clientes';
+  private apiUrl = 'http://localhost:8000/api/clientes/';
 
   private _clientes = signal<Cliente[]>([]);
 
@@ -96,7 +96,7 @@ export class ClienteService {
       };
       try {
         const updatedResponse = await firstValueFrom(
-          this.http.put<any>(`${this.apiUrl}/${nuevoC.id}`, updatePayload)
+          this.http.put<any>(`${this.apiUrl}${nuevoC.id}`, updatePayload)
         );
         nuevoC = this.mapToCliente(updatedResponse);
       } catch (err) {
@@ -127,7 +127,7 @@ export class ClienteService {
       telefono: cliente.telefono
     };
     const response = await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/${cliente.id}`, payload)
+      this.http.put<any>(`${this.apiUrl}${cliente.id}`, payload)
     );
     const actC = this.mapToCliente(response);
     this._clientes.update(lista =>
@@ -136,7 +136,7 @@ export class ClienteService {
   }
 
   async eliminarCliente(id: number): Promise<void> {
-    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}${id}`));
     this._clientes.update(lista =>
       lista.map(c => c.id === id ? { ...c, activo: false } : c)
     );

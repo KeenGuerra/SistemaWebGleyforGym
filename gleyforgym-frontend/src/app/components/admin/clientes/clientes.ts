@@ -25,6 +25,7 @@ export class Clientes implements OnInit {
     this.clienteService.cargarClientes();
     this.entrenadorService.cargarEntrenadores();
     this.membresiaService.cargarMembresias();
+    this.membresiaService.cargarPlanes();
   }
 
   // Filtros
@@ -156,6 +157,9 @@ export class Clientes implements OnInit {
   // Lista de Entrenadores Activos para el select
   readonly entrenadores = this.entrenadorService.entrenadores;
 
+  // Lista de Planes de Membresía desde la BD
+  readonly planesMembresia = this.membresiaService.planes;
+
   // Lista decorada con nombres de entrenador y tipo de membresía
   readonly clientesDecorados = computed(() => {
     const list = this.clienteService.clientes();
@@ -189,7 +193,10 @@ export class Clientes implements OnInit {
 
   openAddModal(): void {
     this.editingCliente.set(null);
-    
+
+    // Usar el primer plan disponible en la BD como valor por defecto
+    const primerPlan = this.planesMembresia()[0];
+
     // Resetear form
     this.clientModel.set({
       nombre: '',
@@ -202,7 +209,7 @@ export class Clientes implements OnInit {
       peso: 70,
       altura: 1.70,
       entrenadorId: 1,
-      membresiaId: 1
+      membresiaId: primerPlan ? primerPlan.id : 1
     });
 
     // Resetear touched

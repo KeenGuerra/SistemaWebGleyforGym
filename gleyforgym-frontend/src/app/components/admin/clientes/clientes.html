@@ -268,10 +268,13 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="membresiaId">PLAN MEMBRESÍA</label>
-              <select id="membresiaId" name="membresiaId" [ngModel]="clientForm.membresiaId().value()" (ngModelChange)="clientForm.membresiaId().set($event)" (blur)="membresiaIdTouched.set(true)" class="gym-form-control">
-                <option [ngValue]="1">Mensual Premium (S/ 2,500)</option>
-                <option [ngValue]="2">Trimestral (S/ 6,500)</option>
-                <option [ngValue]="3">Mensual Básica (S/ 1,800)</option>
+              <select id="membresiaId" name="membresiaId" [ngModel]="clientForm.membresiaId().value()" (ngModelChange)="clientForm.membresiaId().set(+$event)" (blur)="membresiaIdTouched.set(true)" class="gym-form-control">
+                @if (planesMembresia().length === 0) {
+                  <option [ngValue]="0" disabled>Cargando planes...</option>
+                }
+                @for (plan of planesMembresia(); track plan.id) {
+                  <option [ngValue]="plan.id">{{ plan.nombre }} (S/ {{ plan.precio | number:'1.0-0' }}) — {{ plan.duracionDias }} días</option>
+                }
               </select>
               @if (membresiaIdTouched() && membresiaIdErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ membresiaIdErrores() }}</div>

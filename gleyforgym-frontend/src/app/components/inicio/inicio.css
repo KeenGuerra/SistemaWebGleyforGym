@@ -279,6 +279,45 @@
   justify-content: center;
 }
 
+/* Skeleton Loader */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-card {
+  pointer-events: none;
+  gap: 1rem;
+  padding: 2.25rem 1.5rem;
+}
+
+.skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #333333 50%, #2a2a2a 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.skeleton-title {
+  height: 18px;
+  width: 60%;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-price {
+  height: 52px;
+  width: 75%;
+}
+
+.skeleton-desc {
+  height: 12px;
+  width: 100%;
+}
+
+.skeleton-desc.short {
+  width: 70%;
+}
+
 /* Footer */
 .landing-footer {
   padding: 2.5rem 2rem;

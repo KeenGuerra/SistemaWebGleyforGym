@@ -55,7 +55,18 @@
       <p>Elige la opción que mejor se adapte a tu estilo de vida y objetivos.</p>
     </div>
     <div class="planes-grid">
-      @for (plan of planes; track plan.nombre) {
+      @if (planes().length === 0) {
+        <!-- Skeleton de carga -->
+        @for (i of [1,2,3,4]; track i) {
+          <div class="plan-card skeleton-card">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-price"></div>
+            <div class="skeleton-line skeleton-desc"></div>
+            <div class="skeleton-line skeleton-desc short"></div>
+          </div>
+        }
+      }
+      @for (plan of planes(); track plan.nombre) {
         <div class="plan-card" [class.destacado]="plan.destacado">
           @if (plan.destacado) {
             <span class="plan-badge">MÁS POPULAR</span>

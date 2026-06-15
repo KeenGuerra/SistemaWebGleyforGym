@@ -51,7 +51,8 @@
     </div>
 
     <!-- Card derecha: formulario -->
-    <div class="gym-card">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem; flex: 1;">
+      <div class="gym-card">
       @if (!modoEdicion()) {
         <!-- Vista de datos -->
         <div class="gym-section-title">
@@ -147,6 +148,88 @@
           </div>
         </form>
       }
+      </div>
+
+      <!-- Formulario 2: Seguridad / Cambiar Contraseña -->
+      <div class="gym-card">
+        <h3><i class="bi bi-key-fill text-primary"></i> Seguridad e Identidad</h3>
+        <p class="section-desc" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Cambia tu contraseña periódicamente para mantener protegida tu cuenta.</p>
+
+        <form (ngSubmit)="onSubmitPassword()" class="profile-form">
+          @if (pwdError()) {
+            <div class="gym-form-error" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center; padding: 0.75rem; border: 1px solid rgba(255, 102, 0, 0.3); background: rgba(255, 102, 0, 0.05); border-radius: 6px;">
+              <i class="bi bi-exclamation-triangle-fill" style="color: #ff6600;"></i>
+              <span style="color: #ffffff;">{{ pwdError() }}</span>
+            </div>
+          }
+          @if (pwdSuccessMessage()) {
+            <div class="gym-toast" style="position: static; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid rgba(40, 167, 69, 0.3); background: rgba(40, 167, 69, 0.05); border-radius: 6px;">
+              <i class="bi bi-check-circle-fill text-success"></i> {{ pwdSuccessMessage() }}
+            </div>
+          }
+
+          <div class="gym-form-group">
+            <label class="gym-form-label" for="currentPassword">CONTRASEÑA ACTUAL</label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              [ngModel]="passwordForm.currentPassword().value()"
+              (ngModelChange)="passwordForm.currentPassword().set($event)"
+              (blur)="currentPasswordTouched.set(true)"
+              class="gym-form-control"
+              placeholder="••••••••"
+            />
+            @if (currentPasswordTouched() && currentPasswordErrores()) {
+              <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ currentPasswordErrores() }}</div>
+            }
+          </div>
+
+          <div class="gym-form-row cols-2">
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="newPassword">NUEVA CONTRASEÑA</label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                [ngModel]="passwordForm.newPassword().value()"
+                (ngModelChange)="passwordForm.newPassword().set($event)"
+                (blur)="newPasswordTouched.set(true)"
+                class="gym-form-control"
+                placeholder="••••••••"
+              />
+              @if (newPasswordTouched() && newPasswordErrores()) {
+                <div class="gym-form-error">
+                  <i class="bi bi-info-circle"></i> {{ newPasswordErrores() }}
+                </div>
+              }
+            </div>
+
+            <div class="gym-form-group">
+              <label class="gym-form-label" for="confirmNewPassword">CONFIRMAR NUEVA CONTRASEÑA</label>
+              <input
+                type="password"
+                id="confirmNewPassword"
+                name="confirmNewPassword"
+                [ngModel]="passwordForm.confirmNewPassword().value()"
+                (ngModelChange)="passwordForm.confirmNewPassword().set($event)"
+                (blur)="confirmNewPasswordTouched.set(true)"
+                class="gym-form-control"
+                placeholder="••••••••"
+              />
+              @if (confirmNewPasswordTouched() && confirmNewPasswordErrores()) {
+                <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ confirmNewPasswordErrores() }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions-row" style="margin-top: 1rem;">
+            <button type="submit" [disabled]="!passwordFormValido() || pwdCargando()" class="gym-btn gym-btn-primary">
+              @if (pwdCargando()) { Guardando... } @else { Actualizar Contraseña }
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
   } @else {

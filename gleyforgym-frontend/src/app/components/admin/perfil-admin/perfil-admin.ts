@@ -159,7 +159,7 @@ export class PerfilAdmin implements OnInit {
     setTimeout(() => this.successMessage.set(''), 3000);
   }
 
-  onSubmitPassword(): void {
+  async onSubmitPassword(): Promise<void> {
     this.currentPasswordTouched.set(true);
     this.newPasswordTouched.set(true);
     this.confirmNewPasswordTouched.set(true);
@@ -171,21 +171,36 @@ export class PerfilAdmin implements OnInit {
     this.pwdCargando.set(true);
     this.pwdError.set(null);
 
-    // Como es mock, simplemente simulamos éxito
-    this.pwdCargando.set(false);
-    this.pwdError.set(null);
-    this.pwdSuccessMessage.set('Contraseña modificada exitosamente.');
-    
-    this.passwordModel.set({
-      currentPassword: '',
-      newPassword: '',
-      confirmNewPassword: ''
-    });
+    try {
+      await this.usuarioService.cambiarPassword(
+        this.passwordForm.currentPassword().value(),
+        this.passwordForm.newPassword().value()
+      );
+      this.pwdSuccessMessage.set('Contraseña modificada exitosamente.');
+      
+      this.passwordModel.set({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: ''
+      });
 
-    this.currentPasswordTouched.set(false);
-    this.newPasswordTouched.set(false);
-    this.confirmNewPasswordTouched.set(false);
-
-    setTimeout(() => this.pwdSuccessMessage.set(''), 3000);
+      this.currentPasswordTouched.set(false);
+      this.newPasswordTouched.set(false);
+      this.confirmNewPasswordTouched.set(false);
+      
+      setTimeout(() => this.pwdSuccessMessage.set(''), 3000);
+    } catch (err: any) {
+      let errorMsg = 'Error al cambiar la contraseña. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.pwdError.set(errorMsg);
+    } finally {
+      this.pwdCargando.set(false);
+    }
   }
 }

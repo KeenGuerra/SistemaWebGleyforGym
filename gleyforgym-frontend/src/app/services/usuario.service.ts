@@ -166,4 +166,14 @@ export class UsuarioService {
       lista.map(u => u.id === id ? { ...u, activo: false } : u)
     );
   }
+
+  async cambiarPassword(passwordActual: string, passwordNuevo: string): Promise<void> {
+    const payload = {
+      password_actual: passwordActual,
+      password_nuevo: passwordNuevo
+    };
+    await firstValueFrom(
+      this.http.post<any>('http://localhost:8000/api/auth/change-password', payload)
+    );
+  }
 }

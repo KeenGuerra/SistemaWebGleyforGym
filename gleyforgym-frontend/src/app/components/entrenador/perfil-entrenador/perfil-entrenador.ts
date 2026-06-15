@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
 import { EntrenadorService } from '../../../services/entrenador.service';
@@ -7,7 +8,7 @@ import { UsuarioService } from '../../../services/usuario.service';
 @Component({
   selector: 'app-perfil-entrenador',
   standalone: true,
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './perfil-entrenador.html',
   styleUrl: './perfil-entrenador.css',
 })
@@ -29,6 +30,11 @@ export class PerfilEntrenador {
   public cargando = signal(false);
   public error = signal<string | null>(null);
 
+  // Signals para Contraseña
+  public pwdCargando = signal(false);
+  public pwdError = signal<string | null>(null);
+  public pwdSuccessMessage = signal<string>('');
+
   // Modelo del Formulario
   public trainerModel = signal({
     nombre: '',
@@ -47,6 +53,19 @@ export class PerfilEntrenador {
   public telefonoTouched = signal(false);
   public especialidadTouched = signal(false);
   public experienciaTouched = signal(false);
+
+  // Modelo de Contraseña
+  public passwordModel = signal({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  public passwordForm = form(this.passwordModel);
+
+  // Estados Touched - Contraseña
+  public currentPasswordTouched = signal(false);
+  public newPasswordTouched = signal(false);
+  public confirmNewPasswordTouched = signal(false);
 
   // Validaciones
   public nombreErrores = computed(() => {
@@ -101,6 +120,35 @@ export class PerfilEntrenador {
       !this.telefonoErrores() &&
       !this.especialidadErrores() &&
       !this.experienciaErrores()
+    );
+  });
+
+  // Validaciones reactivas - Contraseña
+  public currentPasswordErrores = computed(() => {
+    const valor = this.passwordForm.currentPassword().value();
+    if (!valor) return 'La contraseña actual es obligatoria.';
+    return null;
+  });
+
+  public newPasswordErrores = computed(() => {
+    const valor = this.passwordForm.newPassword().value();
+    if (!valor) return 'La nueva contraseña es obligatoria.';
+    if (valor.length < 8) return 'La nueva contraseña debe tener al menos 8 caracteres.';
+    return null;
+  });
+
+  public confirmNewPasswordErrores = computed(() => {
+    const valor = this.passwordForm.confirmNewPassword().value();
+    if (!valor) return 'Confirmar contraseña es obligatorio.';
+    if (valor !== this.passwordForm.newPassword().value()) return 'Las contraseñas no coinciden.';
+    return null;
+  });
+
+  public passwordFormValido = computed(() => {
+    return (
+      !this.currentPasswordErrores() &&
+      !this.newPasswordErrores() &&
+      !this.confirmNewPasswordErrores()
     );
   });
 
@@ -171,6 +219,51 @@ export class PerfilEntrenador {
       this.error.set(err.message || 'Error al actualizar el perfil.');
     } finally {
       this.cargando.set(false);
+    }
+  }
+
+  async onSubmitPassword(): Promise<void> {
+    this.currentPasswordTouched.set(true);
+    this.newPasswordTouched.set(true);
+    this.confirmNewPasswordTouched.set(true);
+
+    if (!this.passwordFormValido()) {
+      return;
+    }
+
+    this.pwdCargando.set(true);
+    this.pwdError.set(null);
+
+    try {
+      await this.usuarioSvc.cambiarPassword(
+        this.passwordForm.currentPassword().value(),
+        this.passwordForm.newPassword().value()
+      );
+      this.pwdSuccessMessage.set('Contraseña modificada exitosamente.');
+      
+      this.passwordModel.set({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: ''
+      });
+
+      this.currentPasswordTouched.set(false);
+      this.newPasswordTouched.set(false);
+      this.confirmNewPasswordTouched.set(false);
+
+      setTimeout(() => this.pwdSuccessMessage.set(''), 3000);
+    } catch (err: any) {
+      let errorMsg = 'Error al cambiar la contraseña. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.pwdError.set(errorMsg);
+    } finally {
+      this.pwdCargando.set(false);
     }
   }
 }

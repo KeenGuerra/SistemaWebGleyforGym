@@ -11,3 +11,12 @@ export interface Membresia {
   diasRestantes?: number;
   duracionDias?: number; // Para el catálogo de membresía
 }
+
+export interface PlanMembresia {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  duracionDias: number;
+  activa: boolean;
+}

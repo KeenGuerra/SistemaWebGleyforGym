@@ -5,7 +5,7 @@ import { form } from '../../../utils/signal-form';
 import { MembresiaService } from '../../../services/membresia.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { PagoService } from '../../../services/pago.service';
-import { Membresia } from '../../../models/membresia';
+import { Membresia, PlanMembresia } from '../../../models/membresia';
 
 @Component({
   selector: 'app-membresias',
@@ -23,7 +23,11 @@ export class Membresias implements OnInit {
     this.membresiaService.cargarMembresias();
     this.clienteService.cargarClientes();
     this.pagoService.cargarPagos();
+    this.membresiaService.cargarPlanes();
   }
+
+  // Control de pestañas (Tabs)
+  readonly activeTab = signal<'suscripciones' | 'planes'>('suscripciones');
 
   // Filtros
   readonly selectedFilter = signal<'todas' | 'activas' | 'vencidas'>('todas');
@@ -31,6 +35,10 @@ export class Membresias implements OnInit {
   // Modales
   readonly showRenewModal = signal<boolean>(false);
   readonly selectedMembresia = signal<Membresia | null>(null);
+
+  readonly showPlanModal = signal<boolean>(false);
+  readonly editingPlan = signal<PlanMembresia | null>(null);
+  readonly planes = this.membresiaService.planes;
 
   // Signals de Carga y Error
   public cargando = signal(false);
@@ -75,6 +83,46 @@ export class Membresias implements OnInit {
     return !this.tipoErrores() && !this.precioErrores() && !this.mesesErrores();
   });
 
+  // Modelo del Formulario de Plan Base (Catálogo)
+  public planModel = signal({
+    nombre: '',
+    descripcion: '',
+    precio: 0,
+    duracionDias: 30,
+    activa: true
+  });
+  public planForm = form(this.planModel);
+
+  // Estados Touched - Plan Base
+  public planNombreTouched = signal(false);
+  public planPrecioTouched = signal(false);
+  public planDuracionTouched = signal(false);
+
+  // Validaciones - Plan Base
+  public planNombreErrores = computed(() => {
+    const valor = this.planForm.nombre().value().trim();
+    if (!valor) return 'El nombre del plan es obligatorio.';
+    return null;
+  });
+
+  public planPrecioErrores = computed(() => {
+    const valor = this.planForm.precio().value();
+    if (valor === null || valor === undefined) return 'El precio es obligatorio.';
+    if (valor < 0) return 'El precio no puede ser negativo.';
+    return null;
+  });
+
+  public planDuracionErrores = computed(() => {
+    const valor = this.planForm.duracionDias().value();
+    if (valor === null || valor === undefined) return 'La duración es obligatoria.';
+    if (valor <= 0) return 'La duración en días debe ser mayor a cero.';
+    return null;
+  });
+
+  public planFormValido = computed(() => {
+    return !this.planNombreErrores() && !this.planPrecioErrores() && !this.planDuracionErrores();
+  });
+
   // Lista decorada con nombres
   readonly membresiasDecoradas = computed(() => {
     const list = this.membresiaService.membresias();
@@ -104,11 +152,16 @@ export class Membresias implements OnInit {
 
   openRenewModal(membresia: Membresia): void {
     this.selectedMembresia.set(membresia);
+
+    // Buscar el plan real que coincide con el tipo actual de la membresía
+    const planesDisponibles = this.planes();
+    const planActual = planesDisponibles.find(p => p.nombre === membresia.tipo) ?? planesDisponibles[0];
+
     this.renewModel.set({
       clienteId: membresia.clienteId,
-      tipo: membresia.tipo,
-      precio: membresia.precio,
-      meses: 1
+      tipo: planActual ? planActual.nombre : membresia.tipo,
+      precio: planActual ? planActual.precio : membresia.precio,
+      meses: planActual ? Math.round(planActual.duracionDias / 30) || 1 : 1
     });
 
     this.tipoTouched.set(false);
@@ -124,27 +177,15 @@ export class Membresias implements OnInit {
   }
 
   onPlanChange(event: Event): void {
-    const plan = (event.target as HTMLSelectElement).value;
-    let pVal = 2500;
-    let mVal = 1;
+    const planNombre = (event.target as HTMLSelectElement).value;
+    const planSeleccionado = this.planes().find(p => p.nombre === planNombre);
 
-    if (plan === 'Mensual Premium') {
-      pVal = 2500;
-      mVal = 1;
-    } else if (plan === 'Trimestral') {
-      pVal = 6500;
-      mVal = 3;
-    } else if (plan === 'Mensual Básica') {
-      pVal = 1800;
-      mVal = 1;
-    } else if (plan === 'Anual') {
-      pVal = 24000;
-      mVal = 12;
-    }
+    const pVal = planSeleccionado ? planSeleccionado.precio : 0;
+    const mVal = planSeleccionado ? Math.round(planSeleccionado.duracionDias / 30) || 1 : 1;
 
     this.renewModel.update(m => ({
       ...m,
-      tipo: plan,
+      tipo: planNombre,
       precio: pVal,
       meses: mVal
     }));
@@ -197,6 +238,86 @@ export class Membresias implements OnInit {
       }
     } else {
       this.closeRenewModal();
+    }
+  }
+
+  openPlanModal(plan?: PlanMembresia): void {
+    if (plan) {
+      this.editingPlan.set(plan);
+      this.planModel.set({
+        nombre: plan.nombre,
+        descripcion: plan.descripcion,
+        precio: plan.precio,
+        duracionDias: plan.duracionDias,
+        activa: plan.activa
+      });
+    } else {
+      this.editingPlan.set(null);
+      this.planModel.set({
+        nombre: '',
+        descripcion: '',
+        precio: 0,
+        duracionDias: 30,
+        activa: true
+      });
+    }
+
+    this.planNombreTouched.set(false);
+    this.planPrecioTouched.set(false);
+    this.planDuracionTouched.set(false);
+    this.error.set(null);
+    this.showPlanModal.set(true);
+  }
+
+  closePlanModal(): void {
+    this.showPlanModal.set(false);
+    this.editingPlan.set(null);
+  }
+
+  async savePlan(): Promise<void> {
+    this.planNombreTouched.set(true);
+    this.planPrecioTouched.set(true);
+    this.planDuracionTouched.set(true);
+
+    if (!this.planFormValido()) {
+      return;
+    }
+
+    this.cargando.set(true);
+    this.error.set(null);
+
+    const values = {
+      nombre: this.planForm.nombre().value(),
+      descripcion: this.planForm.descripcion().value(),
+      precio: this.planForm.precio().value(),
+      duracionDias: this.planForm.duracionDias().value(),
+      activa: this.planForm.activa().value()
+    };
+
+    const editing = this.editingPlan();
+
+    try {
+      if (editing) {
+        await this.membresiaService.actualizarPlanBase(editing.id, values);
+      } else {
+        await this.membresiaService.crearPlanBase(values);
+      }
+      this.cargando.set(false);
+      this.closePlanModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al guardar el plan de membresía. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
     }
   }
 }

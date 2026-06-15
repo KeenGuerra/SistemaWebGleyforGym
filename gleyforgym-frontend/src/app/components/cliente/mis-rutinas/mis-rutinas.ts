@@ -1,5 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { RutinaService } from '../../../services/rutina.service';
+import { UsuarioService } from '../../../services/usuario.service';
+import { ClienteService } from '../../../services/cliente.service';
 import { Rutina } from '../../../models/rutina';
 
 @Component({
@@ -11,12 +13,20 @@ import { Rutina } from '../../../models/rutina';
 })
 export class MisRutinas {
   private rutinaSvc = inject(RutinaService);
+  private usuarioSvc = inject(UsuarioService);
+  private clienteSvc = inject(ClienteService);
 
-  private readonly CLIENTE_ID = 5;
+  readonly clienteActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly CLIENTE_ID = computed(() => this.clienteActual()?.id || 0);
 
   readonly rutinas   = computed(() =>
-    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID && r.activa)
+    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID() && r.activa)
   );
+
   readonly rutinaSeleccionada = signal<number | null>(null);
 
   seleccionar(id: number): void {

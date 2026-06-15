@@ -1,112 +1,169 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/usuario';
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
+  private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8000/api/usuarios';
 
-  private _usuarios = signal<Usuario[]>([
-    {
-      id: 1, nombre: 'Carlos', apellido: 'Ramírez', dni: '222222222222', email: 'carlos.ramirez@gleyforgym.com',
-      telefono: '809-555-1234', rol: 'ENTRENADOR', activo: true, fechaRegistro: '2024-01-15'
-    },
-    {
-      id: 2, nombre: 'Sofía', apellido: 'Castro', dni: '333333333333', email: 'sofia.castro@gleyforgym.com',
-      telefono: '809-555-4567', rol: 'ENTRENADOR', activo: true, fechaRegistro: '2024-02-01'
-    },
-    {
-      id: 5, nombre: 'María', apellido: 'González', dni: '444444444444', email: 'maria.gonzalez@email.com',
-      telefono: '809-555-5678', rol: 'CLIENTE', activo: true, fechaRegistro: '2024-03-10'
-    },
-    {
-      id: 6, nombre: 'José', apellido: 'Martínez', dni: '555555555555', email: 'jose.martinez@email.com',
-      telefono: '809-555-9012', rol: 'CLIENTE', activo: true, fechaRegistro: '2024-02-20'
-    },
-    {
-      id: 7, nombre: 'Ana', apellido: 'López', dni: '666666666666', email: 'ana.lopez@email.com',
-      telefono: '809-555-3456', rol: 'CLIENTE', activo: true, fechaRegistro: '2024-04-05'
-    },
-    {
-      id: 8, nombre: 'Pedro', apellido: 'Sánchez', dni: '888888888888', email: 'pedro.sanchez@email.com',
-      telefono: '809-555-7890', rol: 'CLIENTE', activo: false, fechaRegistro: '2024-01-30'
-    },
-    {
-      id: 9, nombre: 'Laura', apellido: 'Díaz', dni: '777777777777', email: 'laura.diaz@email.com',
-      telefono: '809-555-2345', rol: 'CLIENTE', activo: true, fechaRegistro: '2024-05-12'
-    },
-    {
-      id: 10, nombre: 'Abraham', apellido: 'Gómez', dni: '111111111111', email: 'admin@gleyforgym.com',
-      telefono: '809-555-0000', rol: 'ADMINISTRADOR', activo: true, fechaRegistro: '2024-01-01'
-    }
-  ]);
-
-  private _usuarioActual = signal<Usuario>({
-    id: 10,
-    nombre: 'Abraham',
-    apellido: 'Gómez',
-    dni: '111111111111',
-    email: 'admin@gleyforgym.com',
-    telefono: '809-555-0000',
-    rol: 'ADMINISTRADOR',
-    activo: true,
-    fechaRegistro: '2024-01-01',
-  });
+  private _usuarios = signal<Usuario[]>([]);
+  private _usuarioActual = signal<Usuario | null>(null);
 
   readonly usuarios = this._usuarios.asReadonly();
-  readonly usuarioActual = this._usuarioActual.asReadonly();
-
-  readonly nombreCompleto = computed(() =>
-    `${this._usuarioActual().nombre} ${this._usuarioActual().apellido}`
-  );
-
-  readonly iniciales = computed(() => {
+  
+  readonly usuarioActual = computed(() => {
     const u = this._usuarioActual();
-    return `${u.nombre.charAt(0)}${u.apellido.charAt(0)}`.toUpperCase();
+    if (u) return u;
+    // Fallback seguro si no hay sesión
+    return {
+      id: 0, nombre: 'Invitado', apellido: '', dni: '', email: '',
+      telefono: '', rol: 'CLIENTE' as const, activo: false, fechaRegistro: ''
+    };
   });
 
+  readonly nombreCompleto = computed(() => {
+    const u = this.usuarioActual();
+    return `${u.nombre} ${u.apellido}`.trim();
+  });
+
+  readonly iniciales = computed(() => {
+    const u = this.usuarioActual();
+    if (!u.nombre) return 'US';
+    return `${u.nombre.charAt(0)}${u.apellido?.charAt(0) || ''}`.toUpperCase();
+  });
+
+  constructor() {
+    this.checkSession();
+  }
+
+  private mapToUsuario(u: any): Usuario {
+    return {
+      id: u.id,
+      nombre: u.nombre,
+      apellido: u.apellido,
+      dni: u.dni,
+      email: u.correo,
+      telefono: u.telefono,
+      rol: u.rol,
+      activo: u.activo,
+      fechaRegistro: u.fecha_registro,
+      avatar: u.avatar
+    };
+  }
+
+  async checkSession(): Promise<Usuario | null> {
+    if (typeof window === 'undefined') return null;
+    const token = localStorage.getItem('access_token');
+    if (!token) return null;
+    try {
+      const u = await firstValueFrom(this.http.get<any>('http://localhost:8000/api/auth/me'));
+      const mapped = this.mapToUsuario(u);
+      this._usuarioActual.set(mapped);
+      return mapped;
+    } catch (err) {
+      localStorage.removeItem('access_token');
+      this._usuarioActual.set(null);
+      return null;
+    }
+  }
+
+  async login(correo: string, contrasenia: string): Promise<Usuario | null> {
+    const resp = await firstValueFrom(
+      this.http.post<any>('http://localhost:8000/api/auth/login', { correo, password: contrasenia })
+    );
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', resp.access_token);
+    }
+    const user = await this.checkSession();
+    return user;
+  }
+
+  logout(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+    }
+    this._usuarioActual.set(null);
+    this._usuarios.set([]);
+  }
+
   getUsuarioActual(): Usuario {
-    return this._usuarioActual();
+    return this.usuarioActual();
   }
 
   obtenerUsuarios(): Usuario[] {
     return this._usuarios();
   }
 
-  registrarUsuario(usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Usuario {
-    const nuevoId = Math.max(...this._usuarios().map(u => u.id)) + 1;
-    const nuevoUsuario: Usuario = { ...usuario, id: nuevoId, fechaRegistro: new Date().toISOString().split('T')[0] };
-    this._usuarios.update(lista => [...lista, nuevoUsuario]);
-    return nuevoUsuario;
-  }
-
-  actualizarUsuario(usuario: Usuario): void {
-    this._usuarios.update(lista =>
-      lista.map(u => u.id === usuario.id ? { ...u, ...usuario } : u)
-    );
-    if (this._usuarioActual().id === usuario.id) {
-      this._usuarioActual.set(usuario);
+  async cargarUsuarios(): Promise<Usuario[]> {
+    try {
+      const users = await firstValueFrom(this.http.get<any[]>(this.apiUrl));
+      const mapped = users.map(u => this.mapToUsuario(u));
+      this._usuarios.set(mapped);
+      return mapped;
+    } catch (err) {
+      console.error('Error al cargar usuarios:', err);
+      return [];
     }
   }
 
-  eliminarUsuario(id: number): void {
+  async registrarUsuario(usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Promise<Usuario> {
+    const payload = {
+      ...usuario,
+      correo: usuario.email,
+      password: (usuario as any).password || 'gleyfor1234' // Contraseña temporal por defecto
+    };
+    const response = await firstValueFrom(this.http.post<any>(this.apiUrl, payload));
+    const nuevoU = this.mapToUsuario(response);
+    this._usuarios.update(lista => [...lista, nuevoU]);
+    return nuevoU;
+  }
+
+  async registrarPublico(usuario: any): Promise<Usuario> {
+    const randomDni = usuario.dni || Math.floor(10000000 + Math.random() * 90000000).toString();
+    const response = await firstValueFrom(
+      this.http.post<any>('http://localhost:8000/api/auth/register', {
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        correo: usuario.email,
+        telefono: usuario.telefono,
+        password: usuario.password,
+        dni: randomDni,
+        rol: 'CLIENTE',
+        activo: true
+      })
+    );
+    return this.mapToUsuario(response);
+  }
+
+  async actualizarUsuario(usuario: Usuario): Promise<void> {
+    const payload = {
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      dni: usuario.dni,
+      correo: usuario.email,
+      telefono: usuario.telefono,
+      rol: usuario.rol,
+      activo: usuario.activo,
+      password: (usuario as any).password || undefined
+    };
+    const response = await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/${usuario.id}`, payload)
+    );
+    const actU = this.mapToUsuario(response);
+    this._usuarios.update(lista =>
+      lista.map(u => u.id === actU.id ? actU : u)
+    );
+    if (this._usuarioActual()?.id === actU.id) {
+      this._usuarioActual.set(actU);
+    }
+  }
+
+  async eliminarUsuario(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
     this._usuarios.update(lista =>
       lista.map(u => u.id === id ? { ...u, activo: false } : u)
     );
-  }
-
-  loginSimulado(email: string, contrasenia: string): Usuario | null {
-    const u = this._usuarios().find(user => user.email === email);
-    if (u && contrasenia) {
-      this._usuarioActual.set(u);
-      return u;
-    }
-    return null;
-  }
-
-  simularRol(rol: 'ADMINISTRADOR' | 'ENTRENADOR' | 'CLIENTE'): void {
-    const u = this._usuarios().find(user => user.rol === rol);
-    if (u) {
-      this._usuarioActual.set(u);
-    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
@@ -13,9 +13,14 @@ import { Ejercicio, NivelRutina } from '../../../models/rutina';
   templateUrl: './rutinas.html',
   styleUrl: './rutinas.css',
 })
-export class Rutinas {
+export class Rutinas implements OnInit {
   private rutinaService = inject(RutinaService);
   private clienteService = inject(ClienteService);
+
+  ngOnInit(): void {
+    this.rutinaService.cargarRutinas();
+    this.clienteService.cargarClientes();
+  }
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -117,7 +122,7 @@ export class Rutinas {
     this.showModal.set(false);
   }
 
-  saveRutina(): void {
+  async saveRutina(): Promise<void> {
     this.clienteIdTouched.set(true);
     this.nombreTouched.set(true);
     this.descripcionTouched.set(true);
@@ -156,26 +161,45 @@ export class Rutinas {
       ];
     }
 
-    this.rutinaService.agregarRutina({
-      clienteId: Number(this.rutinaForm.clienteId().value()),
-      entrenadorId: 1, // Por defecto asignada por admin (entrenador 1)
-      nombre: this.rutinaForm.nombre().value(),
-      diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
-      nivel: nivelVal,
-      objetivo: this.rutinaForm.objetivo().value(),
-      descripcion: this.rutinaForm.descripcion().value(),
-      fechaCreacion: new Date().toISOString().split('T')[0],
-      activa: true,
-      ejercicios: ejerciciosSimulados
-    });
-
-    this.cargando.set(false);
-    this.closeModal();
+    try {
+      await this.rutinaService.agregarRutina({
+        clienteId: Number(this.rutinaForm.clienteId().value()),
+        entrenadorId: 1, // Por defecto asignada por admin (entrenador 1)
+        nombre: this.rutinaForm.nombre().value(),
+        diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
+        nivel: nivelVal,
+        objetivo: this.rutinaForm.objetivo().value(),
+        descripcion: this.rutinaForm.descripcion().value(),
+        fechaCreacion: new Date().toISOString().split('T')[0],
+        activa: true,
+        ejercicios: ejerciciosSimulados
+      });
+      this.cargando.set(false);
+      this.closeModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar la rutina. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 
-  desactivarRutina(id: number): void {
+  async desactivarRutina(id: number): Promise<void> {
     if (confirm('¿Deseas dar de baja esta rutina del plan de entrenamiento del socio?')) {
-      this.rutinaService.desactivarRutina(id);
+      try {
+        await this.rutinaService.desactivarRutina(id);
+      } catch (err) {
+        console.error('Error al desactivar rutina:', err);
+      }
     }
   }
 }

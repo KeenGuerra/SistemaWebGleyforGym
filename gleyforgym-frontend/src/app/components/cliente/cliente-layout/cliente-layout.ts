@@ -1,7 +1,12 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
 import { MembresiaService } from '../../../services/membresia.service';
+import { ClienteService } from '../../../services/cliente.service';
+import { PagoService } from '../../../services/pago.service';
+import { AsistenciaService } from '../../../services/asistencia.service';
+import { RutinaService } from '../../../services/rutina.service';
+import { ProgresoService } from '../../../services/progreso.service';
 
 @Component({
   selector: 'app-cliente-layout',
@@ -10,17 +15,47 @@ import { MembresiaService } from '../../../services/membresia.service';
   templateUrl: './cliente-layout.html',
   styleUrl: './cliente-layout.css',
 })
-export class ClienteLayout {
+export class ClienteLayout implements OnInit {
   private usuarioSvc = inject(UsuarioService);
+  private clienteSvc = inject(ClienteService);
   private membresiaSvc = inject(MembresiaService);
+  private pagoSvc = inject(PagoService);
+  private asistenciaSvc = inject(AsistenciaService);
+  private rutinaSvc = inject(RutinaService);
+  private progresoSvc = inject(ProgresoService);
   private router = inject(Router);
+
+  ngOnInit(): void {
+    if (typeof window === 'undefined') return;
+    this.usuarioSvc.checkSession().then(user => {
+      if (!user || user.rol !== 'CLIENTE') {
+        this.usuarioSvc.logout();
+        this.router.navigate(['/login']);
+      } else {
+        // Cargar datos
+        this.clienteSvc.cargarClientes();
+        this.membresiaSvc.cargarMembresias();
+        this.pagoSvc.cargarPagos();
+        this.asistenciaSvc.cargarAsistencias();
+        this.rutinaSvc.cargarRutinas();
+        this.progresoSvc.cargarProgresos();
+      }
+    });
+  }
 
   readonly usuario = this.usuarioSvc.usuarioActual;
   readonly iniciales = this.usuarioSvc.iniciales;
   readonly nombreCompleto = this.usuarioSvc.nombreCompleto;
 
+  readonly clienteActual = computed(() => {
+    const user = this.usuario();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly clienteId = computed(() => this.clienteActual()?.id || 0);
+
   readonly membresia = computed(() =>
-    this.membresiaSvc.getMembresiaActiva(5)
+    this.membresiaSvc.getMembresiaActiva(this.clienteId())
   );
 
   readonly menuItems = [
@@ -48,6 +83,7 @@ export class ClienteLayout {
 
   logout(): void {
     this.closeSidebar();
+    this.usuarioSvc.logout();
     this.router.navigate(['/login']);
   }
 }

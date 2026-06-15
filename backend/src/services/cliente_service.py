@@ -158,7 +158,8 @@ class ClienteService:
             membresia_id=membresia_id,
             membresia_tipo=membresia_tipo,
             membresia_estado=membresia_estado,
-            membresia_fin=membresia_fin
+            membresia_fin=membresia_fin,
+            fecha_modificacion=c.fecha_modificacion
         )
 
 cliente_service = ClienteService()

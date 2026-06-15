@@ -21,6 +21,8 @@ export class RutinasEntrenador {
   readonly rutinaExpandida = signal<number | null>(null);
   readonly mostrarFormulario = signal(false);
   readonly mensajeExito = signal('');
+  readonly cargando = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly diasDisponibles = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   readonly diasSeleccionados = signal<string[]>([]);
@@ -68,6 +70,7 @@ export class RutinasEntrenador {
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.diasSeleccionados.set([]);
+    this.error.set(null);
     
     // Resetear form
     this.nombre.set('');
@@ -83,7 +86,7 @@ export class RutinasEntrenador {
     this.mensajeExito.set('');
   }
 
-  guardar(): void {
+  async guardar(): Promise<void> {
     this.nombreTouched.set(true);
     this.clienteIdTouched.set(true);
     this.objetivoTouched.set(true);
@@ -92,26 +95,52 @@ export class RutinasEntrenador {
       return;
     }
 
-    this.rutinaSvc.agregarRutina({
-      nombre:       this.nombre(),
-      clienteId:    this.clienteId(),
-      entrenadorId: 1,
-      diasSemana:   this.diasSeleccionados(),
-      nivel:        this.nivel() as 'principiante' | 'intermedio' | 'avanzado',
-      objetivo:     this.objetivo(),
-      descripcion:  this.descripcion(),
-      ejercicios:   [],
-      fechaCreacion: new Date().toISOString().split('T')[0],
-      activa:       true,
-    });
-    
-    this.mensajeExito.set('Rutina creada exitosamente');
-    this.mostrarFormulario.set(false);
-    setTimeout(() => this.mensajeExito.set(''), 3000);
+    this.cargando.set(true);
+    this.error.set(null);
+
+    try {
+      await this.rutinaSvc.agregarRutina({
+        nombre:       this.nombre(),
+        clienteId:    this.clienteId(),
+        entrenadorId: 1,
+        diasSemana:   this.diasSeleccionados(),
+        nivel:        this.nivel() as 'principiante' | 'intermedio' | 'avanzado',
+        objetivo:     this.objetivo(),
+        descripcion:  this.descripcion(),
+        ejercicios:   [],
+        fechaCreacion: new Date().toISOString().split('T')[0],
+        activa:       true,
+      });
+      
+      this.cargando.set(false);
+      this.mensajeExito.set('Rutina creada exitosamente');
+      this.mostrarFormulario.set(false);
+      setTimeout(() => this.mensajeExito.set(''), 3000);
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar la rutina. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 
-  desactivar(id: number): void {
-    this.rutinaSvc.desactivarRutina(id);
+  async desactivar(id: number): Promise<void> {
+    if (confirm('¿Deseas dar de baja esta rutina del plan de entrenamiento del socio?')) {
+      try {
+        await this.rutinaSvc.desactivarRutina(id);
+      } catch (err) {
+        console.error('Error al desactivar rutina:', err);
+      }
+    }
   }
 
   getNombreCliente(clienteId: number): string {

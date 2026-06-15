@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session
 from src.database.connection import get_db
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
-from src.core.security import get_current_user
+from src.core.security import get_current_user, get_password_hash
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
 from src.schemas.auth import LoginRequest, TokenResponse
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
-from src.schemas.usuario import UsuarioResponse, CambiarPasswordRequest
+from src.schemas.usuario import UsuarioResponse, CambiarPasswordRequest, UsuarioCreate
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
 from src.database.models import Usuario
@@ -21,6 +21,9 @@ from src.services.auth_service import auth_service
 # pyrefly: ignore [missing-import]
 # pyright: ignore [reportMissingImports]
 from src.services.usuario_service import usuario_service
+# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports]
+from src.repository.usuario_repository import usuario_repository
 
 router = APIRouter()
 
@@ -37,6 +40,42 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UsuarioResponse)
 def read_current_user(current_user: Usuario = Depends(get_current_user)):
     return current_user
+
+@router.post("/register", response_model=UsuarioResponse)
+def register_cliente(
+    usuario_in: UsuarioCreate,
+    db: Session = Depends(get_db)
+):
+    import random
+    # Generar un DNI aleatorio si viene vacío
+    if not usuario_in.dni:
+        usuario_in.dni = "".join(random.choices("0123456789", k=10))
+    
+    # Crear el usuario con rol CLIENTE
+    usuario_in.rol = "CLIENTE"
+    existing_user = usuario_repository.get_by_correo(db, usuario_in.correo)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El correo electrónico ya se encuentra registrado"
+        )
+    
+    hashed_pw = get_password_hash(usuario_in.password)
+    db_user = usuario_repository.create(db, usuario_in, hashed_pw)
+    
+    # Crear registro de cliente asociado
+    from src.schemas.cliente import ClienteCreate
+    from src.repository.cliente_repository import cliente_repository
+    cliente_in = ClienteCreate(
+        usuario=usuario_in,
+        objetivo_id=3, # Tonificación por defecto
+        peso=70.0,
+        altura=1.70,
+        activo=True
+    )
+    cliente_repository.create(db, db_user.id, cliente_in)
+    
+    return db_user
 
 @router.post("/change-password")
 def change_password(

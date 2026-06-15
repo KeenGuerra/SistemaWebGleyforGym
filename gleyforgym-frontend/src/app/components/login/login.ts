@@ -54,7 +54,7 @@ export class Login {
     return !this.correoError() && !this.passwordError();
   });
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.correoTocado.set(true);
     this.passwordTocado.set(true);
 
@@ -65,17 +65,22 @@ export class Login {
     this.cargando.set(true);
     this.error.set(null);
 
-    const usuario = this.usuarioService.loginSimulado(
-      this.loginModel().correo,
-      this.loginModel().password
-    );
+    try {
+      const usuario = await this.usuarioService.login(
+        this.loginModel().correo,
+        this.loginModel().password
+      );
 
-    this.cargando.set(false);
-    if (usuario) {
-      this.error.set(null);
-      this.redirigirUsuario(usuario.rol);
-    } else {
-      this.error.set('Correo o contraseña incorrectos.');
+      this.cargando.set(false);
+      if (usuario) {
+        this.error.set(null);
+        this.redirigirUsuario(usuario.rol);
+      } else {
+        this.error.set('Correo o contraseña incorrectos.');
+      }
+    } catch (err: any) {
+      this.cargando.set(false);
+      this.error.set(err.error?.detail || 'Correo o contraseña incorrectos.');
     }
   }
 

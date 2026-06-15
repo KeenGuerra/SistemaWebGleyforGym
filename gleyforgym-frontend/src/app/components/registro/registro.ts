@@ -96,7 +96,7 @@ export class Registro {
     );
   });
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     // Al intentar enviar, marcamos todos los campos como "tocados" para mostrar validaciones
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
@@ -113,39 +113,37 @@ export class Registro {
     this.error.set(null);
 
     const emailVal = this.usuarioForm.email().value();
-    const existe = this.usuarioService.obtenerUsuarios().some(u => u.email === emailVal);
-    if (existe) {
+
+    try {
+      await this.usuarioService.registrarPublico({
+        nombre: this.usuarioForm.nombre().value(),
+        apellido: this.usuarioForm.apellido().value(),
+        email: emailVal,
+        telefono: this.usuarioForm.telefono().value(),
+        password: this.usuarioForm.password().value()
+      });
+
       this.cargando.set(false);
-      this.error.set('El correo electrónico ya está registrado.');
-      return;
+      this.error.set(null);
+      this.success.set('¡Registro exitoso! Redirigiendo al inicio de sesión...');
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 2000);
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrarse. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
     }
-
-    const nuevoUsuario = this.usuarioService.registrarUsuario({
-      nombre: this.usuarioForm.nombre().value(),
-      apellido: this.usuarioForm.apellido().value(),
-      dni: '',
-      email: emailVal,
-      telefono: this.usuarioForm.telefono().value(),
-      rol: 'CLIENTE',
-      activo: true
-    });
-
-    this.clienteService.registrarCliente({
-      ...nuevoUsuario,
-      membresiaId: 1,
-      entrenadorId: 1,
-      objetivoId: 3,
-      objetivo: 'General',
-      peso: 70,
-      altura: 1.70
-    });
-
-    this.cargando.set(false);
-    this.error.set(null);
-    this.success.set('¡Registro exitoso! Redirigiendo al inicio de sesión...');
-    setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 2000);
   }
 }
 

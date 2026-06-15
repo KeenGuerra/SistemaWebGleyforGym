@@ -6,6 +6,7 @@ import { PagoService } from '../../../services/pago.service';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { RutinaService } from '../../../services/rutina.service';
 import { UsuarioService } from '../../../services/usuario.service';
+import { ClienteService } from '../../../services/cliente.service';
 
 @Component({
   selector: 'app-panel-cliente',
@@ -20,13 +21,19 @@ export class PanelCliente {
   private asistenciaSvc = inject(AsistenciaService);
   private rutinaSvc    = inject(RutinaService);
   private usuarioSvc   = inject(UsuarioService);
+  private clienteSvc   = inject(ClienteService);
 
-  private readonly CLIENTE_ID = 5;
+  readonly clienteActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly CLIENTE_ID = computed(() => this.clienteActual()?.id || 0);
 
   readonly nombreCliente = this.usuarioSvc.nombreCompleto;
 
   readonly membresia = computed(() =>
-    this.membresiaSvc.getMembresiaActiva(this.CLIENTE_ID)
+    this.membresiaSvc.getMembresiaActiva(this.CLIENTE_ID())
   );
 
   readonly diasRestantes = computed(() => {
@@ -36,24 +43,24 @@ export class PanelCliente {
 
   readonly pagosPendientes = computed(() =>
     this.pagoSvc.obtenerPagos()
-      .filter(p => p.clienteId === this.CLIENTE_ID && p.estado === 'pendiente')
+      .filter(p => p.clienteId === this.CLIENTE_ID() && p.estado === 'pendiente')
       .length
   );
 
   readonly asistenciasMes = computed(() => {
     const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     return this.asistenciaSvc.obtenerAsistencias()
-      .filter(a => a.clienteId === this.CLIENTE_ID && new Date(a.fecha) >= inicioMes)
+      .filter(a => a.clienteId === this.CLIENTE_ID() && new Date(a.fecha) >= inicioMes)
       .length;
   });
 
   readonly rutinas = computed(() =>
-    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID && r.activa)
+    this.rutinaSvc.obtenerRutinas().filter(r => r.clienteId === this.CLIENTE_ID() && r.activa)
   );
 
   readonly ultimosRegistros = computed(() =>
     this.asistenciaSvc.obtenerAsistencias()
-      .filter(a => a.clienteId === this.CLIENTE_ID)
+      .filter(a => a.clienteId === this.CLIENTE_ID())
       .slice(0, 5)
   );
 

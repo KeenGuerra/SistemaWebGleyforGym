@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
@@ -14,10 +14,16 @@ import { Membresia } from '../../../models/membresia';
   templateUrl: './membresias.html',
   styleUrl: './membresias.css',
 })
-export class Membresias {
+export class Membresias implements OnInit {
   private membresiaService = inject(MembresiaService);
   private clienteService = inject(ClienteService);
   private pagoService = inject(PagoService);
+
+  ngOnInit(): void {
+    this.membresiaService.cargarMembresias();
+    this.clienteService.cargarClientes();
+    this.pagoService.cargarPagos();
+  }
 
   // Filtros
   readonly selectedFilter = signal<'todas' | 'activas' | 'vencidas'>('todas');
@@ -144,7 +150,7 @@ export class Membresias {
     }));
   }
 
-  saveRenewal(): void {
+  async saveRenewal(): Promise<void> {
     this.tipoTouched.set(true);
     this.precioTouched.set(true);
     this.mesesTouched.set(true);
@@ -158,21 +164,39 @@ export class Membresias {
     if (m) {
       this.cargando.set(true);
       this.error.set(null);
-      // Renovar en servicio
-      this.membresiaService.renovarMembresia(m.clienteId, this.renewForm.tipo().value(), this.renewForm.precio().value(), this.renewForm.meses().value());
+      try {
+        // Renovar en servicio
+        await this.membresiaService.renovarMembresia(m.clienteId, this.renewForm.tipo().value(), this.renewForm.precio().value(), this.renewForm.meses().value());
 
-      // Registrar pago
-      this.pagoService.agregarPago({
-        clienteId: m.clienteId,
-        monto: this.renewForm.precio().value(),
-        fecha: new Date().toISOString().split('T')[0],
-        concepto: `Renovación de Membresía ${this.renewForm.tipo().value()}`,
-        metodo: 'TARJETA',
-        estado: 'PAGADO'
-      });
-      this.cargando.set(false);
+        // Registrar pago
+        await this.pagoService.agregarPago({
+          clienteId: m.clienteId,
+          monto: this.renewForm.precio().value(),
+          fecha: new Date().toISOString().split('T')[0],
+          concepto: `Renovación de Membresía ${this.renewForm.tipo().value()}`,
+          metodo: 'TARJETA',
+          estado: 'PAGADO'
+        });
+        
+        this.cargando.set(false);
+        this.closeRenewModal();
+      } catch (err: any) {
+        this.cargando.set(false);
+        let errorMsg = 'Error al renovar la membresía. Inténtelo de nuevo.';
+        if (err && err.error) {
+          if (typeof err.error.detail === 'string') {
+            errorMsg = err.error.detail;
+          } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+            const firstErr = err.error.detail[0];
+            errorMsg = firstErr.msg || 'Error de validación';
+          } else if (err.error.message) {
+            errorMsg = err.error.message;
+          }
+        }
+        this.error.set(errorMsg);
+      }
+    } else {
+      this.closeRenewModal();
     }
-
-    this.closeRenewModal();
   }
 }

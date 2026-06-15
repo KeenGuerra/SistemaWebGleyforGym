@@ -1,83 +1,58 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Rutina } from '../models/rutina';
 
 @Injectable({ providedIn: 'root' })
 export class RutinaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/rutinas'; // Configuración base para FastAPI
+  private apiUrl = 'http://localhost:8000/api/rutinas';
 
-
-  private _rutinas = signal<Rutina[]>([
-    {
-      id: 1, nombre: 'Fuerza y Potencia — Lunes/Miércoles/Viernes',
-      clienteId: 5, entrenadorId: 1,
-      diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
-      nivel: 'intermedio', objetivo: 'Pérdida de grasa y tonificación',
-      descripcion: 'Rutina de fuerza progresiva con énfasis en compuestos',
-      fechaCreacion: '2025-03-01', activa: true,
-      ejercicios: [
-        { nombre: 'Sentadilla con barra', series: 4, repeticiones: '8-10', descanso: '90 seg', notas: 'Bajar paralela' },
-        { nombre: 'Press de banca', series: 4, repeticiones: '8-10', descanso: '90 seg' },
-        { nombre: 'Peso muerto', series: 3, repeticiones: '6-8', descanso: '120 seg', notas: 'Espalda neutra' },
-        { nombre: 'Dominadas asistidas', series: 3, repeticiones: '8-12', descanso: '60 seg' },
-        { nombre: 'Plancha frontal', series: 3, repeticiones: '45 seg', descanso: '30 seg' },
-      ]
-    },
-    {
-      id: 2, nombre: 'Cardio + Core — Martes/Jueves',
-      clienteId: 5, entrenadorId: 1,
-      diasSemana: ['Martes', 'Jueves'],
-      nivel: 'principiante', objetivo: 'Resistencia cardiovascular',
-      descripcion: 'Sesión de cardio moderado y fortalecimiento del core',
-      fechaCreacion: '2025-03-01', activa: true,
-      ejercicios: [
-        { nombre: 'Caminata en cinta (inclinación 5°)', series: 1, repeticiones: '20 min', descanso: '0 seg' },
-        { nombre: 'Mountain climbers', series: 4, repeticiones: '30 seg', descanso: '20 seg' },
-        { nombre: 'Burpees', series: 3, repeticiones: '10', descanso: '60 seg' },
-        { nombre: 'Abdominales en bicicleta', series: 3, repeticiones: '20', descanso: '30 seg' },
-        { nombre: 'Superman', series: 3, repeticiones: '15', descanso: '30 seg' },
-      ]
-    },
-    {
-      id: 3, nombre: 'Hipertrofia — 5 días',
-      clienteId: 6, entrenadorId: 1,
-      diasSemana: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'],
-      nivel: 'avanzado', objetivo: 'Ganancia muscular',
-      descripcion: 'Split de 5 días enfocado en hipertrofia',
-      fechaCreacion: '2025-02-15', activa: true,
-      ejercicios: [
-        { nombre: 'Press militar', series: 4, repeticiones: '10-12', descanso: '60 seg' },
-        { nombre: 'Remo con barra', series: 4, repeticiones: '10-12', descanso: '60 seg' },
-        { nombre: 'Curl de bíceps', series: 3, repeticiones: '12-15', descanso: '45 seg' },
-        { nombre: 'Extensión de tríceps', series: 3, repeticiones: '12-15', descanso: '45 seg' },
-      ]
-    },
-    {
-      id: 4, nombre: 'Tonificación — 3 días',
-      clienteId: 7, entrenadorId: 1,
-      diasSemana: ['Lunes', 'Miércoles', 'Viernes'],
-      nivel: 'principiante', objetivo: 'Tonificación',
-      descripcion: 'Rutina completa para principiantes',
-      fechaCreacion: '2025-04-10', activa: true,
-      ejercicios: [
-        { nombre: 'Sentadilla con peso corporal', series: 3, repeticiones: '15', descanso: '60 seg' },
-        { nombre: 'Flexiones de rodillas', series: 3, repeticiones: '10', descanso: '60 seg' },
-        { nombre: 'Zancadas', series: 3, repeticiones: '12 cada pierna', descanso: '60 seg' },
-        { nombre: 'Abdominales básicos', series: 3, repeticiones: '20', descanso: '30 seg' },
-      ]
-    },
-  ]);
+  private _rutinas = signal<Rutina[]>([]);
 
   readonly rutinas = this._rutinas.asReadonly();
-
-  obtenerRutinas(): Rutina[] {
-    return this._rutinas();
-  }
 
   readonly rutinasActivas = computed(() =>
     this._rutinas().filter(r => r.activa)
   );
+
+  private mapToRutina(r: any): Rutina {
+    return {
+      id: r.id,
+      clienteId: r.cliente_id,
+      entrenadorId: r.entrenador_id,
+      diasSemana: Array.from(new Set(r.ejercicios ? r.ejercicios.map((re: any) => re.dia_semana) : ['Lunes'])),
+      nivel: r.nivel,
+      objetivo: r.objetivo ? r.objetivo.nombre : 'General',
+      descripcion: r.descripcion || '',
+      fechaCreacion: r.fecha_creacion,
+      activa: r.activa,
+      nombre: r.nombre,
+      ejercicios: r.ejercicios ? r.ejercicios.map((re: any) => ({
+        nombre: re.ejercicio?.nombre || 'Ejercicio',
+        series: re.series,
+        repeticiones: re.repeticiones,
+        descanso: `${re.descanso_segundos} seg`,
+        notas: re.notas || ''
+      })) : []
+    };
+  }
+
+  async cargarRutinas(): Promise<Rutina[]> {
+    try {
+      const resp = await firstValueFrom(this.http.get<any[]>(this.apiUrl));
+      const mapped = resp.map(r => this.mapToRutina(r));
+      this._rutinas.set(mapped);
+      return mapped;
+    } catch (err) {
+      console.error('Error al cargar rutinas:', err);
+      return [];
+    }
+  }
+
+  obtenerRutinas(): Rutina[] {
+    return this._rutinas();
+  }
 
   getRutinasDeCliente(clienteId: number): Rutina[] {
     return this._rutinas().filter(r => r.clienteId === clienteId && r.activa);
@@ -87,18 +62,84 @@ export class RutinaService {
     return this._rutinas().filter(r => r.entrenadorId === entrenadorId);
   }
 
-  agregarRutina(rutina: Omit<Rutina, 'id'>): void {
-    const nuevoId = Math.max(...this._rutinas().map(r => r.id)) + 1;
-    this._rutinas.update(lista => [...lista, { ...rutina, id: nuevoId }]);
+  async agregarRutina(rutina: Omit<Rutina, 'id'>): Promise<void> {
+    let catalog: any[] = [];
+    try {
+      catalog = await firstValueFrom(this.http.get<any[]>('http://localhost:8000/api/rutinas/ejercicios'));
+    } catch (e) {
+      console.error('No se pudo cargar el catálogo de ejercicios:', e);
+    }
+
+    const ejerciciosPayload: any[] = [];
+    for (let i = 0; i < rutina.ejercicios.length; i++) {
+      const ej = rutina.ejercicios[i];
+      let match = catalog.find(x => x.nombre.toLowerCase().trim() === ej.nombre.toLowerCase().trim());
+      
+      if (!match) {
+        try {
+          match = await firstValueFrom(this.http.post<any>('http://localhost:8000/api/rutinas/ejercicios', {
+            nombre: ej.nombre,
+            descripcion: 'Ejercicio autogenerado',
+            grupo_muscular_id: 1, // General
+            nivel: 'principiante',
+            video_url: '',
+            activo: true
+          }));
+          catalog.push(match);
+        } catch (err) {
+          match = { id: 1 };
+        }
+      }
+
+      const descansoSegundos = parseInt(ej.descanso.replace(/\D/g, '')) || 60;
+      
+      ejerciciosPayload.push({
+        series: ej.series,
+        repeticiones: ej.repeticiones,
+        descanso_segundos: descansoSegundos,
+        dia_semana: rutina.diasSemana && rutina.diasSemana.length > 0 ? rutina.diasSemana[0] : 'Lunes',
+        orden: i + 1,
+        notas: ej.notas || '',
+        ejercicio_id: match.id
+      });
+    }
+
+    const payload = {
+      nombre: rutina.nombre,
+      nivel: rutina.nivel || 'principiante',
+      descripcion: rutina.descripcion || '',
+      objetivo_id: 3, // Tonificación
+      cliente_id: rutina.clienteId,
+      ejercicios: ejerciciosPayload
+    };
+
+    const response = await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}?entrenador_id=${rutina.entrenadorId || 1}`, payload)
+    );
+    const nuevaR = this.mapToRutina(response);
+    this._rutinas.update(lista => [...lista, nuevaR]);
   }
 
-  actualizarRutina(id: number, datos: Partial<Rutina>): void {
+  async actualizarRutina(id: number, datos: Partial<Rutina>): Promise<void> {
+    const payload = {
+      nombre: datos.nombre,
+      nivel: datos.nivel,
+      descripcion: datos.descripcion,
+      activa: datos.activa
+    };
+    const response = await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/${id}`, payload)
+    );
+    const actR = this.mapToRutina(response);
     this._rutinas.update(lista =>
-      lista.map(r => r.id === id ? { ...r, ...datos } : r)
+      lista.map(r => r.id === id ? actR : r)
     );
   }
 
-  desactivarRutina(id: number): void {
-    this.actualizarRutina(id, { activa: false });
+  async desactivarRutina(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
+    this._rutinas.update(lista =>
+      lista.map(r => r.id === id ? { ...r, activa: false } : r)
+    );
   }
 }

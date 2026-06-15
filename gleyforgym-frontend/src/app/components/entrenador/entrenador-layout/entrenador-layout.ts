@@ -1,7 +1,10 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
+import { ClienteService } from '../../../services/cliente.service';
+import { AsistenciaService } from '../../../services/asistencia.service';
+import { RutinaService } from '../../../services/rutina.service';
 
 @Component({
   selector: 'app-entrenador-layout',
@@ -10,10 +13,28 @@ import { EntrenadorService } from '../../../services/entrenador.service';
   templateUrl: './entrenador-layout.html',
   styleUrl: './entrenador-layout.css',
 })
-export class EntrenadorLayout {
+export class EntrenadorLayout implements OnInit {
   private usuarioSvc    = inject(UsuarioService);
   private entrenadorSvc = inject(EntrenadorService);
+  private clienteSvc    = inject(ClienteService);
+  private asistenciaSvc = inject(AsistenciaService);
+  private rutinaSvc     = inject(RutinaService);
   private router        = inject(Router);
+
+  ngOnInit(): void {
+    if (typeof window === 'undefined') return;
+    this.usuarioSvc.checkSession().then(user => {
+      if (!user || user.rol !== 'ENTRENADOR') {
+        this.usuarioSvc.logout();
+        this.router.navigate(['/login']);
+      } else {
+        this.entrenadorSvc.cargarEntrenadores();
+        this.clienteSvc.cargarClientes();
+        this.asistenciaSvc.cargarAsistencias();
+        this.rutinaSvc.cargarRutinas();
+      }
+    });
+  }
 
   readonly iniciales      = this.usuarioSvc.iniciales;
   readonly nombreCompleto = this.usuarioSvc.nombreCompleto;
@@ -51,6 +72,7 @@ export class EntrenadorLayout {
 
   logout(): void {
     this.closeSidebar();
+    this.usuarioSvc.logout();
     this.router.navigate(['/login']);
   }
 }

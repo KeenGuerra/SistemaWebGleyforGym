@@ -1,6 +1,12 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { UsuarioService } from '../../../services/usuario.service';
+import { ClienteService } from '../../../services/cliente.service';
+import { EntrenadorService } from '../../../services/entrenador.service';
+import { MembresiaService } from '../../../services/membresia.service';
+import { PagoService } from '../../../services/pago.service';
+import { AsistenciaService } from '../../../services/asistencia.service';
+import { RutinaService } from '../../../services/rutina.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -9,9 +15,35 @@ import { UsuarioService } from '../../../services/usuario.service';
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css',
 })
-export class AdminLayout {
+export class AdminLayout implements OnInit {
   private usuarioSvc = inject(UsuarioService);
+  private clienteSvc = inject(ClienteService);
+  private entrenadorSvc = inject(EntrenadorService);
+  private membresiaSvc = inject(MembresiaService);
+  private pagoSvc = inject(PagoService);
+  private asistenciaSvc = inject(AsistenciaService);
+  private rutinaSvc = inject(RutinaService);
   private router = inject(Router);
+
+  ngOnInit(): void {
+    if (typeof window === 'undefined') return;
+    // Verificar que exista una sesión activa, si no redirigir a login
+    this.usuarioSvc.checkSession().then(user => {
+      if (!user || user.rol !== 'ADMINISTRADOR') {
+        this.usuarioSvc.logout();
+        this.router.navigate(['/login']);
+      } else {
+        // Cargar todos los datos desde el servidor
+        this.clienteSvc.cargarClientes();
+        this.entrenadorSvc.cargarEntrenadores();
+        this.membresiaSvc.cargarMembresias();
+        this.pagoSvc.cargarPagos();
+        this.asistenciaSvc.cargarAsistencias();
+        this.rutinaSvc.cargarRutinas();
+        this.usuarioSvc.cargarUsuarios();
+      }
+    });
+  }
 
   readonly iniciales = this.usuarioSvc.iniciales;
   readonly nombreCompleto = this.usuarioSvc.nombreCompleto;
@@ -43,6 +75,7 @@ export class AdminLayout {
 
   logout(): void {
     this.closeSidebar();
+    this.usuarioSvc.logout();
     this.router.navigate(['/login']);
   }
 }

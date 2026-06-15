@@ -10,6 +10,7 @@
     </div>
   }
 
+  @if (entrenador(); as ent) {
   <!-- Tarjeta de perfil -->
   <div class="perfil-grid">
     <!-- Card izquierda: avatar + info -->
@@ -19,21 +20,21 @@
       <p class="text-muted">Entrenador Personal</p>
       <div class="perfil-chips">
         <span class="gym-badge gym-badge-orange">
-          <i class="bi bi-award-fill"></i> {{ entrenador.especialidad }}
+          <i class="bi bi-award-fill"></i> {{ ent.especialidad }}
         </span>
         <span class="gym-badge gym-badge-info">
-          <i class="bi bi-clock-fill"></i> {{ entrenador.experiencia }} años de experiencia
+          <i class="bi bi-clock-fill"></i> {{ ent.experiencia }} años de experiencia
         </span>
-        @if (entrenador.activo) {
+        @if (ent.activo) {
           <span class="gym-badge gym-badge-success">Activo</span>
         }
       </div>
 
-      @if (entrenador.certificaciones && entrenador.certificaciones.length > 0) {
+      @if (ent.certificaciones && ent.certificaciones.length > 0) {
         <div class="cert-section mt-2">
           <p class="gym-form-label">Certificaciones</p>
           <div class="cert-list">
-            @for (cert of entrenador.certificaciones; track cert) {
+            @for (cert of ent.certificaciones; track cert) {
               <span class="gym-badge gym-badge-warning">
                 <i class="bi bi-patch-check-fill"></i> {{ cert }}
               </span>
@@ -59,31 +60,31 @@
         </div>
         <div class="gym-info-row">
           <span class="label">Nombre</span>
-          <span class="value">{{ entrenador.nombre }} {{ entrenador.apellido }}</span>
+          <span class="value">{{ ent.nombre }} {{ ent.apellido }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Correo Electrónico</span>
-          <span class="value">{{ entrenador.email }}</span>
+          <span class="value">{{ ent.email }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Teléfono</span>
-          <span class="value">{{ entrenador.telefono }}</span>
+          <span class="value">{{ ent.telefono }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Especialidad</span>
-          <span class="value">{{ entrenador.especialidad }}</span>
+          <span class="value">{{ ent.especialidad }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Años de Experiencia</span>
-          <span class="value">{{ entrenador.experiencia }} años</span>
+          <span class="value">{{ ent.experiencia }} años</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Fecha de Registro</span>
-          <span class="value">{{ entrenador.fechaRegistro }}</span>
+          <span class="value">{{ ent.fechaRegistro }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Clientes Asignados</span>
-          <span class="value">{{ entrenador.clientesAsignados.length }}</span>
+          <span class="value">{{ ent.clientesAsignados.length }}</span>
         </div>
       } @else {
         <!-- Formulario de edición -->
@@ -148,4 +149,12 @@
       }
     </div>
   </div>
+  } @else {
+    <div style="text-align: center; padding: 5rem 0;">
+      <div class="spinner-border text-primary" role="status" style="color: #ff6600; width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-muted mt-3">Cargando perfil de entrenador...</p>
+    </div>
+  }
 </div>

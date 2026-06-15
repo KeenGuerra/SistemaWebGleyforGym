@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
@@ -12,9 +12,14 @@ import { ClienteService } from '../../../services/cliente.service';
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.css',
 })
-export class Asistencia {
+export class Asistencia implements OnInit {
   private asistenciaService = inject(AsistenciaService);
   private clienteService = inject(ClienteService);
+
+  ngOnInit(): void {
+    this.asistenciaService.cargarAsistencias();
+    this.clienteService.cargarClientes();
+  }
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -147,7 +152,7 @@ export class Asistencia {
     this.showModal.set(false);
   }
 
-  saveAsistencia(): void {
+  async saveAsistencia(): Promise<void> {
     this.clienteIdTouched.set(true);
     this.fechaTouched.set(true);
     this.horaEntradaTouched.set(true);
@@ -168,17 +173,32 @@ export class Asistencia {
 
     const duracion = this.duracionMinutos();
 
-    this.asistenciaService.registrarAsistencia({
-      clienteId: clId,
-      entrenadorId: cliente ? cliente.entrenadorId : 1,
-      fecha: this.asistenciaForm.fecha().value(),
-      horaEntrada: horaEntradaVal,
-      horaSalida: horaSalidaVal || undefined,
-      duracionMinutos: duracion || undefined
-    });
-
-    this.cargando.set(false);
-    this.closeModal();
+    try {
+      await this.asistenciaService.registrarAsistencia({
+        clienteId: clId,
+        entrenadorId: cliente ? cliente.entrenadorId : 1,
+        fecha: this.asistenciaForm.fecha().value(),
+        horaEntrada: horaEntradaVal,
+        horaSalida: horaSalidaVal || undefined,
+        duracionMinutos: duracion || undefined
+      });
+      this.cargando.set(false);
+      this.closeModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar la asistencia. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 }
 

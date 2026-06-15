@@ -3,6 +3,11 @@
     <h1>Mi Perfil</h1>
     <p>Datos personales y físicos</p>
   </div>
+<div class="gym-page">
+  <div class="gym-page-header">
+    <h1>Mi Perfil</h1>
+    <p>Datos personales y físicos</p>
+  </div>
 
   @if (guardado()) {
     <div class="gym-toast">
@@ -10,17 +15,18 @@
     </div>
   }
 
+  @if (cliente(); as cli) {
   <div class="perfil-grid">
     <!-- Avatar Card -->
     <div class="gym-card perfil-avatar-card">
       <div class="gym-avatar gym-avatar-xl">{{ iniciales() }}</div>
-      <h2 class="perfil-nombre">{{ cliente.nombre }} {{ cliente.apellido }}</h2>
+      <h2 class="perfil-nombre">{{ cli.nombre }} {{ cli.apellido }}</h2>
       <p class="text-muted">Cliente</p>
       <div class="d-flex gap-1" style="flex-direction: column; align-items: center; margin-top: 0.5rem;">
         <span class="gym-badge gym-badge-orange">
-          <i class="bi bi-bullseye"></i> {{ cliente.objetivo }}
+          <i class="bi bi-bullseye"></i> {{ cli.objetivo }}
         </span>
-        @if (cliente.activo) {
+        @if (cli.activo) {
           <span class="gym-badge gym-badge-success">Activo</span>
         }
       </div>
@@ -53,31 +59,31 @@
         </div>
         <div class="gym-info-row">
           <span class="label">Nombre Completo</span>
-          <span class="value">{{ cliente.nombre }} {{ cliente.apellido }}</span>
+          <span class="value">{{ cli.nombre }} {{ cli.apellido }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Correo Electrónico</span>
-          <span class="value">{{ cliente.email }}</span>
+          <span class="value">{{ cli.email }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Teléfono</span>
-          <span class="value">{{ cliente.telefono }}</span>
+          <span class="value">{{ cli.telefono }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Objetivo</span>
-          <span class="value">{{ cliente.objetivo }}</span>
+          <span class="value">{{ cli.objetivo }}</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Peso</span>
-          <span class="value">{{ cliente.peso ?? '—' }} kg</span>
+          <span class="value">{{ cli.peso ?? '—' }} kg</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Altura</span>
-          <span class="value">{{ cliente.altura ?? '—' }} m</span>
+          <span class="value">{{ cli.altura ?? '—' }} m</span>
         </div>
         <div class="gym-info-row">
           <span class="label">Fecha de Registro</span>
-          <span class="value">{{ cliente.fechaRegistro }}</span>
+          <span class="value">{{ cli.fechaRegistro }}</span>
         </div>
       } @else {
         <div class="gym-section-title">
@@ -152,4 +158,12 @@
       }
     </div>
   </div>
+  } @else {
+    <div style="text-align: center; padding: 5rem 0;">
+      <div class="spinner-border text-primary" role="status" style="color: #ff6600; width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-muted mt-3">Cargando datos de perfil...</p>
+    </div>
+  }
 </div>

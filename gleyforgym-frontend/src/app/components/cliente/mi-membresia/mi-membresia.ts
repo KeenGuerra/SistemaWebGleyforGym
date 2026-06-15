@@ -2,6 +2,8 @@ import { Component, inject, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MembresiaService } from '../../../services/membresia.service';
 import { PagoService } from '../../../services/pago.service';
+import { UsuarioService } from '../../../services/usuario.service';
+import { ClienteService } from '../../../services/cliente.service';
 
 @Component({
   selector: 'app-mi-membresia',
@@ -13,11 +15,18 @@ import { PagoService } from '../../../services/pago.service';
 export class MiMembresia {
   private membresiaSvc = inject(MembresiaService);
   private pagoSvc      = inject(PagoService);
+  private usuarioSvc   = inject(UsuarioService);
+  private clienteSvc   = inject(ClienteService);
 
-  private readonly CLIENTE_ID = 5;
+  readonly clienteActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly CLIENTE_ID = computed(() => this.clienteActual()?.id || 0);
 
   readonly membresia = computed(() =>
-    this.membresiaSvc.getMembresiaDeCliente(this.CLIENTE_ID)
+    this.membresiaSvc.getMembresiaDeCliente(this.CLIENTE_ID())
   );
 
   readonly diasRestantes = computed(() => {
@@ -37,7 +46,7 @@ export class MiMembresia {
   });
 
   readonly historialMembresias = computed(() =>
-    this.membresiaSvc.membresias().filter(m => m.clienteId === this.CLIENTE_ID)
+    this.membresiaSvc.membresias().filter(m => m.clienteId === this.CLIENTE_ID())
   );
 
   estadoBadgeClass(estado: string): string {

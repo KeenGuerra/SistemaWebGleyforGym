@@ -1,5 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { AsistenciaService } from '../../../services/asistencia.service';
+import { UsuarioService } from '../../../services/usuario.service';
+import { ClienteService } from '../../../services/cliente.service';
 
 @Component({
   selector: 'app-mi-asistencia',
@@ -10,15 +12,23 @@ import { AsistenciaService } from '../../../services/asistencia.service';
 })
 export class MiAsistencia {
   private asistenciaSvc = inject(AsistenciaService);
+  private usuarioSvc = inject(UsuarioService);
+  private clienteSvc = inject(ClienteService);
 
-  private readonly CLIENTE_ID = 5;
+  readonly clienteActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly CLIENTE_ID = computed(() => this.clienteActual()?.id || 0);
 
   readonly mesActual = signal(new Date().getMonth());
   readonly anioActual = signal(new Date().getFullYear());
 
   readonly asistencias = computed(() =>
-    this.asistenciaSvc.obtenerAsistencias().filter(a => a.clienteId === this.CLIENTE_ID)
+    this.asistenciaSvc.obtenerAsistencias().filter(a => a.clienteId === this.CLIENTE_ID())
   );
+
 
   readonly diasAsistidos = computed(() =>
     new Set(this.asistencias().map(a => a.fecha))

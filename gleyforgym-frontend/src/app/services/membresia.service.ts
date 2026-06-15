@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Membresia } from '../models/membresia';
 
 @Injectable({ providedIn: 'root' })
@@ -7,24 +8,42 @@ export class MembresiaService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8000/api/membresias';
 
-
-  private _membresias = signal<Membresia[]>([
-    { id: 1, clienteId: 5, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'ACTIVA', diasRestantes: 0 },
-    { id: 2, clienteId: 6, tipo: 'Trimestral', precio: 6500, fechaInicio: '2025-04-01', fechaFin: '2025-06-30', estado: 'ACTIVA', diasRestantes: 30 },
-    { id: 3, clienteId: 7, tipo: 'Mensual Básica', precio: 1800, fechaInicio: '2025-05-01', fechaFin: '2025-05-31', estado: 'ACTIVA', diasRestantes: 0 },
-    { id: 4, clienteId: 8, tipo: 'Mensual Premium', precio: 2500, fechaInicio: '2025-03-01', fechaFin: '2025-03-31', estado: 'VENCIDA', diasRestantes: 0 },
-    { id: 5, clienteId: 9, tipo: 'Anual', precio: 24000, fechaInicio: '2025-01-01', fechaFin: '2025-12-31', estado: 'ACTIVA', diasRestantes: 214 },
-  ]);
+  private _membresias = signal<Membresia[]>([]);
 
   readonly membresias = this._membresias.asReadonly();
-
-  obtenerMembresias(): Membresia[] {
-    return this._membresias();
-  }
 
   readonly membresiaActiva = computed(() =>
     this._membresias().find(m => m.clienteId === 5 && m.estado === 'ACTIVA')
   );
+
+  private mapToMembresia(cm: any): Membresia {
+    return {
+      id: cm.id,
+      clienteId: cm.cliente_id,
+      tipo: cm.membresia?.nombre || 'Mensual Premium',
+      precio: cm.membresia ? +cm.membresia.precio : 2500,
+      fechaInicio: cm.fecha_inicio,
+      fechaFin: cm.fecha_fin,
+      estado: cm.estado as any,
+      diasRestantes: cm.dias_restantes !== undefined ? cm.dias_restantes : this.calcularDiasRestantes(cm.fecha_fin)
+    };
+  }
+
+  async cargarMembresias(): Promise<Membresia[]> {
+    try {
+      const resp = await firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/suscripciones/todas`));
+      const mapped = resp.map(cm => this.mapToMembresia(cm));
+      this._membresias.set(mapped);
+      return mapped;
+    } catch (err) {
+      console.error('Error al cargar membresías:', err);
+      return [];
+    }
+  }
+
+  obtenerMembresias(): Membresia[] {
+    return this._membresias();
+  }
 
   getMembresiaDeCliente(clienteId: number): Membresia | undefined {
     return this._membresias().find(m => m.clienteId === clienteId);
@@ -41,43 +60,51 @@ export class MembresiaService {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
-  registrarMembresia(membresia: Omit<Membresia, 'id'>): Membresia {
-    const nuevoId = Math.max(...this._membresias().map(m => m.id), 0) + 1;
-    const nuevaM: Membresia = { ...membresia, id: nuevoId };
-    this._membresias.update(lista => [...lista, nuevaM]);
+  async registrarMembresia(membresia: Omit<Membresia, 'id'>): Promise<Membresia> {
+    // Al registrar un cliente nuevo, se le crea una membresía inicial
+    // Mapeamos a la renovación o creación en el servidor
+    let mId = 1;
+    if (membresia.tipo.toLowerCase().includes('trimestral')) mId = 2;
+    else if (membresia.tipo.toLowerCase().includes('anual')) mId = 3;
+
+    const payload = {
+      cliente_id: membresia.clienteId,
+      membresia_id: mId,
+      fecha_inicio: membresia.fechaInicio
+    };
+
+    const response = await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/renovar`, payload)
+    );
+    const nuevaM = this.mapToMembresia(response);
+    this._membresias.update(lista => [...lista.filter(m => m.clienteId !== membresia.clienteId), nuevaM]);
     return nuevaM;
   }
 
-  renovarMembresia(clienteId: number, tipo: string, precio: number, meses: number): void {
-    const hoy = new Date();
-    const fin = new Date();
-    fin.setMonth(hoy.getMonth() + meses);
-    const fechaInicioStr = hoy.toISOString().split('T')[0];
-    const fechaFinStr = fin.toISOString().split('T')[0];
-
-    this._membresias.update(lista => {
-      const index = lista.findIndex(m => m.clienteId === clienteId);
-      if (index > -1) {
-        return lista.map((m, idx) => idx === index ? {
-          ...m,
-          tipo,
-          precio,
-          fechaInicio: fechaInicioStr,
-          fechaFin: fechaFinStr,
-          estado: 'ACTIVA'
-        } : m);
-      } else {
-        const nuevoId = Math.max(...lista.map(m => m.id), 0) + 1;
-        return [...lista, {
-          id: nuevoId,
-          clienteId,
-          tipo,
-          precio,
-          fechaInicio: fechaInicioStr,
-          fechaFin: fechaFinStr,
-          estado: 'ACTIVA'
-        }];
+  async renovarMembresia(clienteId: number, tipo: string, precio: number, meses: number): Promise<Membresia> {
+    let mId = 1;
+    try {
+      const cat = await firstValueFrom(this.http.get<any[]>(this.apiUrl));
+      const match = cat.find(m => m.nombre.toLowerCase().includes(tipo.toLowerCase()));
+      if (match) {
+        mId = match.id;
       }
-    });
+    } catch (e) {
+      if (tipo.toLowerCase().includes('trimestral')) mId = 2;
+      else if (tipo.toLowerCase().includes('anual')) mId = 3;
+    }
+
+    const payload = {
+      cliente_id: clienteId,
+      membresia_id: mId,
+      fecha_inicio: new Date().toISOString().split('T')[0]
+    };
+
+    const response = await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/renovar`, payload)
+    );
+    const nuevaM = this.mapToMembresia(response);
+    this._membresias.update(lista => [...lista.filter(m => m.clienteId !== clienteId), nuevaM]);
+    return nuevaM;
   }
 }

@@ -36,7 +36,30 @@ class UsuarioService:
             )
         
         hashed = get_password_hash(user_in.password)
-        return usuario_repository.create(db, user_in, hashed)
+        db_user = usuario_repository.create(db, user_in, hashed)
+
+        if db_user.rol == "CLIENTE":
+            from src.database.models import Cliente
+            db_cliente = Cliente(
+                usuario_id=db_user.id,
+                objetivo_id=3,  # Tonificación por defecto
+                peso=70.00,
+                altura=1.70,
+                activo=True
+            )
+            db.add(db_cliente)
+            db.commit()
+        elif db_user.rol == "ENTRENADOR":
+            from src.database.models import Entrenador
+            db_entrenador = Entrenador(
+                usuario_id=db_user.id,
+                experiencia_anios=0,
+                activo=True
+            )
+            db.add(db_entrenador)
+            db.commit()
+
+        return db_user
 
     def update(self, db: Session, user_id: int, user_in: UsuarioUpdate) -> Usuario:
         db_user = self.get_by_id(db, user_id)

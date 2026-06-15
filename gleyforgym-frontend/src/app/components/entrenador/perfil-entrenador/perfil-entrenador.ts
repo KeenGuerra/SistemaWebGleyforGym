@@ -15,7 +15,12 @@ export class PerfilEntrenador {
   private entrenadorSvc = inject(EntrenadorService);
   private usuarioSvc    = inject(UsuarioService);
 
-  readonly entrenador   = this.entrenadorSvc.getEntrenadorActual();
+  readonly entrenadorActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.entrenadorSvc.entrenadores().find(e => e.email === user.email);
+  });
+
+  readonly entrenador   = computed(() => this.entrenadorActual());
   readonly iniciales    = this.usuarioSvc.iniciales;
   readonly nombreCompleto = this.usuarioSvc.nombreCompleto;
   readonly modoEdicion  = signal(false);
@@ -100,14 +105,17 @@ export class PerfilEntrenador {
   });
 
   activarEdicion(): void {
+    const ent = this.entrenador();
+    if (!ent) return;
+
     // Cargar datos actuales
     this.trainerModel.set({
-      nombre: this.entrenador.nombre,
-      apellido: this.entrenador.apellido,
-      email: this.entrenador.email,
-      telefono: this.entrenador.telefono,
-      especialidad: this.entrenador.especialidad,
-      experiencia: this.entrenador.experiencia
+      nombre: ent.nombre,
+      apellido: ent.apellido,
+      email: ent.email,
+      telefono: ent.telefono,
+      especialidad: ent.especialidad,
+      experiencia: ent.experiencia
     });
 
     // Resetear touched
@@ -126,7 +134,7 @@ export class PerfilEntrenador {
     this.modoEdicion.set(false);
   }
 
-  guardar(): void {
+  async guardar(): Promise<void> {
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
     this.emailTouched.set(true);
@@ -137,6 +145,9 @@ export class PerfilEntrenador {
     if (!this.formularioValido()) {
       return;
     }
+
+    const ent = this.entrenador();
+    if (!ent) return;
 
     this.cargando.set(true);
     this.error.set(null);
@@ -150,11 +161,18 @@ export class PerfilEntrenador {
       experiencia: this.trainerForm.experiencia().value(),
     };
 
-    this.entrenadorSvc.actualizarEntrenador({ id: this.entrenador.id, ...v });
-    this.cargando.set(false);
-    this.modoEdicion.set(false);
-    this.guardado.set(true);
-    setTimeout(() => this.guardado.set(false), 3000);
+    try {
+      await this.entrenadorSvc.actualizarEntrenador({ id: ent.id, ...v });
+      this.modoEdicion.set(false);
+      this.guardado.set(true);
+      setTimeout(() => this.guardado.set(false), 3000);
+    } catch (err: any) {
+      console.error('Error al actualizar entrenador:', err);
+      this.error.set(err.message || 'Error al actualizar el perfil.');
+    } finally {
+      this.cargando.set(false);
+    }
   }
 }
+
 

@@ -18,6 +18,8 @@ export class AsistenciaEntrenador {
   readonly fechaFiltro = signal(new Date().toISOString().split('T')[0]);
   readonly mostrarFormulario = signal(false);
   readonly mensajeExito = signal('');
+  readonly cargando = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly clientes = computed(() =>
     this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1)
@@ -72,6 +74,7 @@ export class AsistenciaEntrenador {
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.mensajeExito.set('');
+    this.error.set(null);
 
     // Resetear form
     this.clienteId.set(0);
@@ -86,7 +89,7 @@ export class AsistenciaEntrenador {
     this.horaEntradaTouched.set(false);
   }
 
-  registrar(): void {
+  async registrar(): Promise<void> {
     this.clienteIdTouched.set(true);
     this.fechaTouched.set(true);
     this.horaEntradaTouched.set(true);
@@ -94,6 +97,9 @@ export class AsistenciaEntrenador {
     if (this.formInvalid()) {
       return;
     }
+
+    this.cargando.set(true);
+    this.error.set(null);
 
     const horaEntradaVal = this.horaEntrada();
     const horaSalidaVal = this.horaSalida();
@@ -104,19 +110,36 @@ export class AsistenciaEntrenador {
       duracion = (hS * 60 + mS) - (hE * 60 + mE);
     }
 
-    this.asistenciaSvc.registrarAsistencia({
-      clienteId:     this.clienteId(),
-      entrenadorId:  1,
-      fecha:         this.fecha(),
-      horaEntrada:   horaEntradaVal,
-      horaSalida:    horaSalidaVal || undefined,
-      duracionMinutos: duracion,
-      observaciones: this.observaciones() || undefined,
-    });
+    try {
+      await this.asistenciaSvc.registrarAsistencia({
+        clienteId:     this.clienteId(),
+        entrenadorId:  1,
+        fecha:         this.fecha(),
+        horaEntrada:   horaEntradaVal,
+        horaSalida:    horaSalidaVal || undefined,
+        duracionMinutos: duracion,
+        observaciones: this.observaciones() || undefined,
+      });
 
-    this.mensajeExito.set('Asistencia registrada correctamente');
-    this.mostrarFormulario.set(false);
-    setTimeout(() => this.mensajeExito.set(''), 3000);
+      this.cargando.set(false);
+      this.mensajeExito.set('Asistencia registrada correctamente');
+      this.mostrarFormulario.set(false);
+      setTimeout(() => this.mensajeExito.set(''), 3000);
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar la asistencia. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 
   iniciales(nombre: string): string {

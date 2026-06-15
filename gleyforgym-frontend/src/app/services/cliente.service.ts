@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Cliente } from '../models/cliente';
 
 @Injectable({ providedIn: 'root' })
@@ -7,53 +8,54 @@ export class ClienteService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8000/api/clientes';
 
-  private _clientes = signal<Cliente[]>([
-    {
-      id: 5, nombre: 'María', apellido: 'González', dni: '444444444444', email: 'maria.gonzalez@email.com',
-      telefono: '809-555-5678', rol: 'CLIENTE', activo: true,
-      fechaRegistro: '2024-03-10', membresiaId: 1, entrenadorId: 1,
-      objetivoId: 2, objetivo: 'Perder peso', peso: 68, altura: 1.65,
-      fechaNacimiento: '1999-05-15', sexo: 'Femenino', direccion: 'Calle Principal #123, Santo Domingo', restriccionesMedicas: 'Ninguna'
-    },
-    {
-      id: 6, nombre: 'José', apellido: 'Martínez', dni: '555555555555', email: 'jose.martinez@email.com',
-      telefono: '809-555-9012', rol: 'CLIENTE', activo: true,
-      fechaRegistro: '2024-02-20', membresiaId: 2, entrenadorId: 1,
-      objetivoId: 1, objetivo: 'Ganar masa muscular', peso: 78, altura: 1.78,
-      fechaNacimiento: '1995-10-22', sexo: 'Masculino', direccion: 'Calle Secundaria #456, Santo Domingo', restriccionesMedicas: 'Ninguna'
-    },
-    {
-      id: 7, nombre: 'Ana', apellido: 'López', dni: '666666666666', email: 'ana.lopez@email.com',
-      telefono: '809-555-3456', rol: 'CLIENTE', activo: true,
-      fechaRegistro: '2024-04-05', membresiaId: 3, entrenadorId: 2,
-      objetivoId: 3, objetivo: 'Tonificación', peso: 62, altura: 1.60,
-      fechaNacimiento: '2001-01-30', sexo: 'Femenino', direccion: 'Av. Winston Churchill #789, Santo Domingo', restriccionesMedicas: 'Ninguna'
-    },
-    {
-      id: 8, nombre: 'Pedro', apellido: 'Sánchez', dni: '888888888888', email: 'pedro.sanchez@email.com',
-      telefono: '809-555-7890', rol: 'CLIENTE', activo: false,
-      fechaRegistro: '2024-01-30', membresiaId: 4, entrenadorId: 2,
-      objetivoId: 4, objetivo: 'Resistencia', peso: 85, altura: 1.80,
-      fechaNacimiento: '1990-11-12', sexo: 'Masculino', direccion: 'Calle 5 #55, Santo Domingo', restriccionesMedicas: 'Asma leve'
-    },
-    {
-      id: 9, nombre: 'Laura', apellido: 'Díaz', dni: '777777777777', email: 'laura.diaz@email.com',
-      telefono: '809-555-2345', rol: 'CLIENTE', activo: true,
-      fechaRegistro: '2024-05-12', membresiaId: 5, entrenadorId: 2,
-      objetivoId: 5, objetivo: 'Salud general', peso: 55, altura: 1.68,
-      fechaNacimiento: '1997-07-07', sexo: 'Femenino', direccion: 'Calle Lope de Vega #10, Santo Domingo', restriccionesMedicas: 'Ninguna'
-    },
-  ]);
+  private _clientes = signal<Cliente[]>([]);
 
   readonly clientes = this._clientes.asReadonly();
-
-  obtenerClientes(): Cliente[] {
-    return this._clientes();
-  }
 
   readonly clientesActivos = computed(() =>
     this._clientes().filter(c => c.activo)
   );
+
+  private mapToCliente(c: any): Cliente {
+    return {
+      id: c.id,
+      nombre: c.usuario.nombre,
+      apellido: c.usuario.apellido,
+      dni: c.usuario.dni,
+      email: c.usuario.correo,
+      telefono: c.usuario.telefono,
+      rol: c.usuario.rol,
+      activo: c.usuario.activo && c.activo,
+      fechaRegistro: c.usuario.fecha_registro,
+      avatar: c.usuario.avatar,
+      membresiaId: c.membresia_id || 1,
+      entrenadorId: c.entrenador_id || 1,
+      objetivoId: c.objetivo_id || 3,
+      objetivo: c.membresia_tipo || 'Tonificación',
+      peso: c.peso ? +c.peso : undefined,
+      altura: c.altura ? +c.altura : undefined,
+      fechaNacimiento: c.fecha_nacimiento,
+      sexo: c.sexo,
+      direccion: c.direccion,
+      restriccionesMedicas: c.restricciones_medicas
+    };
+  }
+
+  async cargarClientes(): Promise<Cliente[]> {
+    try {
+      const resp = await firstValueFrom(this.http.get<any[]>(this.apiUrl));
+      const mapped = resp.map(c => this.mapToCliente(c));
+      this._clientes.set(mapped);
+      return mapped;
+    } catch (err) {
+      console.error('Error al cargar clientes:', err);
+      return [];
+    }
+  }
+
+  obtenerClientes(): Cliente[] {
+    return this._clientes();
+  }
 
   getClientePorId(id: number): Cliente | undefined {
     return this._clientes().find(c => c.id === id);
@@ -63,25 +65,78 @@ export class ClienteService {
     return this._clientes().filter(c => c.entrenadorId === entrenadorId);
   }
 
-  registrarCliente(cliente: Omit<Cliente, 'id'>): Cliente {
-    const nuevoId = Math.max(...this._clientes().map(c => c.id), 0) + 1;
-    const nuevoCliente: Cliente = {
-      ...cliente,
-      id: nuevoId,
-      fechaRegistro: new Date().toISOString().split('T')[0],
-      activo: true
+  async registrarCliente(cliente: Omit<Cliente, 'id'>): Promise<Cliente> {
+    const payload = {
+      objetivo_id: cliente.objetivoId || 3,
+      peso: cliente.peso || 70,
+      altura: cliente.altura || 1.70,
+      fecha_nacimiento: cliente.fechaNacimiento || new Date().toISOString().split('T')[0],
+      sexo: cliente.sexo || 'Femenino',
+      direccion: cliente.direccion || '',
+      restricciones_medicas: cliente.restriccionesMedicas || 'Ninguna',
+      activo: true,
+      usuario: {
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        dni: cliente.dni || '',
+        correo: cliente.email,
+        telefono: cliente.telefono,
+        rol: 'CLIENTE',
+        activo: true,
+        password: (cliente as any).password || 'gleyfor1234'
+      }
     };
-    this._clientes.update(lista => [...lista, nuevoCliente]);
-    return nuevoCliente;
+    const response = await firstValueFrom(this.http.post<any>(this.apiUrl, payload));
+    let nuevoC = this.mapToCliente(response);
+
+    if (cliente.entrenadorId || cliente.membresiaId) {
+      const updatePayload = {
+        entrenador_id: cliente.entrenadorId || undefined,
+        membresia_id: cliente.membresiaId || undefined
+      };
+      try {
+        const updatedResponse = await firstValueFrom(
+          this.http.put<any>(`${this.apiUrl}/${nuevoC.id}`, updatePayload)
+        );
+        nuevoC = this.mapToCliente(updatedResponse);
+      } catch (err) {
+        console.error('Error al asignar membresía/entrenador tras creación:', err);
+      }
+    }
+
+    this._clientes.update(lista => [...lista, nuevoC]);
+    return nuevoC;
   }
 
-  actualizarCliente(cliente: Cliente): void {
+  async actualizarCliente(cliente: Cliente): Promise<void> {
+    const payload = {
+      objetivo_id: cliente.objetivoId,
+      peso: cliente.peso,
+      altura: cliente.altura,
+      fecha_nacimiento: cliente.fechaNacimiento,
+      sexo: cliente.sexo,
+      direccion: cliente.direccion,
+      restricciones_medicas: cliente.restriccionesMedicas,
+      entrenador_id: cliente.entrenadorId,
+      membresia_id: cliente.membresiaId,
+      activo: cliente.activo,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      dni: cliente.dni,
+      correo: cliente.email,
+      telefono: cliente.telefono
+    };
+    const response = await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/${cliente.id}`, payload)
+    );
+    const actC = this.mapToCliente(response);
     this._clientes.update(lista =>
-      lista.map(c => c.id === cliente.id ? { ...c, ...cliente } : c)
+      lista.map(c => c.id === actC.id ? actC : c)
     );
   }
 
-  eliminarCliente(id: number): void {
+  async eliminarCliente(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${id}`));
     this._clientes.update(lista =>
       lista.map(c => c.id === id ? { ...c, activo: false } : c)
     );

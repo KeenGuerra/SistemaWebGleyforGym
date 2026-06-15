@@ -15,8 +15,13 @@ export class PerfilCliente {
   private clienteSvc  = inject(ClienteService);
   private usuarioSvc  = inject(UsuarioService);
 
-  private readonly CLIENTE_ID = 5;
-  readonly cliente    = this.clienteSvc.getClientePorId(this.CLIENTE_ID)!;
+  readonly clienteActual = computed(() => {
+    const user = this.usuarioSvc.usuarioActual();
+    return this.clienteSvc.clientes().find(c => c.email === user.email);
+  });
+
+  readonly CLIENTE_ID = computed(() => this.clienteActual()?.id || 0);
+  readonly cliente    = computed(() => this.clienteActual());
   readonly iniciales  = this.usuarioSvc.iniciales;
   readonly modoEdicion = signal(false);
   readonly guardado   = signal(false);
@@ -110,15 +115,18 @@ export class PerfilCliente {
   });
 
   activarEdicion(): void {
+    const cli = this.cliente();
+    if (!cli) return;
+
     // Cargar valores actuales en los signals de edición
     this.clientModel.set({
-      nombre: this.cliente.nombre,
-      apellido: this.cliente.apellido,
-      email: this.cliente.email,
-      telefono: this.cliente.telefono,
-      objetivo: this.cliente.objetivo ?? '',
-      peso: this.cliente.peso ?? 0,
-      altura: this.cliente.altura ?? 0
+      nombre: cli.nombre,
+      apellido: cli.apellido,
+      email: cli.email,
+      telefono: cli.telefono,
+      objetivo: cli.objetivo ?? '',
+      peso: cli.peso ?? 0,
+      altura: cli.altura ?? 0
     });
 
     // Resetear estados touched
@@ -138,7 +146,7 @@ export class PerfilCliente {
     this.modoEdicion.set(false);
   }
 
-  guardar(): void {
+  async guardar(): Promise<void> {
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
     this.emailTouched.set(true);
@@ -150,6 +158,9 @@ export class PerfilCliente {
     if (!this.formularioValido()) {
       return;
     }
+
+    const cli = this.cliente();
+    if (!cli) return;
 
     this.cargando.set(true);
     this.error.set(null);
@@ -164,17 +175,24 @@ export class PerfilCliente {
       altura: this.clientForm.altura().value(),
     };
 
-    this.clienteSvc.actualizarCliente({ ...this.cliente, ...v });
-    this.cargando.set(false);
-    this.modoEdicion.set(false);
-    this.guardado.set(true);
-    setTimeout(() => this.guardado.set(false), 3000);
+    try {
+      await this.clienteSvc.actualizarCliente({ ...cli, ...v });
+      this.modoEdicion.set(false);
+      this.guardado.set(true);
+      setTimeout(() => this.guardado.set(false), 3000);
+    } catch (err: any) {
+      console.error('Error al actualizar cliente:', err);
+      this.error.set(err.message || 'Error al actualizar el perfil.');
+    } finally {
+      this.cargando.set(false);
+    }
   }
 
   readonly imc = computed(() => {
+    const cli = this.cliente();
     // Altura en metros. Si editando, usar form; si no, valor estático del cliente
-    const p = this.modoEdicion() ? this.clientForm.peso().value() : (this.cliente.peso ?? 0);
-    const a = this.modoEdicion() ? this.clientForm.altura().value() : (this.cliente.altura ?? 1);
+    const p = this.modoEdicion() ? this.clientForm.peso().value() : (cli?.peso ?? 0);
+    const a = this.modoEdicion() ? this.clientForm.altura().value() : (cli?.altura ?? 1);
     return a > 0 ? +(p / (a ** 2)).toFixed(1) : 0;
   });
 
@@ -186,4 +204,5 @@ export class PerfilCliente {
     return 'Obesidad';
   });
 }
+
 

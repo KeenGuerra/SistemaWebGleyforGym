@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
@@ -12,8 +12,12 @@ import { Usuario } from '../../../models/usuario';
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css',
 })
-export class Usuarios {
+export class Usuarios implements OnInit {
   private usuarioService = inject(UsuarioService);
+
+  ngOnInit(): void {
+    this.usuarioService.cargarUsuarios();
+  }
 
   // Filtros y búsquedas
   readonly selectedRolFilter = signal<string>('todos');
@@ -162,7 +166,7 @@ export class Usuarios {
     this.editingUser.set(null);
   }
 
-  saveUser(): void {
+  async saveUser(): Promise<void> {
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
     this.emailTouched.set(true);
@@ -187,28 +191,47 @@ export class Usuarios {
     
     const editing = this.editingUser();
 
-    if (editing) {
-      // Actualizar
-      this.usuarioService.actualizarUsuario({
-        ...editing,
-        ...formVal
-      });
-    } else {
-      // Registrar
-      this.usuarioService.registrarUsuario({
-        ...formVal
-      });
+    try {
+      if (editing) {
+        // Actualizar
+        await this.usuarioService.actualizarUsuario({
+          ...editing,
+          ...formVal
+        });
+      } else {
+        // Registrar
+        await this.usuarioService.registrarUsuario({
+          ...formVal
+        });
+      }
+      this.cargando.set(false);
+      this.closeModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al guardar el usuario. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
     }
-
-    this.cargando.set(false);
-    this.closeModal();
   }
 
-  toggleActivo(user: Usuario): void {
-    this.usuarioService.actualizarUsuario({
-      ...user,
-      activo: !user.activo
-    });
+  async toggleActivo(user: Usuario): Promise<void> {
+    try {
+      await this.usuarioService.actualizarUsuario({
+        ...user,
+        activo: !user.activo
+      });
+    } catch (err: any) {
+      console.error('Error al cambiar estado activo:', err);
+    }
   }
 }
 

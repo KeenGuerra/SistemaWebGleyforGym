@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
@@ -15,11 +15,17 @@ import { Cliente, ClienteDecorado } from '../../../models/cliente';
   templateUrl: './clientes.html',
   styleUrl: './clientes.css',
 })
-export class Clientes {
+export class Clientes implements OnInit {
   private clienteService = inject(ClienteService);
   private usuarioService = inject(UsuarioService);
   private entrenadorService = inject(EntrenadorService);
   private membresiaService = inject(MembresiaService);
+
+  ngOnInit(): void {
+    this.clienteService.cargarClientes();
+    this.entrenadorService.cargarEntrenadores();
+    this.membresiaService.cargarMembresias();
+  }
 
   // Filtros
   readonly searchQuery = signal<string>('');
@@ -275,7 +281,7 @@ export class Clientes {
     this.viewingCliente.set(null);
   }
 
-  saveCliente(): void {
+  async saveCliente(): Promise<void> {
     this.nombreTouched.set(true);
     this.apellidoTouched.set(true);
     this.dniTouched.set(true);
@@ -310,67 +316,57 @@ export class Clientes {
     
     const editing = this.editingCliente();
 
-    if (editing) {
-      const actCliente: Cliente = {
-        ...editing,
-        ...formVal
-      };
-      this.clienteService.actualizarCliente(actCliente);
-      this.usuarioService.actualizarUsuario({
-        id: editing.id,
-        nombre: formVal.nombre,
-        apellido: formVal.apellido,
-        dni: formVal.dni,
-        email: formVal.email,
-        telefono: formVal.telefono,
-        rol: 'CLIENTE',
-        activo: formVal.activo,
-        fechaRegistro: editing.fechaRegistro
-      });
-    } else {
-      const nuevoUsuario = this.usuarioService.registrarUsuario({
-        nombre: formVal.nombre,
-        apellido: formVal.apellido,
-        dni: formVal.dni,
-        email: formVal.email,
-        telefono: formVal.telefono,
-        rol: 'CLIENTE',
-        activo: formVal.activo
-      });
-
-      this.clienteService.registrarCliente({
-        ...nuevoUsuario,
-        objetivoId: 3, // ID por defecto ("Tonificación" o similar)
-        objetivo: formVal.objetivo,
-        peso: formVal.peso,
-        altura: formVal.altura,
-        entrenadorId: formVal.entrenadorId,
-        membresiaId: formVal.membresiaId
-      });
-
-      // Crear membresía inicial
-      const hoy = new Date();
-      const fin = new Date();
-      fin.setMonth(hoy.getMonth() + 1);
-
-      this.membresiaService.registrarMembresia({
-        clienteId: nuevoUsuario.id,
-        tipo: formVal.membresiaId === 1 ? 'Mensual Premium' : formVal.membresiaId === 2 ? 'Trimestral' : 'Mensual Básica',
-        precio: formVal.membresiaId === 1 ? 2500 : formVal.membresiaId === 2 ? 6500 : 1800,
-        fechaInicio: hoy.toISOString().split('T')[0],
-        fechaFin: fin.toISOString().split('T')[0],
-        estado: 'activa'
-      });
+    try {
+      if (editing) {
+        const actCliente: Cliente = {
+          ...editing,
+          ...formVal
+        };
+        await this.clienteService.actualizarCliente(actCliente);
+      } else {
+        await this.clienteService.registrarCliente({
+          nombre: formVal.nombre,
+          apellido: formVal.apellido,
+          dni: formVal.dni,
+          email: formVal.email,
+          telefono: formVal.telefono,
+          activo: formVal.activo,
+          objetivo: formVal.objetivo,
+          peso: formVal.peso,
+          altura: formVal.altura,
+          entrenadorId: formVal.entrenadorId,
+          membresiaId: formVal.membresiaId,
+          objetivoId: 3, // default
+          rol: 'CLIENTE',
+          fechaRegistro: new Date().toISOString().split('T')[0]
+        });
+      }
+      this.cargando.set(false);
+      this.closeModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al guardar el cliente. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
     }
-
-    this.cargando.set(false);
-    this.closeModal();
   }
 
-  eliminarCliente(id: number): void {
+  async eliminarCliente(id: number): Promise<void> {
     if (confirm('¿Estás seguro de que deseas eliminar este cliente? Se desactivará su cuenta.')) {
-      this.clienteService.eliminarCliente(id);
-      this.usuarioService.eliminarUsuario(id);
+      try {
+        await this.clienteService.eliminarCliente(id);
+      } catch (err) {
+        console.error('Error al eliminar cliente:', err);
+      }
     }
   }
 }

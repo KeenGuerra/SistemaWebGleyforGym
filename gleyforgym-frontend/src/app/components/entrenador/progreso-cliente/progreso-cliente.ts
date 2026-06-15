@@ -30,6 +30,8 @@ export class ProgresoCliente implements OnInit {
   });
   readonly mostrarFormulario = signal(false);
   readonly guardado  = signal(false);
+  readonly cargando  = signal(false);
+  readonly error     = signal<string | null>(null);
 
   // Writable Signals del Formulario
   readonly fecha = signal('');
@@ -63,6 +65,7 @@ export class ProgresoCliente implements OnInit {
   toggleFormulario(): void {
     this.mostrarFormulario.update(v => !v);
     this.guardado.set(false);
+    this.error.set(null);
     
     // Resetear form
     this.fecha.set(new Date().toISOString().split('T')[0]);
@@ -78,7 +81,7 @@ export class ProgresoCliente implements OnInit {
     this.alturaTouched.set(false);
   }
 
-  guardar(): void {
+  async guardar(): Promise<void> {
     this.fechaTouched.set(true);
     this.pesoTouched.set(true);
     this.alturaTouched.set(true);
@@ -87,23 +90,42 @@ export class ProgresoCliente implements OnInit {
       return;
     }
 
+    this.cargando.set(true);
+    this.error.set(null);
+
     const pesoVal = this.peso();
     const alturaVal = this.altura();
     const imc = +(pesoVal / ((alturaVal / 100) ** 2)).toFixed(1);
 
-    this.progresoSvc.registrarProgreso({
-      clienteId: this.clienteId(),
-      fecha: this.fecha(),
-      peso: pesoVal,
-      altura: alturaVal,
-      imc,
-      porcentajeGrasa: this.porcentajeGrasa(),
-      porcentajeMuscular: this.porcentajeMuscular(),
-      notas: this.notas(),
-    });
-
-    this.guardado.set(true);
-    this.mostrarFormulario.set(false);
+    try {
+      await this.progresoSvc.registrarProgreso({
+        clienteId: this.clienteId(),
+        fecha: this.fecha(),
+        peso: pesoVal,
+        altura: alturaVal,
+        imc,
+        porcentajeGrasa: this.porcentajeGrasa(),
+        porcentajeMuscular: this.porcentajeMuscular(),
+        notas: this.notas(),
+      });
+      this.cargando.set(false);
+      this.guardado.set(true);
+      this.mostrarFormulario.set(false);
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar el progreso. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 
   iniciales(nombre: string, apellido: string): string {

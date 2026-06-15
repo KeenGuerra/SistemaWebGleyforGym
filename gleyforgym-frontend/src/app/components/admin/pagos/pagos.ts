@@ -1,9 +1,10 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
 import { PagoService } from '../../../services/pago.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { MembresiaService } from '../../../services/membresia.service';
 import { Pago, MetodoPago, EstadoPago } from '../../../models/pago';
 
 @Component({
@@ -13,9 +14,16 @@ import { Pago, MetodoPago, EstadoPago } from '../../../models/pago';
   templateUrl: './pagos.html',
   styleUrl: './pagos.css',
 })
-export class Pagos {
+export class Pagos implements OnInit {
   private pagoService = inject(PagoService);
   private clienteService = inject(ClienteService);
+  private membresiaService = inject(MembresiaService);
+
+  ngOnInit(): void {
+    this.pagoService.cargarPagos();
+    this.clienteService.cargarClientes();
+    this.membresiaService.cargarMembresias();
+  }
 
   // Filtros
   readonly selectedFilter = signal<'todos' | 'PAGADO' | 'PENDIENTE'>('todos');
@@ -142,7 +150,7 @@ export class Pagos {
     this.showModal.set(false);
   }
 
-  savePago(): void {
+  async savePago(): Promise<void> {
     this.clienteIdTouched.set(true);
     this.montoTouched.set(true);
     this.conceptoTouched.set(true);
@@ -156,17 +164,32 @@ export class Pagos {
     this.cargando.set(true);
     this.error.set(null);
 
-    this.pagoService.agregarPago({
-      clienteId: this.pagoForm.clienteId().value(),
-      monto: this.pagoForm.monto().value(),
-      fecha: new Date().toISOString().split('T')[0],
-      concepto: this.pagoForm.concepto().value(),
-      metodo: this.pagoForm.metodo().value(),
-      estado: this.pagoForm.estado().value()
-    });
-
-    this.cargando.set(false);
-    this.closeModal();
+    try {
+      await this.pagoService.agregarPago({
+        clienteId: this.pagoForm.clienteId().value(),
+        monto: this.pagoForm.monto().value(),
+        fecha: new Date().toISOString().split('T')[0],
+        concepto: this.pagoForm.concepto().value(),
+        metodo: this.pagoForm.metodo().value(),
+        estado: this.pagoForm.estado().value()
+      });
+      this.cargando.set(false);
+      this.closeModal();
+    } catch (err: any) {
+      this.cargando.set(false);
+      let errorMsg = 'Error al registrar el pago. Inténtelo de nuevo.';
+      if (err && err.error) {
+        if (typeof err.error.detail === 'string') {
+          errorMsg = err.error.detail;
+        } else if (Array.isArray(err.error.detail) && err.error.detail.length > 0) {
+          const firstErr = err.error.detail[0];
+          errorMsg = firstErr.msg || 'Error de validación';
+        } else if (err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
+      this.error.set(errorMsg);
+    }
   }
 }
 

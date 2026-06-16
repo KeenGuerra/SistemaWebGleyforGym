@@ -27,7 +27,7 @@ class UsuarioService:
         return usuario_repository.get_all(db)
 
     def create(self, db: Session, user_in: UsuarioCreate) -> Usuario:
-        # Verificar duplicado
+        # Verificar duplicado por correo
         existing = usuario_repository.get_by_correo(db, user_in.correo)
         if existing:
             raise HTTPException(
@@ -35,10 +35,20 @@ class UsuarioService:
                 detail="El correo electrónico ya se encuentra registrado"
             )
         
+        # Verificar duplicado por DNI
+        if user_in.dni:
+            existing_dni = usuario_repository.get_by_dni(db, user_in.dni)
+            if existing_dni:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El DNI ya se encuentra registrado"
+                )
+        
         hashed = get_password_hash(user_in.password)
         db_user = usuario_repository.create(db, user_in, hashed)
 
         if db_user.rol == "CLIENTE":
+            # pyrefly: ignore [missing-import]
             from src.database.models import Cliente
             db_cliente = Cliente(
                 usuario_id=db_user.id,
@@ -50,6 +60,7 @@ class UsuarioService:
             db.add(db_cliente)
             db.commit()
         elif db_user.rol == "ENTRENADOR":
+            # pyrefly: ignore [missing-import]
             from src.database.models import Entrenador
             db_entrenador = Entrenador(
                 usuario_id=db_user.id,
@@ -71,6 +82,15 @@ class UsuarioService:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="El correo electrónico ya está en uso"
+                )
+
+        # Si se quiere cambiar DNI, verificar duplicados
+        if user_in.dni and user_in.dni != db_user.dni:
+            existing_dni = usuario_repository.get_by_dni(db, user_in.dni)
+            if existing_dni:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El DNI ya está en uso"
                 )
         
         hashed_pw = None

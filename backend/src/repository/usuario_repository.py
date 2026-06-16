@@ -13,6 +13,9 @@ class UsuarioRepository:
     def get_by_correo(self, db: Session, correo: str) -> Usuario | None:
         return db.query(Usuario).filter(Usuario.correo == correo).first()
 
+    def get_by_dni(self, db: Session, dni: str) -> Usuario | None:
+        return db.query(Usuario).filter(Usuario.dni == dni).first()
+
     def get_all(self, db: Session) -> list[Usuario]:
         return db.query(Usuario).all()
 

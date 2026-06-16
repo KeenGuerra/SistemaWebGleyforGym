@@ -46,10 +46,25 @@ def register_cliente(
     usuario_in: UsuarioCreate,
     db: Session = Depends(get_db)
 ):
-    import random
     # Generar un DNI aleatorio si viene vacío
     if not usuario_in.dni:
-        usuario_in.dni = "".join(random.choices("0123456789", k=10))
+        import random
+        # Generar un DNI aleatorio y verificar que no esté duplicado
+        for _ in range(10):
+            temp_dni = "".join(random.choices("0123456789", k=10))
+            if not usuario_repository.get_by_dni(db, temp_dni):
+                usuario_in.dni = temp_dni
+                break
+        else:
+            usuario_in.dni = "".join(random.choices("0123456789", k=10))
+    else:
+        # Verificar duplicado si fue provisto
+        existing_dni = usuario_repository.get_by_dni(db, usuario_in.dni)
+        if existing_dni:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El DNI ya se encuentra registrado"
+            )
     
     # Crear el usuario con rol CLIENTE
     usuario_in.rol = "CLIENTE"
@@ -64,7 +79,9 @@ def register_cliente(
     db_user = usuario_repository.create(db, usuario_in, hashed_pw)
     
     # Crear registro de cliente asociado
+    # pyrefly: ignore [missing-import]
     from src.schemas.cliente import ClienteCreate
+    # pyrefly: ignore [missing-import]
     from src.repository.cliente_repository import cliente_repository
     cliente_in = ClienteCreate(
         usuario=usuario_in,

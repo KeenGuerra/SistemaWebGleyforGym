@@ -56,4 +56,8 @@ class ProgresoRepository:
         db.refresh(db_prog)
         return db_prog
 
+    def get_all(self, db: Session) -> list[ProgresoCliente]:
+        return db.query(ProgresoCliente).order_by(ProgresoCliente.fecha.desc()).all()
+
 progreso_repository = ProgresoRepository()
+

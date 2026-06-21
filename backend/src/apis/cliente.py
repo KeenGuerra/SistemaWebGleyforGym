@@ -37,10 +37,19 @@ def check_admin(current_user: Usuario = Depends(get_current_user)):
 @router.get("/", response_model=list[ClienteResponse])
 def get_clientes(
     db: Session = Depends(get_db),
-    user: Usuario = Depends(check_admin_or_trainer)
+    user: Usuario = Depends(get_current_user)
 ):
-    clientes = cliente_service.get_all(db)
-    return [cliente_service.decorador_cliente(db, c) for c in clientes]
+    if user.rol == "CLIENTE":
+        c = cliente_repository.get_by_usuario_id(db, user.id)
+        if not c:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Perfil de cliente no encontrado"
+            )
+        return [cliente_service.decorador_cliente(db, c)]
+    else:
+        clientes = cliente_service.get_all(db)
+        return [cliente_service.decorador_cliente(db, c) for c in clientes]
 
 @router.get("/{cliente_id}", response_model=ClienteResponse)
 def get_cliente(

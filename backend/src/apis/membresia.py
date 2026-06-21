@@ -86,9 +86,18 @@ def renovar_membresia_cliente(
 @router.get("/suscripciones/todas", response_model=list[ClienteMembresiaResponse])
 def get_todas_suscripciones(
     db: Session = Depends(get_db),
-    admin_user: Usuario = Depends(check_admin_or_trainer)
+    user: Usuario = Depends(get_current_user)
 ):
-    subs = membresia_service.get_todas_suscripciones(db)
+    if user.rol == "CLIENTE":
+        c = cliente_repository.get_by_usuario_id(db, user.id)
+        if not c:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Perfil de cliente no encontrado"
+            )
+        subs = membresia_repository.get_cliente_membresias_all(db, c.id)
+    else:
+        subs = membresia_service.get_todas_suscripciones(db)
     return [membresia_service.decorador_cliente_membresia(db, sub) for sub in subs]
 
 @router.get("/cliente/{cliente_id}/activa", response_model=ClienteMembresiaResponse)

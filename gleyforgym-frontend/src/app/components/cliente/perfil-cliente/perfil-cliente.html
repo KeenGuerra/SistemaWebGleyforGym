@@ -90,14 +90,14 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre-cli">Nombre</label>
-              <input id="nombre-cli" name="nombre" type="text" class="gym-form-control" [ngModel]="clientForm.nombre().value()" (ngModelChange)="clientForm.nombre().set($event)" (blur)="nombreTouched.set(true)">
+               <input id="nombre-cli" name="nombre" type="text" class="gym-form-control" [signalForm]="clientForm.nombre()" (blur)="nombreTouched.set(true)">
               @if (nombreTouched() && nombreErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ nombreErrores() }}</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido-cli">Apellido</label>
-              <input id="apellido-cli" name="apellido" type="text" class="gym-form-control" [ngModel]="clientForm.apellido().value()" (ngModelChange)="clientForm.apellido().set($event)" (blur)="apellidoTouched.set(true)">
+               <input id="apellido-cli" name="apellido" type="text" class="gym-form-control" [signalForm]="clientForm.apellido()" (blur)="apellidoTouched.set(true)">
               @if (apellidoTouched() && apellidoErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ apellidoErrores() }}</span>
               }
@@ -105,7 +105,7 @@
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="email-cli">Correo Electrónico</label>
-            <input id="email-cli" name="email" type="email" class="gym-form-control" [ngModel]="clientForm.email().value()" (ngModelChange)="clientForm.email().set($event)" (blur)="emailTouched.set(true)">
+             <input id="email-cli" name="email" type="email" class="gym-form-control" [signalForm]="clientForm.email()" (blur)="emailTouched.set(true)">
             @if (emailTouched() && emailErrores()) {
               <span class="gym-form-error">
                 <i class="bi bi-exclamation-circle"></i> {{ emailErrores() }}
@@ -115,14 +115,14 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="tel-cli">Teléfono</label>
-              <input id="tel-cli" name="telefono" type="tel" class="gym-form-control" [ngModel]="clientForm.telefono().value()" (ngModelChange)="clientForm.telefono().set($event)" (blur)="telefonoTouched.set(true)">
+               <input id="tel-cli" name="telefono" type="tel" class="gym-form-control" [signalForm]="clientForm.telefono()" (blur)="telefonoTouched.set(true)">
               @if (telefonoTouched() && telefonoErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ telefonoErrores() }}</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="obj-cli">Objetivo</label>
-              <input id="obj-cli" name="objetivo" type="text" class="gym-form-control" [ngModel]="clientForm.objetivo().value()" (ngModelChange)="clientForm.objetivo().set($event)" (blur)="objetivoTouched.set(true)" placeholder="Pérdida de peso...">
+               <input id="obj-cli" name="objetivo" type="text" class="gym-form-control" [signalForm]="clientForm.objetivo()" (blur)="objetivoTouched.set(true)" placeholder="Pérdida de peso...">
               @if (objetivoTouched() && objetivoErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ objetivoErrores() }}</span>
               }
@@ -131,14 +131,14 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="peso-cli">Peso (kg)</label>
-              <input id="peso-cli" name="peso" type="number" step="0.1" class="gym-form-control" [ngModel]="clientForm.peso().value()" (ngModelChange)="clientForm.peso().set($event)" (blur)="pesoTouched.set(true)">
+               <input id="peso-cli" name="peso" type="number" step="0.1" class="gym-form-control" [signalForm]="clientForm.peso()" (blur)="pesoTouched.set(true)">
               @if (pesoTouched() && pesoErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ pesoErrores() }}</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="altura-cli">Altura (m)</label>
-              <input id="altura-cli" name="altura" type="number" step="0.01" class="gym-form-control" [ngModel]="clientForm.altura().value()" (ngModelChange)="clientForm.altura().set($event)" (blur)="alturaTouched.set(true)">
+               <input id="altura-cli" name="altura" type="number" step="0.01" class="gym-form-control" [signalForm]="clientForm.altura()" (blur)="alturaTouched.set(true)">
               @if (alturaTouched() && alturaErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ alturaErrores() }}</span>
               }
@@ -178,8 +178,7 @@
               type="password"
               id="currentPassword"
               name="currentPassword"
-              [ngModel]="passwordForm.currentPassword().value()"
-              (ngModelChange)="passwordForm.currentPassword().set($event)"
+              [signalForm]="passwordForm.currentPassword()"
               (blur)="currentPasswordTouched.set(true)"
               class="gym-form-control"
               placeholder="••••••••"
@@ -196,8 +195,7 @@
                 type="password"
                 id="newPassword"
                 name="newPassword"
-                [ngModel]="passwordForm.newPassword().value()"
-                (ngModelChange)="passwordForm.newPassword().set($event)"
+                [signalForm]="passwordForm.newPassword()"
                 (blur)="newPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"
@@ -215,8 +213,7 @@
                 type="password"
                 id="confirmNewPassword"
                 name="confirmNewPassword"
-                [ngModel]="passwordForm.confirmNewPassword().value()"
-                (ngModelChange)="passwordForm.confirmNewPassword().set($event)"
+                [signalForm]="passwordForm.confirmNewPassword()"
                 (blur)="confirmNewPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"

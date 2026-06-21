@@ -2,11 +2,12 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-mi-asistencia',
   standalone: true,
-  imports: [],
+  imports: [Paginacion],
   templateUrl: './mi-asistencia.html',
   styleUrl: './mi-asistencia.css',
 })
@@ -14,6 +15,10 @@ export class MiAsistencia {
   private asistenciaSvc = inject(AsistenciaService);
   private usuarioSvc = inject(UsuarioService);
   private clienteSvc = inject(ClienteService);
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
 
   readonly clienteActual = computed(() => {
     const user = this.usuarioSvc.usuarioActual();
@@ -28,6 +33,22 @@ export class MiAsistencia {
   readonly asistencias = computed(() =>
     this.asistenciaSvc.obtenerAsistencias().filter(a => a.clienteId === this.CLIENTE_ID())
   );
+
+  // Lista paginada
+  readonly paginatedAsistencias = computed(() => {
+    const list = this.asistencias();
+    // Ordenar de forma descendente por fecha y hora de entrada
+    const sorted = [...list].sort((a, b) => {
+      if (a.fecha !== b.fecha) {
+        return b.fecha.localeCompare(a.fecha);
+      }
+      return b.horaEntrada.localeCompare(a.horaEntrada);
+    });
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return sorted.slice(start, end);
+  });
 
 
   readonly diasAsistidos = computed(() =>

@@ -2,13 +2,14 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { EntrenadorService } from '../../../services/entrenador.service';
 import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-perfil-entrenador',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective],
   templateUrl: './perfil-entrenador.html',
   styleUrl: './perfil-entrenador.css',
 })

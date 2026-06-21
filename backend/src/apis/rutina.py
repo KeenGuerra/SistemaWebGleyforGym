@@ -54,9 +54,18 @@ def create_ejercicio(
 @router.get("/", response_model=list[RutinaResponse])
 def get_rutinas(
     db: Session = Depends(get_db),
-    user: Usuario = Depends(check_admin_or_trainer)
+    user: Usuario = Depends(get_current_user)
 ):
-    rutinas = rutina_service.obtener_todas(db)
+    if user.rol == "CLIENTE":
+        c = cliente_repository.get_by_usuario_id(db, user.id)
+        if not c:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Perfil de cliente no encontrado"
+            )
+        rutinas = rutina_service.obtener_por_cliente(db, c.id)
+    else:
+        rutinas = rutina_service.obtener_todas(db)
     return [rutina_service.decorador_rutina(r) for r in rutinas]
 
 @router.get("/{rutina_id}", response_model=RutinaResponse)

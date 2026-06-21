@@ -74,7 +74,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (cliente of clientes(); track cliente.id) {
+          @for (cliente of paginatedClientes(); track cliente.id) {
             <tr>
               <td>
                 <div class="d-flex align-center gap-1">
@@ -119,6 +119,12 @@
           }
         </tbody>
       </table>
+      <app-paginacion
+        [totalItems]="clientes().length"
+        [itemsPerPage]="itemsPorPagina"
+        [currentPage]="paginaActual()"
+        (pageChange)="paginaActual.set($event)">
+      </app-paginacion>
     </div>
   }
 </div>

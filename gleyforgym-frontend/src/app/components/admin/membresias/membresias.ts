@@ -2,15 +2,17 @@ import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { MembresiaService } from '../../../services/membresia.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { PagoService } from '../../../services/pago.service';
 import { Membresia, PlanMembresia } from '../../../models/membresia';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-membresias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective, Paginacion],
   templateUrl: './membresias.html',
   styleUrl: './membresias.css',
 })
@@ -31,6 +33,10 @@ export class Membresias implements OnInit {
 
   // Filtros
   readonly selectedFilter = signal<'todas' | 'activas' | 'vencidas'>('todas');
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
 
   // Modales
   readonly showRenewModal = signal<boolean>(false);
@@ -146,8 +152,18 @@ export class Membresias implements OnInit {
     });
   });
 
+  // Lista paginada
+  readonly paginatedMembresias = computed(() => {
+    const list = this.membresiasDecoradas();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   setFilter(filter: 'todas' | 'activas' | 'vencidas'): void {
     this.selectedFilter.set(filter);
+    this.paginaActual.set(1);
   }
 
   openRenewModal(membresia: Membresia): void {

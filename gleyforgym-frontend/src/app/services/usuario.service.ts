@@ -2,11 +2,12 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Usuario } from '../models/usuario';
+import { API_ENDPOINTS } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/usuarios/';
+  private apiUrl = API_ENDPOINTS.usuarios;
 
   private _usuarios = signal<Usuario[]>([]);
   private _usuarioActual = signal<Usuario | null>(null);
@@ -58,7 +59,7 @@ export class UsuarioService {
     const token = localStorage.getItem('access_token');
     if (!token) return null;
     try {
-      const u = await firstValueFrom(this.http.get<any>('http://localhost:8000/api/auth/me'));
+      const u = await firstValueFrom(this.http.get<any>(API_ENDPOINTS.auth.me));
       const mapped = this.mapToUsuario(u);
       this._usuarioActual.set(mapped);
       return mapped;
@@ -71,7 +72,7 @@ export class UsuarioService {
 
   async login(correo: string, contrasenia: string): Promise<Usuario | null> {
     const resp = await firstValueFrom(
-      this.http.post<any>('http://localhost:8000/api/auth/login', { correo, password: contrasenia })
+      this.http.post<any>(API_ENDPOINTS.auth.login, { correo, password: contrasenia })
     );
     if (typeof window !== 'undefined') {
       localStorage.setItem('access_token', resp.access_token);
@@ -123,7 +124,7 @@ export class UsuarioService {
   async registrarPublico(usuario: any): Promise<Usuario> {
     const randomDni = usuario.dni || Math.floor(10000000 + Math.random() * 90000000).toString();
     const response = await firstValueFrom(
-      this.http.post<any>('http://localhost:8000/api/auth/register', {
+      this.http.post<any>(API_ENDPOINTS.auth.register, {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         correo: usuario.email,
@@ -173,7 +174,7 @@ export class UsuarioService {
       password_nuevo: passwordNuevo
     };
     await firstValueFrom(
-      this.http.post<any>('http://localhost:8000/api/auth/change-password', payload)
+      this.http.post<any>(API_ENDPOINTS.auth.changePassword, payload)
     );
   }
 }

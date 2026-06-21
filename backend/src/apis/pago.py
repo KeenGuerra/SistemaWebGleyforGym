@@ -32,9 +32,18 @@ def check_admin(current_user: Usuario = Depends(get_current_user)):
 @router.get("/", response_model=list[PagoResponse])
 def get_pagos(
     db: Session = Depends(get_db),
-    admin_user: Usuario = Depends(check_admin)
+    user: Usuario = Depends(get_current_user)
 ):
-    pagos = pago_service.obtener_todos(db)
+    if user.rol == "CLIENTE":
+        c = cliente_repository.get_by_usuario_id(db, user.id)
+        if not c:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Perfil de cliente no encontrado"
+            )
+        pagos = pago_service.obtener_por_cliente(db, c.id)
+    else:
+        pagos = pago_service.obtener_todos(db)
     return [pago_service.decorador_pago(p) for p in pagos]
 
 @router.get("/cliente/{cliente_id}", response_model=list[PagoResponse])

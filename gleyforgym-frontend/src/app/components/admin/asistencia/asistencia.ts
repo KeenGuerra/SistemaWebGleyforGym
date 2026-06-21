@@ -2,13 +2,15 @@ import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-asistencia',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective, Paginacion],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.css',
 })
@@ -23,6 +25,10 @@ export class Asistencia implements OnInit {
 
   // Filtros
   readonly searchQuery = signal<string>('');
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
 
   // Modales
   readonly showModal = signal<boolean>(false);
@@ -123,9 +129,19 @@ export class Asistencia implements OnInit {
     );
   });
 
+  // Lista paginada
+  readonly paginatedAsistencias = computed(() => {
+    const list = this.asistenciasDecoradas();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   onSearchChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchQuery.set(value);
+    this.paginaActual.set(1);
   }
 
   openAddModal(): void {

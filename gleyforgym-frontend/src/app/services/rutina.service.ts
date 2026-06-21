@@ -2,12 +2,13 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Rutina } from '../models/rutina';
+import { API_ENDPOINTS } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class RutinaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/rutinas/';
-  private objetivosUrl = 'http://localhost:8000/api/objetivos/';
+  private apiUrl = API_ENDPOINTS.rutinas;
+  private objetivosUrl = API_ENDPOINTS.objetivos;
 
   private _rutinas = signal<Rutina[]>([]);
   private _objetivos = signal<{ id: number; nombre: string }[]>([]);

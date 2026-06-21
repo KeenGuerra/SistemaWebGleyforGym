@@ -2,13 +2,14 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../utils/signal-form';
+import { SignalFormDirective } from '../../directives/signal-form.directive';
 import { UsuarioService } from '../../services/usuario.service';
 import { ClienteService } from '../../services/cliente.service';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SignalFormDirective],
   templateUrl: './registro.html',
   styleUrl: './registro.css',
 })

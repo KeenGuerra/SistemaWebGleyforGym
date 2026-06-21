@@ -71,7 +71,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (m of membresiasDecoradas(); track m.id) {
+          @for (m of paginatedMembresias(); track m.id) {
             <tr>
               <td class="font-semibold">{{ m.nombreCliente }}</td>
               <td>
@@ -107,6 +107,12 @@
           }
         </tbody>
       </table>
+      <app-paginacion
+        [totalItems]="membresiasDecoradas().length"
+        [itemsPerPage]="itemsPorPagina"
+        [currentPage]="paginaActual()"
+        (pageChange)="paginaActual.set($event)">
+      </app-paginacion>
     </div>
 
     <!-- Modal de Renovación -->
@@ -138,7 +144,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="tipo">PLAN DE ENTRENAMIENTO</label>
-              <select id="tipo" name="tipo" [ngModel]="renewForm.tipo().value()" (ngModelChange)="renewForm.tipo().set($event)" (change)="onPlanChange($event)" class="gym-form-control">
+              <select id="tipo" name="tipo" [signalForm]="renewForm.tipo()" (change)="onPlanChange($event)" class="gym-form-control">
                 @if (planes().length === 0) {
                   <option value="" disabled>Cargando planes...</option>
                 }
@@ -151,7 +157,7 @@
             <div class="gym-form-row cols-2">
               <div class="gym-form-group">
                 <label class="gym-form-label" for="precio">MONTO A COBRAR (S/)</label>
-                <input type="number" id="precio" name="precio" [ngModel]="renewForm.precio().value()" (ngModelChange)="renewForm.precio().set($event)" (blur)="precioTouched.set(true)" class="gym-form-control" />
+                <input type="number" id="precio" name="precio" [signalForm]="renewForm.precio()" (blur)="precioTouched.set(true)" class="gym-form-control" />
                 @if (precioTouched() && precioErrores()) {
                   <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ precioErrores() }}</div>
                 }
@@ -159,7 +165,7 @@
 
               <div class="gym-form-group">
                 <label class="gym-form-label" for="meses">DURACIÓN (MESES)</label>
-                <input type="number" id="meses" name="meses" [ngModel]="renewForm.meses().value()" (ngModelChange)="renewForm.meses().set($event)" (blur)="mesesTouched.set(true)" class="gym-form-control" />
+                <input type="number" id="meses" name="meses" [signalForm]="renewForm.meses()" (blur)="mesesTouched.set(true)" class="gym-form-control" />
                 @if (mesesTouched() && mesesErrores()) {
                   <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ mesesErrores() }}</div>
                 }
@@ -259,8 +265,7 @@
                 type="text"
                 id="planNombre"
                 name="nombre"
-                [ngModel]="planForm.nombre().value()"
-                (ngModelChange)="planForm.nombre().set($event)"
+                [signalForm]="planForm.nombre()"
                 (blur)="planNombreTouched.set(true)"
                 class="gym-form-control"
                 placeholder="Ej. Mensual Premium, Trimestral..."
@@ -275,8 +280,7 @@
               <textarea
                 id="planDescripcion"
                 name="descripcion"
-                [ngModel]="planForm.descripcion().value()"
-                (ngModelChange)="planForm.descripcion().set($event)"
+                [signalForm]="planForm.descripcion()"
                 class="gym-form-control"
                 style="height: 80px; resize: none;"
                 placeholder="Detalla los beneficios del plan..."
@@ -290,8 +294,7 @@
                   type="number"
                   id="planPrecio"
                   name="precio"
-                  [ngModel]="planForm.precio().value()"
-                  (ngModelChange)="planForm.precio().set($event)"
+                  [signalForm]="planForm.precio()"
                   (blur)="planPrecioTouched.set(true)"
                   class="gym-form-control"
                   placeholder="0.00"
@@ -307,8 +310,7 @@
                   type="number"
                   id="planDuracion"
                   name="duracionDias"
-                  [ngModel]="planForm.duracionDias().value()"
-                  (ngModelChange)="planForm.duracionDias().set($event)"
+                  [signalForm]="planForm.duracionDias()"
                   (blur)="planDuracionTouched.set(true)"
                   class="gym-form-control"
                   placeholder="30"
@@ -324,8 +326,7 @@
                 <input
                   type="checkbox"
                   name="activa"
-                  [ngModel]="planForm.activa().value()"
-                  (ngModelChange)="planForm.activa().set($event)"
+                  [signalForm]="planForm.activa()"
                   style="width: 18px; height: 18px; accent-color: #ff6600;"
                 />
                 <span>Plan activo para nuevas suscripciones</span>

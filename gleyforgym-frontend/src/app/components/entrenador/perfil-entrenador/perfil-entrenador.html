@@ -97,14 +97,14 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
                <label class="gym-form-label" for="nombre-ent">Nombre</label>
-               <input id="nombre-ent" name="nombre" type="text" class="gym-form-control" [ngModel]="trainerForm.nombre().value()" (ngModelChange)="trainerForm.nombre().set($event)" (blur)="nombreTouched.set(true)">
+                <input id="nombre-ent" name="nombre" type="text" class="gym-form-control" [signalForm]="trainerForm.nombre()" (blur)="nombreTouched.set(true)">
                @if (nombreTouched() && nombreErrores()) {
                  <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ nombreErrores() }}</span>
                }
             </div>
             <div class="gym-form-group">
                <label class="gym-form-label" for="apellido-ent">Apellido</label>
-               <input id="apellido-ent" name="apellido" type="text" class="gym-form-control" [ngModel]="trainerForm.apellido().value()" (ngModelChange)="trainerForm.apellido().set($event)" (blur)="apellidoTouched.set(true)">
+                <input id="apellido-ent" name="apellido" type="text" class="gym-form-control" [signalForm]="trainerForm.apellido()" (blur)="apellidoTouched.set(true)">
                @if (apellidoTouched() && apellidoErrores()) {
                  <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ apellidoErrores() }}</span>
                }
@@ -112,7 +112,7 @@
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="email-ent">Correo Electrónico</label>
-            <input id="email-ent" name="email" type="email" class="gym-form-control" [ngModel]="trainerForm.email().value()" (ngModelChange)="trainerForm.email().set($event)" (blur)="emailTouched.set(true)">
+             <input id="email-ent" name="email" type="email" class="gym-form-control" [signalForm]="trainerForm.email()" (blur)="emailTouched.set(true)">
             @if (emailTouched() && emailErrores()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ emailErrores() }}</span>
             }
@@ -120,14 +120,14 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="tel-ent">Teléfono</label>
-              <input id="tel-ent" name="telefono" type="tel" class="gym-form-control" [ngModel]="trainerForm.telefono().value()" (ngModelChange)="trainerForm.telefono().set($event)" (blur)="telefonoTouched.set(true)">
+               <input id="tel-ent" name="telefono" type="tel" class="gym-form-control" [signalForm]="trainerForm.telefono()" (blur)="telefonoTouched.set(true)">
               @if (telefonoTouched() && telefonoErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ telefonoErrores() }}</span>
               }
             </div>
             <div class="gym-form-group">
               <label class="gym-form-label" for="exp-ent">Años de Experiencia</label>
-              <input id="exp-ent" name="experiencia" type="number" class="gym-form-control" [ngModel]="trainerForm.experiencia().value()" (ngModelChange)="trainerForm.experiencia().set($event)" (blur)="experienciaTouched.set(true)" min="0" max="50">
+               <input id="exp-ent" name="experiencia" type="number" class="gym-form-control" [signalForm]="trainerForm.experiencia()" (blur)="experienciaTouched.set(true)" min="0" max="50">
               @if (experienciaTouched() && experienciaErrores()) {
                 <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ experienciaErrores() }}</span>
               }
@@ -135,7 +135,7 @@
           </div>
           <div class="gym-form-group">
             <label class="gym-form-label" for="esp-ent">Especialidad</label>
-            <input id="esp-ent" name="especialidad" type="text" class="gym-form-control" [ngModel]="trainerForm.especialidad().value()" (ngModelChange)="trainerForm.especialidad().set($event)" (blur)="especialidadTouched.set(true)" placeholder="Ej: Musculación y Fuerza">
+             <input id="esp-ent" name="especialidad" type="text" class="gym-form-control" [signalForm]="trainerForm.especialidad()" (blur)="especialidadTouched.set(true)" placeholder="Ej: Musculación y Fuerza">
             @if (especialidadTouched() && especialidadErrores()) {
               <span class="gym-form-error"><i class="bi bi-exclamation-circle"></i> {{ especialidadErrores() }}</span>
             }
@@ -174,8 +174,7 @@
               type="password"
               id="currentPassword"
               name="currentPassword"
-              [ngModel]="passwordForm.currentPassword().value()"
-              (ngModelChange)="passwordForm.currentPassword().set($event)"
+              [signalForm]="passwordForm.currentPassword()"
               (blur)="currentPasswordTouched.set(true)"
               class="gym-form-control"
               placeholder="••••••••"
@@ -192,8 +191,7 @@
                 type="password"
                 id="newPassword"
                 name="newPassword"
-                [ngModel]="passwordForm.newPassword().value()"
-                (ngModelChange)="passwordForm.newPassword().set($event)"
+                [signalForm]="passwordForm.newPassword()"
                 (blur)="newPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"
@@ -211,8 +209,7 @@
                 type="password"
                 id="confirmNewPassword"
                 name="confirmNewPassword"
-                [ngModel]="passwordForm.confirmNewPassword().value()"
-                (ngModelChange)="passwordForm.confirmNewPassword().set($event)"
+                [signalForm]="passwordForm.confirmNewPassword()"
                 (blur)="confirmNewPasswordTouched.set(true)"
                 class="gym-form-control"
                 placeholder="••••••••"

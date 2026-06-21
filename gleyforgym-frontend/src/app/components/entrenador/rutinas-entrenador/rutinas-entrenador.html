@@ -113,7 +113,7 @@
       </div>
     </div>
   } @else {
-    @for (rutina of rutinas(); track rutina.id) {
+    @for (rutina of paginatedRutinas(); track rutina.id) {
       <div class="gym-accordion-item">
         <!-- Header -->
         <div class="gym-accordion-header" (click)="toggleExpandir(rutina.id)">
@@ -191,5 +191,11 @@
         }
       </div>
     }
+    <app-paginacion
+      [totalItems]="rutinas().length"
+      [itemsPerPage]="itemsPorPagina"
+      [currentPage]="paginaActual()"
+      (pageChange)="paginaActual.set($event)">
+    </app-paginacion>
   }
 </div>

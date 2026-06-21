@@ -67,7 +67,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (pago of pagosFiltrados(); track pago.id) {
+          @for (pago of paginatedPagos(); track pago.id) {
             <tr>
               <td class="text-muted">#{{ pago.id }}</td>
               <td class="fw-600">{{ pago.concepto }}</td>
@@ -92,6 +92,12 @@
           }
         </tbody>
       </table>
+      <app-paginacion
+        [totalItems]="pagosFiltrados().length"
+        [itemsPerPage]="itemsPorPagina"
+        [currentPage]="paginaActual()"
+        (pageChange)="paginaActual.set($event)">
+      </app-paginacion>
     </div>
   }
 </div>

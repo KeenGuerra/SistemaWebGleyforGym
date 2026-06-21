@@ -21,6 +21,21 @@ from src.repository.cliente_repository import cliente_repository
 
 router = APIRouter()
 
+@router.get("/", response_model=list[ProgresoResponse])
+def get_progresos(
+    db: Session = Depends(get_db),
+    user: Usuario = Depends(get_current_user)
+):
+    if user.rol == "CLIENTE":
+        c = cliente_repository.get_by_usuario_id(db, user.id)
+        if not c:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Perfil de cliente no encontrado"
+            )
+        return progreso_service.obtener_por_cliente(db, c.id)
+    return progreso_service.obtener_todos(db)
+
 @router.get("/cliente/{cliente_id}", response_model=list[ProgresoResponse])
 def get_progresos_cliente(
     cliente_id: int,

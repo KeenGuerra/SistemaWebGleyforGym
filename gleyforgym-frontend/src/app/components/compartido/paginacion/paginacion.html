@@ -1,0 +1,60 @@
+<div class="gym-table-footer">
+  <div class="paginacion-info">
+    Mostrando {{ rangeStart }} - {{ rangeEnd }} de {{ totalItems }} registros
+  </div>
+  
+  @if (totalPages > 1) {
+    <div class="gym-table-pag">
+      <!-- Primera página -->
+      <button 
+        type="button"
+        class="gym-pag-btn" 
+        [disabled]="currentPage === 1"
+        (click)="setPage(1)"
+        title="Primera página">
+        <i class="bi bi-chevron-double-left"></i>
+      </button>
+
+      <!-- Página anterior -->
+      <button 
+        type="button"
+        class="gym-pag-btn" 
+        [disabled]="currentPage === 1"
+        (click)="setPage(currentPage - 1)"
+        title="Página anterior">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <!-- Páginas numeradas -->
+      @for (p of pages; track p) {
+        <button 
+          type="button"
+          class="gym-pag-btn" 
+          [class.active]="p === currentPage"
+          (click)="setPage(p)">
+          {{ p }}
+        </button>
+      }
+
+      <!-- Página siguiente -->
+      <button 
+        type="button"
+        class="gym-pag-btn" 
+        [disabled]="currentPage === totalPages"
+        (click)="setPage(currentPage + 1)"
+        title="Página siguiente">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+
+      <!-- Última página -->
+      <button 
+        type="button"
+        class="gym-pag-btn" 
+        [disabled]="currentPage === totalPages"
+        (click)="setPage(totalPages)"
+        title="Última página">
+        <i class="bi bi-chevron-double-right"></i>
+      </button>
+    </div>
+  }
+</div>

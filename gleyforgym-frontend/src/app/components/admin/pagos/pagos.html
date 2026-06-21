@@ -63,7 +63,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (pago of pagosDecorados(); track pago.id) {
+        @for (pago of paginatedPagos(); track pago.id) {
           <tr>
             <td class="font-semibold">{{ pago.nombreCliente }}</td>
             <td>S/ {{ pago.monto | number }}</td>
@@ -90,6 +90,12 @@
         }
       </tbody>
     </table>
+    <app-paginacion
+      [totalItems]="pagosDecorados().length"
+      [itemsPerPage]="itemsPorPagina"
+      [currentPage]="paginaActual()"
+      (pageChange)="paginaActual.set($event)">
+    </app-paginacion>
   </div>
 
   <!-- Modal para Agregar Transacción -->
@@ -110,7 +116,7 @@
           }
           <div class="gym-form-group">
             <label class="gym-form-label" for="clienteId">SELECCIONAR SOCIO</label>
-            <select id="clienteId" name="clienteId" [ngModel]="pagoForm.clienteId().value()" (ngModelChange)="pagoForm.clienteId().set($event)" (blur)="clienteIdTouched.set(true)" class="gym-form-control">
+            <select id="clienteId" name="clienteId" [signalForm]="pagoForm.clienteId()" (blur)="clienteIdTouched.set(true)" class="gym-form-control">
               <option [ngValue]="0" disabled>Selecciona un cliente</option>
               @for (cl of clientes(); track cl.id) {
                 <option [ngValue]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
@@ -123,7 +129,7 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="monto">MONTO (S/)</label>
-            <input type="number" id="monto" name="monto" [ngModel]="pagoForm.monto().value()" (ngModelChange)="pagoForm.monto().set($event)" (blur)="montoTouched.set(true)" class="gym-form-control" placeholder="Monto en soles" />
+            <input type="number" id="monto" name="monto" [signalForm]="pagoForm.monto()" (blur)="montoTouched.set(true)" class="gym-form-control" placeholder="Monto en soles" />
             @if (montoTouched() && montoErrores()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ montoErrores() }}</div>
             }
@@ -131,7 +137,7 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="concepto">CONCEPTO / DETALLE</label>
-            <input type="text" id="concepto" name="concepto" [ngModel]="pagoForm.concepto().value()" (ngModelChange)="pagoForm.concepto().set($event)" (blur)="conceptoTouched.set(true)" class="gym-form-control" placeholder="Ej: Pago de membresía mensual" />
+            <input type="text" id="concepto" name="concepto" [signalForm]="pagoForm.concepto()" (blur)="conceptoTouched.set(true)" class="gym-form-control" placeholder="Ej: Pago de membresía mensual" />
             @if (conceptoTouched() && conceptoErrores()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ conceptoErrores() }}</div>
             }
@@ -140,7 +146,7 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="metodo">MÉTODO DE PAGO</label>
-              <select id="metodo" name="metodo" [ngModel]="pagoForm.metodo().value()" (ngModelChange)="pagoForm.metodo().set($event)" class="gym-form-control">
+              <select id="metodo" name="metodo" [signalForm]="pagoForm.metodo()" class="gym-form-control">
                 <option value="TARJETA">Tarjeta de Crédito</option>
                 <option value="EFECTIVO">Efectivo</option>
                 <option value="TRANSFERENCIA">Transferencia Bancaria</option>
@@ -149,7 +155,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="estado">ESTADO</label>
-              <select id="estado" name="estado" [ngModel]="pagoForm.estado().value()" (ngModelChange)="pagoForm.estado().set($event)" class="gym-form-control">
+              <select id="estado" name="estado" [signalForm]="pagoForm.estado()" class="gym-form-control">
                 <option value="PAGADO">Pagado</option>
                 <option value="PENDIENTE">Pendiente</option>
               </select>

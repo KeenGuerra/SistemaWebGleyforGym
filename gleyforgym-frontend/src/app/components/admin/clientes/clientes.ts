@@ -2,16 +2,18 @@ import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { ClienteService } from '../../../services/cliente.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
 import { MembresiaService } from '../../../services/membresia.service';
 import { Cliente, ClienteDecorado } from '../../../models/cliente';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective, Paginacion],
   templateUrl: './clientes.html',
   styleUrl: './clientes.css',
 })
@@ -30,6 +32,10 @@ export class Clientes implements OnInit {
 
   // Filtros
   readonly searchQuery = signal<string>('');
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
 
   // Modales
   readonly showModal = signal<boolean>(false);
@@ -186,9 +192,19 @@ export class Clientes implements OnInit {
     );
   });
 
+  // Lista paginada
+  readonly paginatedClientes = computed(() => {
+    const list = this.clientesDecorados();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   onSearchChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchQuery.set(value);
+    this.paginaActual.set(1);
   }
 
   openAddModal(): void {

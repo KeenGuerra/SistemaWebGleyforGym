@@ -22,11 +22,18 @@ export class PanelEntrenador {
 
   readonly nombreEntrenador = this.usuarioSvc.nombreCompleto;
 
+  private readonly entrenadorIdActual = computed(() => {
+    const usuarioId = this.usuarioSvc.usuarioActual().id;
+    const ent = this.entrenadorSvc.getEntrenadorPorUsuarioId(usuarioId);
+    return ent?.id ?? 0;
+  });
+
   readonly stats = computed(() => {
-    const clientes      = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1);
+    const eid           = this.entrenadorIdActual();
+    const clientes      = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === eid);
     const hoyStr        = new Date().toISOString().split('T')[0];
-    const asistHoy      = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1 && a.fecha === hoyStr);
-    const rutinasCant   = this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === 1 && r.activa).length;
+    const asistHoy      = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === eid && a.fecha === hoyStr);
+    const rutinasCant   = this.rutinaSvc.obtenerRutinas().filter(r => r.entrenadorId === eid && r.activa).length;
     return {
       totalClientes:   clientes.length,
       clientesActivos: clientes.filter(c => c.activo).length,
@@ -36,8 +43,9 @@ export class PanelEntrenador {
   });
 
   readonly asistenciasSemana = computed(() => {
+    const eid = this.entrenadorIdActual();
     const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const todas = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1);
+    const todas = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === eid);
     return dias.map((dia, i) => {
       const fecha = new Date();
       const diff  = i - fecha.getDay() + 1;
@@ -52,14 +60,16 @@ export class PanelEntrenador {
     });
   });
 
-  readonly clientesRecientes = computed(() =>
-    this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1).slice(0, 4)
-  );
+  readonly clientesRecientes = computed(() => {
+    const eid = this.entrenadorIdActual();
+    return this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === eid).slice(0, 4);
+  });
 
   readonly sesionesHoy = computed(() => {
-    const clientes = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1);
+    const eid = this.entrenadorIdActual();
+    const clientes = this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === eid);
     const hoyStr   = new Date().toISOString().split('T')[0];
-    const asistHoy = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1 && a.fecha === hoyStr);
+    const asistHoy = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === eid && a.fecha === hoyStr);
     return asistHoy.map(a => {
       const c = clientes.find(cl => cl.id === a.clienteId);
       return { ...a, nombreCliente: c ? `${c.nombre} ${c.apellido}` : 'Desconocido' };

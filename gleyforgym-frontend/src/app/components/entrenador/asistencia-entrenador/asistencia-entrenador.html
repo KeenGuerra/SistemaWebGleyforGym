@@ -138,7 +138,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (a of asistenciasFiltradas(); track a.id) {
+          @for (a of paginatedAsistencias(); track a.id) {
             <tr>
               <td>
                 <div class="d-flex align-center gap-1">
@@ -173,6 +173,12 @@
           }
         </tbody>
       </table>
+      <app-paginacion
+        [totalItems]="asistenciasFiltradas().length"
+        [itemsPerPage]="itemsPorPagina"
+        [currentPage]="paginaActual()"
+        (pageChange)="paginaActual.set($event)">
+      </app-paginacion>
     </div>
   }
 </div>

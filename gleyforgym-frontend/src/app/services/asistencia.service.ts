@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Asistencia } from '../models/asistencia';
+import { API_ENDPOINTS } from './api.config';
 
 const hoy = new Date();
 const fmt = (d: Date) => d.toISOString().split('T')[0];
@@ -9,7 +10,7 @@ const fmt = (d: Date) => d.toISOString().split('T')[0];
 @Injectable({ providedIn: 'root' })
 export class AsistenciaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/asistencias/';
+  private apiUrl = API_ENDPOINTS.asistencias;
 
   private _asistencias = signal<Asistencia[]>([]);
 

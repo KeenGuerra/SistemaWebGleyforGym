@@ -61,4 +61,8 @@ class ProgresoService:
             )
         return progreso_repository.get_by_cliente(db, cliente_id)
 
+    def obtener_todos(self, db: Session) -> list[ProgresoCliente]:
+        return progreso_repository.get_all(db)
+
 progreso_service = ProgresoService()
+

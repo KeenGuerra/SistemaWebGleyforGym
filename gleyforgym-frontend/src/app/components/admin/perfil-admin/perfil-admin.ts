@@ -2,12 +2,13 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-perfil-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective],
   templateUrl: './perfil-admin.html',
   styleUrl: './perfil-admin.css',
 })

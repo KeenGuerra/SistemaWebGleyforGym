@@ -2,13 +2,15 @@ import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { form } from '../../../utils/signal-form';
+import { SignalFormDirective } from '../../../directives/signal-form.directive';
 import { UsuarioService } from '../../../services/usuario.service';
 import { Usuario } from '../../../models/usuario';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SignalFormDirective, Paginacion],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css',
 })
@@ -22,6 +24,10 @@ export class Usuarios implements OnInit {
   // Filtros y búsquedas
   readonly selectedRolFilter = signal<string>('todos');
   readonly searchQuery = signal<string>('');
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
 
   // Modales
   readonly showModal = signal<boolean>(false);
@@ -106,13 +112,24 @@ export class Usuarios implements OnInit {
     });
   });
 
+  // Lista paginada
+  readonly paginatedUsuarios = computed(() => {
+    const list = this.filteredUsuarios();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   setRolFilter(rol: string): void {
     this.selectedRolFilter.set(rol);
+    this.paginaActual.set(1);
   }
 
   onSearchChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.searchQuery.set(value);
+    this.paginaActual.set(1);
   }
 
   openAddModal(): void {

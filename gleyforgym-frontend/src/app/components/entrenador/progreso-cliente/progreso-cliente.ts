@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ProgresoService } from '../../../services/progreso.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Progreso } from '../../../models/progreso';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-progreso-cliente',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Paginacion],
   templateUrl: './progreso-cliente.html',
   styleUrl: './progreso-cliente.css',
 })
@@ -19,11 +20,25 @@ export class ProgresoCliente implements OnInit {
 
   readonly clienteId = signal(0);
   readonly cliente   = computed(() => this.clienteSvc.getClientePorId(this.clienteId()));
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 5;
   readonly progresos = computed(() =>
     this.progresoSvc.obtenerProgreso()
       .filter(p => p.clienteId === this.clienteId())
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
   );
+
+  // Lista paginada
+  readonly paginatedProgresos = computed(() => {
+    const list = this.progresos();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   readonly ultimo    = computed(() => {
     const list = this.progresos();
     return list.length > 0 ? list[0] : undefined;

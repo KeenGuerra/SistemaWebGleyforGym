@@ -5,11 +5,12 @@ import { RutinaService } from '../../../services/rutina.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { EntrenadorService } from '../../../services/entrenador.service';
 import { UsuarioService } from '../../../services/usuario.service';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-rutinas-entrenador',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, Paginacion],
   templateUrl: './rutinas-entrenador.html',
   styleUrl: './rutinas-entrenador.css',
 })
@@ -18,6 +19,10 @@ export class RutinasEntrenador implements OnInit {
   private clienteSvc = inject(ClienteService);
   private entrenadorSvc = inject(EntrenadorService);
   private usuarioSvc = inject(UsuarioService);
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 6;
 
   ngOnInit(): void {
     this.entrenadorSvc.cargarEntrenadores();
@@ -37,6 +42,15 @@ export class RutinasEntrenador implements OnInit {
     const eid = this.entrenadorIdActual();
     const todas = this.rutinaSvc.rutinas();
     return eid > 0 ? todas.filter(r => r.entrenadorId === eid) : todas;
+  });
+
+  // Lista paginada
+  readonly paginatedRutinas = computed(() => {
+    const list = this.rutinas();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
   });
 
   readonly clientes = computed(() => {

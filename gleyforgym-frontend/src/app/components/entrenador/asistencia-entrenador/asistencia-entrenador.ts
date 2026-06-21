@@ -3,17 +3,28 @@ import { FormsModule } from '@angular/forms';
 import { AsistenciaService } from '../../../services/asistencia.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { Asistencia } from '../../../models/asistencia';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
+import { UsuarioService } from '../../../services/usuario.service';
+import { EntrenadorService } from '../../../services/entrenador.service';
 
 @Component({
   selector: 'app-asistencia-entrenador',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, Paginacion],
   templateUrl: './asistencia-entrenador.html',
   styleUrl: './asistencia-entrenador.css',
 })
 export class AsistenciaEntrenador {
   private asistenciaSvc = inject(AsistenciaService);
   private clienteSvc    = inject(ClienteService);
+  private usuarioSvc    = inject(UsuarioService);
+  private entrenadorSvc = inject(EntrenadorService);
+
+  private readonly entrenadorIdActual = computed(() => {
+    const usuarioId = this.usuarioSvc.usuarioActual().id;
+    const ent = this.entrenadorSvc.getEntrenadorPorUsuarioId(usuarioId);
+    return ent?.id ?? 0;
+  });
 
   readonly fechaFiltro = signal(new Date().toISOString().split('T')[0]);
   readonly mostrarFormulario = signal(false);
@@ -21,13 +32,19 @@ export class AsistenciaEntrenador {
   readonly cargando = signal(false);
   readonly error = signal<string | null>(null);
 
-  readonly clientes = computed(() =>
-    this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === 1)
-  );
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 10;
+
+  readonly clientes = computed(() => {
+    const eid = this.entrenadorIdActual();
+    return this.clienteSvc.obtenerClientes().filter(c => c.entrenadorId === eid);
+  });
 
   readonly asistenciasFiltradas = computed(() => {
     const fecha    = this.fechaFiltro();
-    const todas    = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === 1);
+    const eid      = this.entrenadorIdActual();
+    const todas    = this.asistenciaSvc.obtenerAsistencias().filter(a => a.entrenadorId === eid);
     const clientes = this.clientes();
 
     return todas
@@ -40,6 +57,15 @@ export class AsistenciaEntrenador {
         };
       })
       .sort((a, b) => b.fecha.localeCompare(a.fecha));
+  });
+
+  // Lista paginada
+  readonly paginatedAsistencias = computed(() => {
+    const list = this.asistenciasFiltradas();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
   });
 
   readonly totalHoy = computed(() =>
@@ -69,6 +95,7 @@ export class AsistenciaEntrenador {
 
   cambiarFecha(evento: Event): void {
     this.fechaFiltro.set((evento.target as HTMLInputElement).value);
+    this.paginaActual.set(1);
   }
 
   toggleFormulario(): void {
@@ -113,7 +140,7 @@ export class AsistenciaEntrenador {
     try {
       await this.asistenciaSvc.registrarAsistencia({
         clienteId:     this.clienteId(),
-        entrenadorId:  1,
+        entrenadorId:  this.entrenadorIdActual(),
         fecha:         this.fecha(),
         horaEntrada:   horaEntradaVal,
         horaSalida:    horaSalidaVal || undefined,

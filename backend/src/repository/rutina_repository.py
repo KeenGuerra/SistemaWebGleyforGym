@@ -95,15 +95,8 @@ class RutinaRepository:
             descanso_segundos=ej_detalles.descanso_segundos,
             dia_semana=ej_detalles.dia_semana,
             orden=ej_detalles.orden,
-            notes=ej_detalles.notas if hasattr(ej_detalles, 'notas') else getattr(ej_detalles, 'notas', None)
+            notas=ej_detalles.notas
         )
-        # Wait, the column in model is notes or notas? Let's check our models.py.
-        # Line 185 in models.py: notas = Column(Text, nullable=True)
-        # Ah! Let's check what I wrote in models.py: it's indeed `notas`. But in RutinaEjercicio I wrote `notas = Column(Text, nullable=True)`. Let's verify. Yes, it was `notas` in models.py.
-        # Wait! Let's look at `notes=ej_detalles.notas` in models.py:
-        # In my models.py: `notas = Column(Text, nullable=True)`. So the field is `notas`.
-        # Therefore, we should write: `notas=ej_detalles.notas`. Let's correct it to `notas`.
-        db_rel.notas = ej_detalles.notas
         db.add(db_rel)
         db.commit()
         db.refresh(db_rel)

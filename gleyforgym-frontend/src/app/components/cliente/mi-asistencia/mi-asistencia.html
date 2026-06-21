@@ -93,7 +93,7 @@
         </div>
       } @else {
         <div class="registros-list">
-          @for (a of asistencias().slice(0, 10); track a.id) {
+          @for (a of paginatedAsistencias(); track a.id) {
             <div class="registro-item">
               <div class="registro-fecha">
                 <span class="dia-num">{{ a.fecha.split('-')[2] }}</span>
@@ -116,6 +116,12 @@
             </div>
           }
         </div>
+        <app-paginacion
+          [totalItems]="asistencias().length"
+          [itemsPerPage]="itemsPorPagina"
+          [currentPage]="paginaActual()"
+          (pageChange)="paginaActual.set($event)">
+        </app-paginacion>
       }
     </div>
   </div>

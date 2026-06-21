@@ -196,7 +196,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (p of progresos(); track p.id) {
+              @for (p of paginatedProgresos(); track p.id) {
                 <tr>
                   <td class="fw-600">{{ p.fecha }}</td>
                   <td>{{ p.peso }}</td>
@@ -216,6 +216,12 @@
               }
             </tbody>
           </table>
+          <app-paginacion
+            [totalItems]="progresos().length"
+            [itemsPerPage]="itemsPorPagina"
+            [currentPage]="paginaActual()"
+            (pageChange)="paginaActual.set($event)">
+          </app-paginacion>
         </div>
       }
     </div>

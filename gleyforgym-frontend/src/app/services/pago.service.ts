@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Pago } from '../models/pago';
 import { MembresiaService } from './membresia.service';
+import { API_ENDPOINTS } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class PagoService {
   private http = inject(HttpClient);
   private membresiaService = inject(MembresiaService);
-  private apiUrl = 'http://localhost:8000/api/pagos/';
+  private apiUrl = API_ENDPOINTS.pagos;
 
   private _pagos = signal<Pago[]>([]);
 
@@ -60,7 +61,7 @@ export class PagoService {
     // Obtener la membresía activa del cliente
     try {
       const sub = await firstValueFrom(
-        this.http.get<any>(`http://localhost:8000/api/membresias/cliente/${pago.clienteId}/activa`)
+        this.http.get<any>(`${API_ENDPOINTS.membresias}cliente/${pago.clienteId}/activa`)
       );
       subMembresiaId = sub.id;
     } catch (e) {
@@ -73,7 +74,7 @@ export class PagoService {
     if (subMembresiaId === 0) {
       try {
         const hist = await firstValueFrom(
-          this.http.get<any[]>(`http://localhost:8000/api/membresias/cliente/${pago.clienteId}/historial`)
+          this.http.get<any[]>(`${API_ENDPOINTS.membresias}cliente/${pago.clienteId}/historial`)
         );
         if (hist && hist.length > 0) {
           subMembresiaId = hist[0].id;

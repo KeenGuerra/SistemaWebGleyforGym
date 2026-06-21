@@ -39,7 +39,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (asis of asistenciasDecoradas(); track asis.id) {
+        @for (asis of paginatedAsistencias(); track asis.id) {
           <tr>
             <td class="font-semibold">{{ asis.nombreCliente }}</td>
             <td>
@@ -72,6 +72,12 @@
         }
       </tbody>
     </table>
+    <app-paginacion
+      [totalItems]="asistenciasDecoradas().length"
+      [itemsPerPage]="itemsPorPagina"
+      [currentPage]="paginaActual()"
+      (pageChange)="paginaActual.set($event)">
+    </app-paginacion>
   </div>
 
   <!-- Modal para Asistencia Manual -->
@@ -95,8 +101,7 @@
             <select
               id="clienteId"
               name="clienteId"
-              [ngModel]="asistenciaForm.clienteId().value()"
-              (ngModelChange)="asistenciaForm.clienteId().set($event)"
+              [signalForm]="asistenciaForm.clienteId()"
               (blur)="clienteIdTouched.set(true)"
               class="gym-form-control"
             >
@@ -116,8 +121,7 @@
               type="date"
               id="fecha"
               name="fecha"
-              [ngModel]="asistenciaForm.fecha().value()"
-              (ngModelChange)="asistenciaForm.fecha().set($event)"
+              [signalForm]="asistenciaForm.fecha()"
               (blur)="fechaTouched.set(true)"
               class="gym-form-control"
             />
@@ -133,8 +137,7 @@
                 type="time"
                 id="horaEntrada"
                 name="horaEntrada"
-                [ngModel]="asistenciaForm.horaEntrada().value()"
-                (ngModelChange)="asistenciaForm.horaEntrada().set($event)"
+                [signalForm]="asistenciaForm.horaEntrada()"
                 (blur)="horaEntradaTouched.set(true)"
                 class="gym-form-control"
               />
@@ -149,8 +152,7 @@
                 type="time"
                 id="horaSalida"
                 name="horaSalida"
-                [ngModel]="asistenciaForm.horaSalida().value()"
-                (ngModelChange)="asistenciaForm.horaSalida().set($event)"
+                [signalForm]="asistenciaForm.horaSalida()"
                 (blur)="horaSalidaTouched.set(true)"
                 class="gym-form-control"
               />

@@ -2,11 +2,12 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Cliente } from '../models/cliente';
+import { API_ENDPOINTS } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/clientes/';
+  private apiUrl = API_ENDPOINTS.clientes;
 
   private _clientes = signal<Cliente[]>([]);
 

@@ -70,7 +70,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (user of filteredUsuarios(); track user.id) {
+        @for (user of paginatedUsuarios(); track user.id) {
           <tr>
             <td>
               <div class="user-cell">
@@ -115,6 +115,12 @@
         }
       </tbody>
     </table>
+    <app-paginacion
+      [totalItems]="filteredUsuarios().length"
+      [itemsPerPage]="itemsPorPagina"
+      [currentPage]="paginaActual()"
+      (pageChange)="paginaActual.set($event)">
+    </app-paginacion>
   </div>
 
   <!-- Modal de Registro / Edición -->
@@ -136,7 +142,7 @@
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="nombre">NOMBRE</label>
-              <input type="text" id="nombre" name="nombre" [ngModel]="userForm.nombre().value()" (ngModelChange)="userForm.nombre().set($event)" (blur)="nombreTouched.set(true)" class="gym-form-control" placeholder="Nombre" />
+              <input type="text" id="nombre" name="nombre" [signalForm]="userForm.nombre()" (blur)="nombreTouched.set(true)" class="gym-form-control" placeholder="Nombre" />
               @if (nombreTouched() && nombreErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ nombreErrores() }}</div>
               }
@@ -144,7 +150,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="apellido">APELLIDO</label>
-              <input type="text" id="apellido" name="apellido" [ngModel]="userForm.apellido().value()" (ngModelChange)="userForm.apellido().set($event)" (blur)="apellidoTouched.set(true)" class="gym-form-control" placeholder="Apellido" />
+              <input type="text" id="apellido" name="apellido" [signalForm]="userForm.apellido()" (blur)="apellidoTouched.set(true)" class="gym-form-control" placeholder="Apellido" />
               @if (apellidoTouched() && apellidoErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ apellidoErrores() }}</div>
               }
@@ -153,7 +159,7 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="email">CORREO ELECTRÓNICO</label>
-            <input type="email" id="email" name="email" [ngModel]="userForm.email().value()" (ngModelChange)="userForm.email().set($event)" (blur)="emailTouched.set(true)" class="gym-form-control" placeholder="ejemplo@gleyforgym.com" />
+            <input type="email" id="email" name="email" [signalForm]="userForm.email()" (blur)="emailTouched.set(true)" class="gym-form-control" placeholder="ejemplo@gleyforgym.com" />
             @if (emailTouched() && emailErrores()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ emailErrores() }}</div>
             }
@@ -161,7 +167,7 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="telefono">TELÉFONO</label>
-            <input type="text" id="telefono" name="telefono" [ngModel]="userForm.telefono().value()" (ngModelChange)="userForm.telefono().set($event)" (blur)="telefonoTouched.set(true)" class="gym-form-control" placeholder="8095551234" />
+            <input type="text" id="telefono" name="telefono" [signalForm]="userForm.telefono()" (blur)="telefonoTouched.set(true)" class="gym-form-control" placeholder="8095551234" />
             @if (telefonoTouched() && telefonoErrores()) {
               <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ telefonoErrores() }}</div>
             }
@@ -169,13 +175,13 @@
 
           <div class="gym-form-group">
             <label class="gym-form-label" for="dni">DNI / CÉDULA</label>
-            <input type="text" id="dni" name="dni" [ngModel]="userForm.dni().value()" (ngModelChange)="userForm.dni().set($event)" class="gym-form-control" placeholder="Número de cédula" />
+            <input type="text" id="dni" name="dni" [signalForm]="userForm.dni()" class="gym-form-control" placeholder="Número de cédula" />
           </div>
 
           <div class="gym-form-row cols-2">
             <div class="gym-form-group">
               <label class="gym-form-label" for="rol">ROL DE ACCESO</label>
-              <select id="rol" name="rol" [ngModel]="userForm.rol().value()" (ngModelChange)="userForm.rol().set($event)" class="gym-form-control">
+              <select id="rol" name="rol" [signalForm]="userForm.rol()" class="gym-form-control">
                 <option value="ADMINISTRADOR">Administrador</option>
                 <option value="ENTRENADOR">Entrenador</option>
                 <option value="CLIENTE">Cliente</option>
@@ -184,7 +190,7 @@
 
             <div class="gym-form-group">
               <label class="gym-form-label" for="activo">ESTADO</label>
-              <select id="activo" name="activo" [ngModel]="userForm.activo().value()" (ngModelChange)="userForm.activo().set($event)" class="gym-form-control">
+              <select id="activo" name="activo" [signalForm]="userForm.activo()" class="gym-form-control">
                 <option [ngValue]="true">Activo</option>
                 <option [ngValue]="false">Inactivo</option>
               </select>

@@ -3,11 +3,12 @@ import { DecimalPipe } from '@angular/common';
 import { PagoService } from '../../../services/pago.service';
 import { UsuarioService } from '../../../services/usuario.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { Paginacion } from '../../compartido/paginacion/paginacion';
 
 @Component({
   selector: 'app-mis-pagos',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Paginacion],
   templateUrl: './mis-pagos.html',
   styleUrl: './mis-pagos.css',
 })
@@ -15,6 +16,10 @@ export class MisPagos {
   private pagoSvc = inject(PagoService);
   private usuarioSvc = inject(UsuarioService);
   private clienteSvc = inject(ClienteService);
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly itemsPorPagina = 5;
 
   readonly clienteActual = computed(() => {
     const user = this.usuarioSvc.usuarioActual();
@@ -33,6 +38,15 @@ export class MisPagos {
     return lista.sort((a, b) => b.fecha.localeCompare(a.fecha));
   });
 
+  // Lista paginada
+  readonly paginatedPagos = computed(() => {
+    const list = this.pagosFiltrados();
+    const page = this.paginaActual();
+    const start = (page - 1) * this.itemsPorPagina;
+    const end = start + this.itemsPorPagina;
+    return list.slice(start, end);
+  });
+
   readonly totalPagado = computed(() => {
     const id = this.CLIENTE_ID();
     return this.pagoSvc.obtenerPagos()
@@ -49,6 +63,7 @@ export class MisPagos {
 
   cambiarFiltro(estado: 'todos' | 'PAGADO' | 'PENDIENTE' | 'ANULADO'): void {
     this.filtroEstado.set(estado);
+    this.paginaActual.set(1);
   }
 
   estadoBadgeClass(estado: string): string {

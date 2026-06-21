@@ -205,8 +205,6 @@ class ProgresoCliente(Base):
     imc = Column(Numeric(5, 2), nullable=False)
     porcentaje_grasa = Column(Numeric(5, 2), nullable=True)
     porcentaje_muscular = Column(Numeric(5, 2), nullable=True)
-    notes = Column(Text, nullable=True)  # Se mantiene la columna mapeada como notas/notes si es necesario, pero en SQL está como notas
-
     # Para ser consistentes con el nombre de la columna física en el esquema 'notas'
     notas = Column("notas", Text, nullable=True)
 

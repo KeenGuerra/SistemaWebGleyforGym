@@ -1,4 +1,4 @@
-import { environment } from '../environments/environment';
+import { environment } from '../../environments/environment';
 
 // La URL base de la API se inyecta en tiempo de compilación desde:
 //   - src/environments/environment.ts      → desarrollo local (localhost:8000)

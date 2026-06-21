@@ -47,7 +47,7 @@ services:
     region: oregon
     rootDir: gleyforgym-frontend
     buildCommand: npm install --include=dev && npm run build
-    staticPublishPath: dist/gleyforgym-frontend/browser
+    staticPublishPath: dist/gleyforgym-frontend
     routes:
       - type: rewrite
         source: /*

@@ -1,0 +1,58 @@
+## ============================================================
+## render.yaml — GleyforGym IngenieriawWeb
+## Blueprint de despliegue automático en Render
+## ============================================================
+
+databases:
+  - name: gleyforgym-ingenieriaweb-db
+    databaseName: gleyforgym
+    user: gleyforgym_user
+    plan: free
+    region: oregon
+
+services:
+  # ──────────────────────────────────────────────
+  # 1. BACKEND — FastAPI (Python)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: gleyforgym-ingenieriaweb-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gleyforgym-ingenieriaweb-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: FRONTEND_URL
+        value: https://gleyforgym-ingenieriaweb-frontend.onrender.com
+    healthCheckPath: /
+
+  # ──────────────────────────────────────────────
+  # 2. FRONTEND — Angular SSR (Node / Express)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: gleyforgym-ingenieriaweb-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: gleyforgym-frontend
+    buildCommand: npm install && npm run build
+    startCommand: node dist/gleyforgym-frontend/server/server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: "20.19.0"
+      - key: API_BASE_URL
+        value: https://gleyforgym-ingenieriaweb-backend.onrender.com/api
+      - key: PORT
+        value: "4000"
+    healthCheckPath: /

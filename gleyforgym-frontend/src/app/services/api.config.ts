@@ -1,4 +1,10 @@
-export const API_BASE_URL = 'http://localhost:8000/api';
+// En producción (Render), API_BASE_URL se inyecta como variable de entorno del proceso Node SSR.
+// En desarrollo local, utiliza el servidor FastAPI en localhost:8000.
+declare const process: { env: Record<string, string | undefined> };
+
+export const API_BASE_URL: string =
+  (typeof process !== 'undefined' && process.env?.['API_BASE_URL']) ||
+  'http://localhost:8000/api';
 
 export const API_ENDPOINTS = {
   asistencias: `${API_BASE_URL}/asistencias/`,
@@ -17,3 +23,4 @@ export const API_ENDPOINTS = {
     changePassword: `${API_BASE_URL}/auth/change-password`
   }
 };
+

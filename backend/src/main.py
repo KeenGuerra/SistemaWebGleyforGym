@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore [missing-import]
@@ -25,11 +26,17 @@ app = FastAPI(
 )
 
 # Configuración de CORS
-origins = [
-    "http://localhost:4200",  # Angular local dev server
+# Se leen orígenes desde la variable de entorno FRONTEND_URL (producción en Render)
+_allowed_origins = [
+    "http://localhost:4200",   # Angular local dev server
+    "http://localhost:4000",   # Angular SSR local
     "http://localhost",
-    "*"
 ]
+_frontend_url = os.getenv("FRONTEND_URL", "")
+if _frontend_url:
+    _allowed_origins.append(_frontend_url)
+
+origins = _allowed_origins
 
 app.add_middleware(
     CORSMiddleware,

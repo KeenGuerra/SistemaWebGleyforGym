@@ -47,7 +47,7 @@ services:
     runtime: static
     rootDir: gleyforgym-frontend
     buildCommand: npm install --include=dev && npm run build
-    staticPublishPath: dist/gleyforgym-frontend
+    staticPublishPath: dist/gleyforgym-frontend/browser
     routes:
       - type: rewrite
         source: /*

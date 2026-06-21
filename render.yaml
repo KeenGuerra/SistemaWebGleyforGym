@@ -46,7 +46,7 @@ services:
     region: oregon
     plan: free
     rootDir: gleyforgym-frontend
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: node dist/gleyforgym-frontend/server/server.mjs
     envVars:
       - key: NODE_VERSION

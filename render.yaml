@@ -38,21 +38,17 @@ services:
     healthCheckPath: /
 
   # ──────────────────────────────────────────────
-  # 2. FRONTEND — Angular SSR (Node / Express)
+  # 2. FRONTEND — Angular SPA (Static Site)
+  # Static Sites en Render NO se duermen → siempre disponible en plan gratuito
   # ──────────────────────────────────────────────
-  - type: web
+  - type: static
     name: gleyforgym-ingenieriaweb-frontend
     runtime: node
     region: oregon
-    plan: free
     rootDir: gleyforgym-frontend
     buildCommand: npm install --include=dev && npm run build
-    startCommand: node dist/gleyforgym-frontend/server/server.mjs
-    envVars:
-      - key: NODE_VERSION
-        value: "20.19.0"
-      - key: API_BASE_URL
-        value: https://gleyforgym-ingenieriaweb-backend.onrender.com/api
-      - key: PORT
-        value: "4000"
-    healthCheckPath: /
+    staticPublishPath: dist/gleyforgym-frontend/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

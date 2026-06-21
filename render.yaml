@@ -38,19 +38,17 @@ services:
     healthCheckPath: /
 
   # ──────────────────────────────────────────────
-  # 2. FRONTEND — Angular SPA (Web Service con Express)
-  # Nota: Render Blueprints no soporta type:static.
-  # Se usa un servidor Express mínimo para servir los archivos estáticos.
+  # 2. FRONTEND — Angular SPA (Static Site)
+  # Sintaxis correcta: type: web + runtime: static
+  # Static Sites en Render NUNCA se duermen en el plan gratuito
   # ──────────────────────────────────────────────
   - type: web
     name: gleyforgym-ingenieriaweb-frontend
-    runtime: node
-    region: oregon
-    plan: free
+    runtime: static
     rootDir: gleyforgym-frontend
     buildCommand: npm install --include=dev && npm run build
-    startCommand: node serve-static.js
-    envVars:
-      - key: NODE_VERSION
-        value: "20.19.0"
-    healthCheckPath: /
+    staticPublishPath: dist/gleyforgym-frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -43,7 +43,7 @@ export class Rutinas implements OnInit {
     clienteId: 0,
     nombre: '',
     nivel: 'intermedio' as NivelRutina,
-    objetivo: 'Tonificación',
+    objetivo: 'Definición',
     descripcion: ''
   });
   public rutinaForm = form(this.rutinaModel);
@@ -123,7 +123,7 @@ export class Rutinas implements OnInit {
       clienteId: 0,
       nombre: '',
       nivel: 'intermedio',
-      objetivo: 'Tonificación',
+      objetivo: 'Definición',
       descripcion: ''
     });
 

@@ -32,7 +32,7 @@ export class ClienteService {
       membresiaId: c.membresia_id || 1,
       entrenadorId: c.entrenador_id || 1,
       objetivoId: c.objetivo_id || 3,
-      objetivo: c.membresia_tipo || 'Tonificación',
+      objetivo: c.objetivo || 'Definición',
       peso: c.peso ? +c.peso : undefined,
       altura: c.altura ? +c.altura : undefined,
       fechaNacimiento: c.fecha_nacimiento,

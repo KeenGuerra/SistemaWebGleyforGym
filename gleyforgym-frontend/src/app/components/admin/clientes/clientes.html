@@ -264,7 +264,7 @@
               <label class="gym-form-label" for="entrenadorId">ENTRENADOR ASIGNADO</label>
               <select id="entrenadorId" name="entrenadorId" [signalForm]="clientForm.entrenadorId()" (blur)="entrenadorIdTouched.set(true)" class="gym-form-control">
                 @for (tr of entrenadores(); track tr.id) {
-                  <option [ngValue]="tr.id">{{ tr.nombre }} {{ tr.apellido }}</option>
+                  <option [value]="tr.id">{{ tr.nombre }} {{ tr.apellido }}</option>
                 }
               </select>
               @if (entrenadorIdTouched() && entrenadorIdErrores()) {
@@ -276,10 +276,10 @@
               <label class="gym-form-label" for="membresiaId">PLAN MEMBRESÍA</label>
               <select id="membresiaId" name="membresiaId" [signalForm]="clientForm.membresiaId()" (blur)="membresiaIdTouched.set(true)" class="gym-form-control">
                 @if (planesMembresia().length === 0) {
-                  <option [ngValue]="0" disabled>Cargando planes...</option>
+                  <option value="0" disabled>Cargando planes...</option>
                 }
                 @for (plan of planesMembresia(); track plan.id) {
-                  <option [ngValue]="plan.id">{{ plan.nombre }} (S/ {{ plan.precio | number:'1.0-0' }}) — {{ plan.duracionDias }} días</option>
+                  <option [value]="plan.id">{{ plan.nombre }} (S/ {{ plan.precio | number:'1.0-0' }}) — {{ plan.duracionDias }} días</option>
                 }
               </select>
               @if (membresiaIdTouched() && membresiaIdErrores()) {
@@ -291,8 +291,8 @@
           <div class="gym-form-group">
             <label class="gym-form-label" for="activo">ESTADO DE LA CUENTA</label>
             <select id="activo" name="activo" [signalForm]="clientForm.activo()" class="gym-form-control">
-              <option [ngValue]="true">Activo</option>
-              <option [ngValue]="false">Inactivo</option>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
             </select>
           </div>
 

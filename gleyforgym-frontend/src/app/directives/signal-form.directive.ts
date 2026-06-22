@@ -46,20 +46,33 @@ export class SignalFormDirective {
       }
     }
   }
-  private updateDomValue() {
-    if (this._field) {
-      const val = this._field.value();
-      const element = this.el.nativeElement;
 
-      if (element.type === 'checkbox') {
-        this.renderer.setProperty(element, 'checked', !!val);
-      } else {
-        this.renderer.setProperty(
-          element,
-          'value',
-          val === undefined || val === null ? '' : val
-        );
-      }
+  private applyValue(val: any): void {
+    const element = this.el.nativeElement;
+    if (element.type === 'checkbox') {
+      this.renderer.setProperty(element, 'checked', !!val);
+    } else {
+      this.renderer.setProperty(
+        element,
+        'value',
+        val === undefined || val === null ? '' : val
+      );
+    }
+  }
+
+  private updateDomValue(): void {
+    if (!this._field) return;
+
+    const val = this._field.value();
+    const element = this.el.nativeElement;
+
+    // Para <select>: si las opciones aún no se han renderizado, diferir la
+    // asignación con queueMicrotask para que Angular termine de renderizar
+    // las <option> antes de establecer el valor seleccionado.
+    if (element.tagName === 'SELECT' && element.options.length === 0) {
+      queueMicrotask(() => this.applyValue(val));
+    } else {
+      this.applyValue(val);
     }
   }
 }

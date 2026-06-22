@@ -105,9 +105,9 @@
               (blur)="clienteIdTouched.set(true)"
               class="gym-form-control"
             >
-              <option [ngValue]="0" disabled>Selecciona un cliente</option>
+              <option value="0" disabled>Selecciona un cliente</option>
               @for (cl of clientes(); track cl.id) {
-                <option [ngValue]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
+                <option [value]="cl.id">{{ cl.nombre }} {{ cl.apellido }}</option>
               }
             </select>
             @if (clienteIdTouched() && clienteIdErrores()) {

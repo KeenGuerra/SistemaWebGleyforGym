@@ -109,14 +109,21 @@ class ClienteService:
 
         # Actualizar membresía asignada si viene
         if cliente_in.membresia_id is not None:
-            membresia = membresia_repository.get_by_id(db, cliente_in.membresia_id)
-            if not membresia:
-                raise_not_found("La membresía especificada no existe")
+            # Obtener todas las membresías del cliente para ver la más reciente
+            todas_m = membresia_repository.get_cliente_membresias_all(db, cliente_id)
+            # Ordenar por id descendente
+            reciente_m = sorted(todas_m, key=lambda x: x.id, reverse=True)[0] if todas_m else None
             
-            # Registrar una membresía para el cliente a partir de hoy (usando duracion_dias)
-            hoy = date.today()
-            fin = hoy + timedelta(days=membresia.duracion_dias)
-            membresia_repository.registrar_cliente_membresia(db, cliente_id, membresia.id, hoy, fin)
+            # Solo registrar si no tiene membresía o si el plan es diferente
+            if not reciente_m or reciente_m.membresia_id != cliente_in.membresia_id:
+                membresia = membresia_repository.get_by_id(db, cliente_in.membresia_id)
+                if not membresia:
+                    raise_not_found("La membresía especificada no existe")
+                
+                # Registrar una membresía para el cliente a partir de hoy (usando duracion_dias)
+                hoy = date.today()
+                fin = hoy + timedelta(days=membresia.duracion_dias)
+                membresia_repository.registrar_cliente_membresia(db, cliente_id, membresia.id, hoy, fin)
 
         return db_cliente
 
@@ -135,8 +142,12 @@ class ClienteService:
             t = asignacion.entrenador.usuario
             nombre_entrenador = f"{t.nombre} {t.apellido}"
 
-        # Obtener membresía activa
-        sub = cliente_repository.get_membresia_activa(db, c.id)
+        # Obtener la membresía más reciente (activa preferiblemente, o la última por ID)
+        todas_m = membresia_repository.get_cliente_membresias_all(db, c.id)
+        sub = next((m for m in todas_m if m.estado == "ACTIVA"), None)
+        if not sub and todas_m:
+            sub = sorted(todas_m, key=lambda x: x.id, reverse=True)[0]
+
         membresia_id = sub.membresia_id if sub else None
         membresia_tipo = sub.membresia.nombre if sub else None
         membresia_estado = sub.estado if sub else "VENCIDA"

@@ -49,7 +49,15 @@ export class MembresiaService {
   }
 
   getMembresiaDeCliente(clienteId: number): Membresia | undefined {
-    return this._membresias().find(m => m.clienteId === clienteId);
+    const list = this._membresias().filter(m => m.clienteId === clienteId);
+    if (list.length === 0) return undefined;
+    
+    // Buscar si hay alguna activa
+    const activa = list.find(m => m.estado === 'ACTIVA');
+    if (activa) return activa;
+    
+    // Si no hay activa, retornar la más reciente por ID
+    return list.sort((a, b) => b.id - a.id)[0];
   }
 
   getMembresiaActiva(clienteId: number): Membresia | undefined {

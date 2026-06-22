@@ -44,6 +44,7 @@ class ClienteResponse(ClienteBase):
     membresia_tipo: str | None = None
     membresia_estado: str | None = None
     membresia_fin: str | None = None
+    objetivo: str | None = None
     fecha_modificacion: datetime
 
     class Config:

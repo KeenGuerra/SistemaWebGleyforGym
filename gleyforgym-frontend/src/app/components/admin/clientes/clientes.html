@@ -246,12 +246,11 @@
             <div class="gym-form-group">
               <label class="gym-form-label" for="objetivo">OBJETIVO</label>
               <select id="objetivo" name="objetivo" [signalForm]="clientForm.objetivo()" (blur)="objetivoTouched.set(true)" class="gym-form-control">
-                <option value="Pérdida de peso">Pérdida de peso</option>
-                <option value="Ganancia muscular">Ganancia muscular</option>
-                <option value="Tonificación">Tonificación</option>
+                <option value="Ganar masa muscular">Ganar masa muscular</option>
+                <option value="Perder grasa">Perder grasa</option>
+                <option value="Definición">Definición</option>
                 <option value="Resistencia">Resistencia</option>
-                <option value="Flexibilidad">Flexibilidad</option>
-                <option value="General">General</option>
+                <option value="Salud general">Salud general</option>
               </select>
               @if (objetivoTouched() && objetivoErrores()) {
                 <div class="gym-form-error"><i class="bi bi-info-circle"></i> {{ objetivoErrores() }}</div>

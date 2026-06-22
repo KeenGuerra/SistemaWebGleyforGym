@@ -55,7 +55,7 @@ export class Clientes implements OnInit {
     email: '',
     telefono: '',
     activo: true,
-    objetivo: 'Tonificación',
+    objetivo: 'Definición',
     peso: 70,
     altura: 1.70,
     entrenadorId: 1,
@@ -221,7 +221,7 @@ export class Clientes implements OnInit {
       email: '',
       telefono: '',
       activo: true,
-      objetivo: 'Tonificación',
+      objetivo: 'Definición',
       peso: 70,
       altura: 1.70,
       entrenadorId: 1,
@@ -254,7 +254,7 @@ export class Clientes implements OnInit {
       email: cliente.email,
       telefono: cliente.telefono,
       activo: cliente.activo,
-      objetivo: cliente.objetivo || 'Tonificación',
+      objetivo: cliente.objetivo || 'Definición',
       peso: cliente.peso || 70,
       altura: cliente.altura || 1.70,
       entrenadorId: cliente.entrenadorId || 1,
@@ -340,10 +340,19 @@ export class Clientes implements OnInit {
     const editing = this.editingCliente();
 
     try {
+      const objetivoStr = this.clientForm.objetivo().value();
+      let objId = 3; // Definición por defecto
+      if (objetivoStr === 'Ganar masa muscular') objId = 1;
+      else if (objetivoStr === 'Perder grasa') objId = 2;
+      else if (objetivoStr === 'Definición') objId = 3;
+      else if (objetivoStr === 'Resistencia') objId = 4;
+      else if (objetivoStr === 'Salud general') objId = 5;
+
       if (editing) {
         const actCliente: Cliente = {
           ...editing,
-          ...formVal
+          ...formVal,
+          objetivoId: objId
         };
         await this.clienteService.actualizarCliente(actCliente);
       } else {
@@ -359,7 +368,7 @@ export class Clientes implements OnInit {
           altura: formVal.altura,
           entrenadorId: formVal.entrenadorId,
           membresiaId: formVal.membresiaId,
-          objetivoId: 3, // default
+          objetivoId: objId,
           rol: 'CLIENTE',
           fechaRegistro: new Date().toISOString().split('T')[0]
         });

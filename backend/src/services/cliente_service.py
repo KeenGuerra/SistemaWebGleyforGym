@@ -153,6 +153,9 @@ class ClienteService:
         membresia_estado = sub.estado if sub else "VENCIDA"
         membresia_fin = str(sub.fecha_fin) if sub else "N/A"
 
+        # Obtener objetivo
+        objetivo_nombre = c.objetivo.nombre if c.objetivo else None
+
         return ClienteResponse(
             id=c.id,
             usuario=c.usuario,
@@ -170,6 +173,7 @@ class ClienteService:
             membresia_tipo=membresia_tipo,
             membresia_estado=membresia_estado,
             membresia_fin=membresia_fin,
+            objetivo=objetivo_nombre,
             fecha_modificacion=c.fecha_modificacion
         )
 

@@ -157,16 +157,43 @@ export class RutinasEntrenador implements OnInit {
 
     const entId = this.entrenadorIdActual();
 
+    const nivelVal = this.nivelSig() as 'principiante' | 'intermedio' | 'avanzado';
+
+    // Auto-completar ejercicios según nivel para simular realismo premium
+    let ejerciciosSimulados: any[] = [];
+    if (nivelVal === 'principiante') {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadillas libres', series: 3, repeticiones: '12', descanso: '60s' },
+        { nombre: 'Flexiones inclinadas', series: 3, repeticiones: '10', descanso: '60s' },
+        { nombre: 'Plancha estática', series: 3, repeticiones: '30s', descanso: '45s' }
+      ];
+    } else if (nivelVal === 'intermedio') {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadilla con barra goblet', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Press de banca plano', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Remo con mancuernas', series: 4, repeticiones: '10', descanso: '90s' },
+        { nombre: 'Plancha con toques de hombro', series: 3, repeticiones: '15', descanso: '60s' }
+      ];
+    } else {
+      ejerciciosSimulados = [
+        { nombre: 'Sentadilla trasera con barra', series: 4, repeticiones: '6-8 (pesado)', descanso: '120s' },
+        { nombre: 'Press militar con barra', series: 4, repeticiones: '8', descanso: '90s' },
+        { nombre: 'Peso muerto rumano', series: 4, repeticiones: '8', descanso: '90s' },
+        { nombre: 'Dominadas con lastre', series: 4, repeticiones: 'Máximas', descanso: '90s' },
+        { nombre: 'Rueda abdominal', series: 3, repeticiones: '12', descanso: '60s' }
+      ];
+    }
+
     try {
       await this.rutinaSvc.agregarRutina({
         nombre:        this.nombreSig(),
         clienteId:     this.clienteIdSig(),
         entrenadorId:  entId,
         diasSemana:    this.diasSeleccionados(),
-        nivel:         this.nivelSig() as 'principiante' | 'intermedio' | 'avanzado',
+        nivel:         nivelVal,
         objetivo:      this.objetivoSig(),
         descripcion:   this.descripcionSig(),
-        ejercicios:    [],
+        ejercicios:    ejerciciosSimulados,
         fechaCreacion: new Date().toISOString().split('T')[0],
         activa:        true,
       });

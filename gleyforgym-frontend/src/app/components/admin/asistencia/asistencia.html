@@ -52,7 +52,12 @@
               @if (asis.horaSalida) {
                 <span class="text-muted"><i class="bi bi-box-arrow-left"></i> {{ asis.horaSalida }}</span>
               } @else {
-                <span class="gym-badge gym-badge-warning">En sala</span>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="gym-badge gym-badge-warning">En sala</span>
+                  <button (click)="marcarSalida(asis)" class="gym-btn gym-btn-secondary gym-btn-sm" style="padding: 2px 8px; font-size: 0.75rem;" title="Marcar salida hoy">
+                    <i class="bi bi-box-arrow-left"></i> Salida
+                  </button>
+                </div>
               }
             </td>
             <td>

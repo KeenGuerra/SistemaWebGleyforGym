@@ -158,7 +158,12 @@
                     <i class="bi bi-door-closed-fill"></i> {{ a.horaSalida }}
                   </span>
                 } @else {
-                  <span class="gym-badge gym-badge-warning">En curso</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="gym-badge gym-badge-warning">En curso</span>
+                    <button (click)="marcarSalida(a)" class="gym-btn gym-btn-secondary gym-btn-sm" style="padding: 2px 8px; font-size: 0.75rem;" title="Marcar salida hoy">
+                      <i class="bi bi-box-arrow-left"></i> Salida
+                    </button>
+                  </div>
                 }
               </td>
               <td>

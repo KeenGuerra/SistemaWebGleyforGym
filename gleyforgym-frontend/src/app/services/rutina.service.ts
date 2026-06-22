@@ -92,11 +92,28 @@ export class RutinaService {
     await this.cargarObjetivos();
     const objetivoId = this.resolverObjetivoId(rutina.objetivo);
 
-    // 2. Preparar ejercicios (vacío al crear normalmente)
+    // 2. Preparar ejercicios
     const ejerciciosPayload: any[] = [];
     for (let i = 0; i < rutina.ejercicios.length; i++) {
       const ej = rutina.ejercicios[i];
       const descansoSegundos = parseInt(ej.descanso.replace(/\D/g, '')) || 60;
+      
+      // Mapear de forma inteligente al catálogo de la base de datos (IDs 1 al 4)
+      let ejId = 1; // Por defecto: Sentadilla Libre
+      const nombreLower = ej.nombre.toLowerCase();
+      if (nombreLower.includes('sentadilla')) {
+        ejId = 1; // Sentadilla Libre
+      } else if (nombreLower.includes('press') || nombreLower.includes('flexión') || nombreLower.includes('flexion')) {
+        ejId = 2; // Press de Banca
+      } else if (nombreLower.includes('muerto') || nombreLower.includes('remo')) {
+        ejId = 3; // Peso Muerto
+      } else if (nombreLower.includes('biceps') || nombreLower.includes('bíceps') || nombreLower.includes('plancha') || nombreLower.includes('dominada') || nombreLower.includes('rueda')) {
+        ejId = 4; // Curl de Bíceps
+      } else {
+        // Rotación de fallbacks si no hay coincidencia
+        ejId = (i % 4) + 1;
+      }
+
       ejerciciosPayload.push({
         series: ej.series,
         repeticiones: String(ej.repeticiones),
@@ -104,7 +121,7 @@ export class RutinaService {
         dia_semana: rutina.diasSemana?.length > 0 ? rutina.diasSemana[0] : 'Lunes',
         orden: i + 1,
         notas: ej.notas || '',
-        ejercicio_id: 1
+        ejercicio_id: ejId
       });
     }
 

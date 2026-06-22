@@ -22,6 +22,14 @@ export class AsistenciaService {
   });
 
   private mapToAsistencia(a: any): Asistencia {
+    let duracion: number | undefined = undefined;
+    if (a.hora_entrada && a.hora_salida) {
+      const [h1, m1] = a.hora_entrada.split(':').map(Number);
+      const [h2, m2] = a.hora_salida.split(':').map(Number);
+      const minEntrada = h1 * 60 + m1;
+      const minSalida = h2 * 60 + m2;
+      duracion = minSalida - minEntrada;
+    }
     return {
       id: a.id,
       clienteId: a.cliente_id,
@@ -29,7 +37,7 @@ export class AsistenciaService {
       fecha: a.fecha,
       horaEntrada: a.hora_entrada?.substring(0, 5) || '08:00',
       horaSalida: a.hora_salida?.substring(0, 5) || null,
-      duracionMinutos: a.duracion_minutos || 0,
+      duracionMinutos: duracion,
       estado: a.estado
     };
   }
@@ -78,6 +86,17 @@ export class AsistenciaService {
 
     const nuevaA = this.mapToAsistencia(response);
     this._asistencias.update(lista => [...lista.filter(a => a.id !== nuevaA.id), nuevaA]);
+  }
+
+  async registrarSalida(asistenciaId: number, horaSalida: string): Promise<void> {
+    const endpoint = `${this.apiUrl}${asistenciaId}/salida`;
+    const response = await firstValueFrom(
+      this.http.put<any>(endpoint, { hora_salida: horaSalida })
+    );
+    const actualizada = this.mapToAsistencia(response);
+    this._asistencias.update(lista =>
+      lista.map(a => a.id === actualizada.id ? actualizada : a)
+    );
   }
 
   getDiasAsistidosMes(clienteId: number): number {

@@ -216,5 +216,18 @@ export class Asistencia implements OnInit {
       this.error.set(errorMsg);
     }
   }
+
+  async marcarSalida(asis: any): Promise<void> {
+    const ahora = new Date();
+    const horaSalidaVal = ahora.toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
+    try {
+      this.cargando.set(true);
+      await this.asistenciaService.registrarSalida(asis.id, horaSalidaVal);
+      this.cargando.set(false);
+    } catch (err: any) {
+      this.cargando.set(false);
+      alert('Error al registrar la salida: ' + (err.error?.detail || err.message));
+    }
+  }
 }
 

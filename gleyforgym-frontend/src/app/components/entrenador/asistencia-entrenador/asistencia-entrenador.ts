@@ -175,5 +175,20 @@ export class AsistenciaEntrenador {
       ? `${partes[0][0]}${partes[1][0]}`.toUpperCase()
       : nombre.substring(0, 2).toUpperCase();
   }
+
+  async marcarSalida(asis: any): Promise<void> {
+    const ahora = new Date();
+    const horaSalidaVal = ahora.toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
+    try {
+      this.cargando.set(true);
+      await this.asistenciaSvc.registrarSalida(asis.id, horaSalidaVal);
+      this.cargando.set(false);
+      this.mensajeExito.set('Salida registrada correctamente');
+      setTimeout(() => this.mensajeExito.set(''), 3000);
+    } catch (err: any) {
+      this.cargando.set(false);
+      alert('Error al registrar la salida: ' + (err.error?.detail || err.message));
+    }
+  }
 }
 
